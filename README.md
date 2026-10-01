@@ -35,6 +35,8 @@ pnpm --filter @ld/app-template dev
 | `pnpm create:app`                                | Scaffold an app from the template                                 |
 | `pnpm create:project`                            | Same scaffold, with a Directus project marker (`platform: react`) |
 
+Push to `main` and pull requests run lint, types, unit tests, the architecture check, the web build, and native tooling tests. A weekly audit reports dependency vulnerabilities. Deploy is manual and does not publish anything yet. Every workflow is `contents: read` and does not use secrets.
+
 ## Documentation
 
 - [Monorepo](docs/monorepo.md)
