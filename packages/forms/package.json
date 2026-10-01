@@ -1,0 +1,30 @@
+{
+  "name": "@ld/forms",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run --passWithNoTests",
+    "lint": "node -e \"process.exit(0)\""
+  },
+  "dependencies": {
+    "@hookform/resolvers": "catalog:",
+    "react-hook-form": "catalog:",
+    "valibot": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@ld/config-typescript": "workspace:*",
+    "@types/react": "^19.1.13",
+    "react": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

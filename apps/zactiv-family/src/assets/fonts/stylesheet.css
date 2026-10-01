@@ -1,0 +1,76 @@
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('Futura-Book.woff2') format('woff2'),
+    url('Futura-Book.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('Futura.woff2') format('woff2'),
+    url('Futura.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('FuturaCondDemiOblique.woff2') format('woff2'),
+    url('FuturaCondDemiOblique.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('FuturaCondMedium.woff2') format('woff2'),
+    url('FuturaCondMedium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('FuturaBT-MediumItalic.woff2') format('woff2'),
+    url('FuturaBT-MediumItalic.woff') format('woff');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('Futura-Bold.woff2') format('woff2'),
+    url('Futura-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('FuturaBT-BoldItalic.woff2') format('woff2'),
+    url('FuturaBT-BoldItalic.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Futura';
+  src:
+    url('Futura-CondExtraBoldObl.woff2') format('woff2'),
+    url('Futura-CondExtraBoldObl.woff') format('woff');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}

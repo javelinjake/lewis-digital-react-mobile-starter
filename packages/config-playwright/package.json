@@ -1,0 +1,16 @@
+{
+  "name": "@ld/config-playwright",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@playwright/test": "catalog:"
+  },
+  "scripts": {
+    "build": "node -e \"process.exit(0)\"",
+    "ts": "node -e \"process.exit(0)\""
+  }
+}

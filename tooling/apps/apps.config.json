@@ -1,0 +1,16 @@
+{
+  "apps": [
+    {
+      "slug": "template",
+      "packageName": "@ld/app-template",
+      "path": "apps/template",
+      "deployable": false
+    },
+    {
+      "slug": "zactiv-family",
+      "packageName": "@ld/app-zactiv-family",
+      "path": "apps/zactiv-family",
+      "deployable": true
+    }
+  ]
+}

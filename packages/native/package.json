@@ -1,0 +1,52 @@
+{
+  "name": "@ld/native",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "lint": "node -e \"process.exit(0)\""
+  },
+  "peerDependencies": {
+    "@capacitor/app": "catalog:",
+    "@capacitor/camera": "catalog:",
+    "@capacitor/core": "catalog:",
+    "@capacitor/device": "catalog:",
+    "@capacitor/haptics": "catalog:",
+    "@capacitor/keyboard": "catalog:",
+    "@capacitor/network": "catalog:",
+    "@capacitor/preferences": "catalog:",
+    "@capacitor/push-notifications": "catalog:",
+    "@capacitor/share": "catalog:",
+    "@capacitor/splash-screen": "catalog:",
+    "@capacitor/status-bar": "catalog:",
+    "@aparajita/capacitor-secure-storage": "catalog:",
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@capacitor/app": "catalog:",
+    "@capacitor/camera": "catalog:",
+    "@capacitor/core": "catalog:",
+    "@capacitor/device": "catalog:",
+    "@capacitor/haptics": "catalog:",
+    "@capacitor/keyboard": "catalog:",
+    "@capacitor/network": "catalog:",
+    "@capacitor/preferences": "catalog:",
+    "@capacitor/push-notifications": "catalog:",
+    "@capacitor/share": "catalog:",
+    "@capacitor/splash-screen": "catalog:",
+    "@capacitor/status-bar": "catalog:",
+    "@aparajita/capacitor-secure-storage": "catalog:",
+    "@ld/config-typescript": "workspace:*",
+    "@types/react": "^19.1.13",
+    "react": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@ld/config-vitest",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "catalog:",
+    "vitest": "catalog:"
+  },
+  "scripts": {
+    "build": "node -e \"process.exit(0)\"",
+    "ts": "node -e \"process.exit(0)\""
+  }
+}

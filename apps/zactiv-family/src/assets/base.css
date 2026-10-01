@@ -1,0 +1,183 @@
+@import './fonts/stylesheet.css';
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@plugin "@egoist/tailwindcss-icons" {
+  prefixes: ph;
+}
+
+@theme {
+  --font-sans: 'Futura', sans-serif;
+  --color-brand-blue: #0000ff;
+  --color-brand-navy: #091d39;
+  --color-brand-yellow: #ffa500;
+  --color-brand-cream: #f6f1e7;
+  --color-brand-card: #fffdf8;
+  --color-brand-line: #e6dfd2;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-brand-cream);
+  color: var(--color-brand-navy);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.screen {
+  margin-inline: auto;
+  width: min(100%, 32rem);
+  padding: 1.25rem 1rem 6.5rem;
+}
+
+.screen-stack {
+  padding-bottom: 2rem;
+}
+
+.rich-text :where(p, ul, ol) {
+  margin-bottom: 0.75rem;
+}
+
+.rich-text :where(ul) {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.rich-text :where(ol) {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.rich-text :where(li + li) {
+  margin-top: 0.25rem;
+}
+
+.rich-text :where(img, video) {
+  width: 100%;
+  border-radius: 1rem;
+  margin-block: 0.75rem;
+}
+
+.rich-text :where(a) {
+  color: var(--color-brand-blue);
+  font-weight: 700;
+}
+
+.zactiv-video-player {
+  overflow: hidden;
+}
+
+.zactiv-video-player .zactiv-system-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.zactiv-video-player .video-js {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.zactiv-video-player .video-js.vjs-fill,
+.zactiv-video-player .video-js video,
+.zactiv-video-player .video-js .vjs-tech {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.zactiv-video-player .video-js video,
+.zactiv-video-player .video-js .vjs-tech {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Poster and video must use the same fit — default poster is cover and looks “zoomed” behind contain. */
+.zactiv-video-player .video-js .vjs-poster {
+  background-color: #000;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.zactiv-video-player .video-js:not(.vjs-has-started) .vjs-tech {
+  opacity: 0;
+}
+
+.zactiv-video-player .video-js .vjs-control-bar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 7em;
+  padding-inline: 0.35em;
+}
+
+.zactiv-video-player .video-js .vjs-progress-control {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 3em;
+  margin-inline: 0.35em;
+}
+
+.zactiv-video-player .video-js .vjs-picture-in-picture-control {
+  margin-left: auto;
+}
+
+.zactiv-video-player .video-js .vjs-fullscreen-control,
+.zactiv-video-player .video-js .vjs-volume-panel,
+.zactiv-video-player .video-js .vjs-time-control {
+  flex: 0 0 auto;
+}
+
+.zactiv-video-player .video-js .vjs-big-play-button {
+  background-color: var(--color-brand-blue);
+  color: var(--color-brand-yellow);
+  border: 2px solid white;
+  border-radius: 0;
+  font-size: clamp(2rem, 8vw, 3rem);
+  width: clamp(4rem, 18vw, 5rem);
+  height: clamp(4rem, 18vw, 5rem);
+  line-height: clamp(4rem, 18vw, 5rem);
+  margin-top: 0;
+  margin-left: 0;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+}
+
+.zactiv-video-player .video-js.vjs-playing .vjs-big-play-button {
+  display: none;
+}

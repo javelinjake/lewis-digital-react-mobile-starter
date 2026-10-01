@@ -1,0 +1,48 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_BUILD_TARGET", "VITE_DIRECTUS_URL", "VITE_FRONTEND_URL"]
+    },
+    "build:native": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_BUILD_TARGET", "VITE_DIRECTUS_URL", "VITE_FRONTEND_URL"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "ts": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "test:unit": {
+      "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "architecture:check": {
+      "cache": false
+    },
+    "cap:sync": {
+      "dependsOn": ["build:native"],
+      "cache": false
+    },
+    "native:assets": {
+      "cache": false
+    },
+    "native:configure": {
+      "cache": false
+    }
+  }
+}

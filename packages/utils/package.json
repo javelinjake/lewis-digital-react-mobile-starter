@@ -1,0 +1,39 @@
+{
+  "name": "@ld/utils",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./async/sleep": "./src/async/sleep.ts",
+    "./async/retry": "./src/async/retry.ts",
+    "./array/chunk-array": "./src/array/chunk-array.ts",
+    "./array/unique-by": "./src/array/unique-by.ts",
+    "./date/format-date": "./src/date/format-date.ts",
+    "./date/is-valid-date": "./src/date/is-valid-date.ts",
+    "./errors/get-error-message": "./src/errors/get-error-message.ts",
+    "./errors/normalise-error": "./src/errors/normalise-error.ts",
+    "./money/format-money": "./src/money/format-money.ts",
+    "./number/clamp": "./src/number/clamp.ts",
+    "./number/round-to": "./src/number/round-to.ts",
+    "./object/omit-empty": "./src/object/omit-empty.ts",
+    "./object/pick": "./src/object/pick.ts",
+    "./string/slugify": "./src/string/slugify.ts",
+    "./string/truncate": "./src/string/truncate.ts",
+    "./string/to-title-case": "./src/string/to-title-case.ts",
+    "./url/create-query-string": "./src/url/create-query-string.ts",
+    "./url/join-url": "./src/url/join-url.ts",
+    "./validation/is-defined": "./src/validation/is-defined.ts",
+    "./validation/is-non-empty-string": "./src/validation/is-non-empty-string.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run --passWithNoTests",
+    "lint": "node -e \"process.exit(0)\""
+  },
+  "devDependencies": {
+    "@ld/config-typescript": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

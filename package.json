@@ -1,0 +1,31 @@
+{
+  "name": "lewis-react-mobile-platform",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "build:native": "turbo run build:native",
+    "lint": "turbo run lint",
+    "ts": "turbo run ts",
+    "test": "turbo run test",
+    "test:unit": "turbo run test:unit",
+    "test:e2e": "turbo run test:e2e",
+    "architecture:check": "turbo run architecture:check",
+    "review": "turbo run lint ts test:unit architecture:check",
+    "review:push": "turbo run lint ts test:unit architecture:check build",
+    "create:app": "tsx tooling/create-app/create-app.ts",
+    "create:project": "tsx tooling/create-app/create-app.ts",
+    "directus:bootstrap-project": "tsx tooling/directus-template/bootstrap-project.ts",
+    "cap:sync": "turbo run cap:sync",
+    "test:native-tooling": "node --import tsx --test tooling/native/lib/*.spec.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3",
+    "turbo": "^2.5.4"
+  }
+}

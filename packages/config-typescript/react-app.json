@@ -1,0 +1,20 @@
+{
+  "extends": "./base.json",
+  "compilerOptions": {
+    "paths": {
+      "@ld/directus": ["../directus/src/index.ts"],
+      "@ld/directus/*": ["../directus/src/*"],
+      "@ld/ui": ["../ui/src/index.ts"],
+      "@ld/ui/*": ["../ui/src/*"],
+      "@ld/utils/*": ["../utils/src/*"],
+      "@ld/react-utils": ["../react-utils/src/index.ts"],
+      "@ld/react-utils/query": ["../react-utils/src/query/index.ts"],
+      "@ld/forms": ["../forms/src/index.ts"],
+      "@ld/mobile-ui": ["../mobile-ui/src/index.ts"],
+      "@ld/native": ["../native/src/index.ts"],
+      "@ld/native/react": ["../native/src/react.ts"],
+      "@ld/offline": ["../offline/src/index.ts"],
+      "@ld/pwa": ["../pwa/src/index.ts"]
+    }
+  }
+}

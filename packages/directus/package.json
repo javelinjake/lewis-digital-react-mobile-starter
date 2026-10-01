@@ -1,0 +1,24 @@
+{
+  "name": "@ld/directus",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "lint": "node -e \"process.exit(0)\""
+  },
+  "dependencies": {
+    "@directus/sdk": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "@ld/config-typescript": "workspace:*"
+  }
+}

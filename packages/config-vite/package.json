@@ -1,0 +1,20 @@
+{
+  "name": "@ld/config-vite",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-pwa": "catalog:",
+    "workbox-window": "catalog:"
+  },
+  "scripts": {
+    "build": "node -e \"process.exit(0)\"",
+    "ts": "node -e \"process.exit(0)\""
+  }
+}

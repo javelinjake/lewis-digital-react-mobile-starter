@@ -1,0 +1,14 @@
+{
+  "name": "@ld/config-typescript",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./base.json": "./base.json",
+    "./node.json": "./node.json",
+    "./react-app.json": "./react-app.json"
+  },
+  "scripts": {
+    "build": "node -e \"process.exit(0)\"",
+    "ts": "node -e \"process.exit(0)\""
+  }
+}
