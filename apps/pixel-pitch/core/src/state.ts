@@ -31,3 +31,15 @@ export function newIdleState(now: number): IdleState {
 export type WelcomeBackEvent =
   | { type: 'packs', gained: number }
   | { type: 'gems', amount: number }
+  | {
+    type: 'matches'
+    played: number
+    won: number
+    drawn: number
+    lost: number
+    coins: number
+    /** Matches not played because the player was away longer than the catch-up limit. */
+    skipped: number
+    /** The highest tier reached, if any match promoted the club. */
+    promotedTo: number | null
+  }

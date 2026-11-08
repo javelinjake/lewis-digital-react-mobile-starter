@@ -8,6 +8,8 @@ export { advance, type AdvanceResult, dayIndex, notificationTimes, pendingStadiu
 export { DEFAULT_CONFIG, type GameConfig, gameConfigSchema, parseConfig } from './config'
 export { type IdleState, newIdleState, type WelcomeBackEvent } from './state'
 
+export { type ClubState, clubNotificationTimes, lineupForMatch, newClubState, type PlayerLookup, setLineup, syncClub, type SyncResult } from './club'
+export { GameRuleError, isGameRuleError } from './errors'
 export { cardRating, benchCount, benchHasRoom, MAX_RATING, mergeable, mergeCards, type OwnedCard, sellValue, toFielded, train, trainingCost } from './cards'
 export { generateCatalogue, HAIR_COLOURS, HAIR_STYLES, NATIONS, type Player, SKIN_TONES, type SpriteParts } from './catalogue'
 export { autoPick, type AutoPickResult, chemistryBonus, type Fielded, type LineupScore, type PoolPlayer, scoreLineup, SLOT_COUNT, type SlotScore, upgradeDelta, type UpgradeResult } from './lineup'
