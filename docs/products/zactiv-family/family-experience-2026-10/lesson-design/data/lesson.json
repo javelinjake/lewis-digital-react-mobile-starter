@@ -1,0 +1,128 @@
+{
+  "id": "year-3-football-week-1",
+  "revision": "design-v1",
+  "reviewStatus": "Design example - content and diagrams require review",
+  "title": "Introduction to football",
+  "year": "Year 3",
+  "unit": "Football",
+  "week": 1,
+  "weeks": 6,
+  "category": "Invasion Games",
+  "space": "Outdoor",
+  "children": 30,
+  "equipment": "45+ cones / 30 balls",
+  "summary": "Handling the ball under passive pressure, revisiting ball manipulation skills, and learning beat-the-player moves.",
+  "objectives": [
+    "Shielding the ball",
+    "Ball manipulation",
+    "Beat the player moves"
+  ],
+  "wholeChild": [
+    "I can persevere",
+    "I can follow the rules of the game",
+    "I can take turns"
+  ],
+  "tip": "Remember to use the horseshoe technique.",
+  "activities": [
+    {
+      "id": "escape",
+      "phase": "Warm-up",
+      "title": "Escape the Castle",
+      "minutes": {
+        "min": 15,
+        "max": 15
+      },
+      "diagram": "castle",
+      "setup": "30 x 30 area. Groups of four; 1 ball and 6 cones per group.",
+      "steps": [
+        "Use a 30 x 30 area. Children work in fours with 1 ball and 6 cones.",
+        "Lay the cones in a circle to make 3 gates, each about 2 steps wide. Three players stand in the gates. One player starts in the middle, with no ball yet.",
+        "The middle player counts 3, 2, 1, go, then tries to escape through a gate without being tagged. A tagged player goes back to the middle and starts again. If they escape, the player from that gate becomes the one in the castle.",
+        "Gate players can only move side to side inside their gate."
+      ],
+      "progression": [
+        "Add a ball. The escaping player dribbles out. Gate players still tag, and do not tackle.",
+        "The ball must be dribbled under control. It is not kicked out of the castle.",
+        "Make the gates bigger or smaller to change the challenge."
+      ],
+      "cues": [
+        "How many parts of the foot can you use to move the ball?",
+        "Agility means changing direction at speed. Use it to trick the gate player.",
+        "Stop turn: the sole stops the ball, then roll it back behind you as you turn. Keep the ball low as you dribble away.",
+        "Drag back: the sole stays on the ball for longer as your body turns with the foot. The ball finishes in front of you.",
+        "Move the ball with the outside, inside and sole of the foot.",
+        "The player inside the castle starts the game with a clear 3, 2, 1, go.",
+        "Ask how the group managed taking turns."
+      ]
+    },
+    {
+      "id": "captain",
+      "phase": "Challenge 1",
+      "title": "Captain Hook",
+      "minutes": {
+        "min": 20,
+        "max": 20
+      },
+      "diagram": "tunnels",
+      "setup": "Three 20 x 10 tunnels. Split the class into three groups.",
+      "steps": [
+        "Cone out three tunnels, about 20 x 10. Split the class into three groups, one per tunnel. Each tunnel plays its own game.",
+        "The tunnel is a pirate ship. Protect your own ball, and try to kick other players’ balls off the ship. The ball can be called treasure.",
+        "Start every tunnel together with a clear 3, 2, 1, go. The player still with their ball is the winner. If your ball is kicked out, collect it and carry on. You score a point when you kick someone else’s ball off the ship.",
+        "Play each game for about 2 minutes. Repeat 3 or 4 times, and move players between tunnels to balance the games."
+      ],
+      "progression": [
+        "When a ball is kicked off, that player is out and practises toe taps at the edge of the tunnel until the game ends."
+      ],
+      "cues": [
+        "Each player keeps their own score: 1 point for every ball kicked off the ship.",
+        "Use both feet to move the ball away from others.",
+        "Dribble from slow to fast, with the ball under control.",
+        "Shield the ball by putting your body between the ball and the other player. An arm can keep distance, with no pushing.",
+        "Scan for a safe space to dribble into.",
+        "When you make a mistake, how can you stay positive?",
+        "Follow the rules so the game stays fair."
+      ]
+    },
+    {
+      "id": "beat",
+      "phase": "Challenge 2",
+      "title": "Beat the player tunnel",
+      "minutes": {
+        "min": 10,
+        "max": 15
+      },
+      "diagram": "defenders",
+      "setup": "One ball per player. Cones inside each tunnel act as defenders.",
+      "steps": [
+        "Each player has a ball inside a tunnel. Cones in the tunnel act as defenders.",
+        "On 3, 2, 1, practise a beat-the-player move at the cones. How close can you get to the cone?",
+        "Spend about 2 minutes on a move, add the key points, then repeat. Do this for both moves."
+      ],
+      "progression": [],
+      "cues": [
+        "Body swerve: lean one way as you approach the cone, then transfer your weight and explode away with the outside of the foot. That fake is called disguise.",
+        "Feint shot or pass: shape as if you will shoot or pass, then use the inside of the foot to move the ball at an angle and drive past the cone.",
+        "Ask children to demonstrate, then repeat the move and encourage perseverance.",
+        "Keep the ball close. Change speed after the move to get away from the defender."
+      ]
+    }
+  ],
+  "reflectionIntro": "Use a bean bag when asking questions so everyone is ready to answer.",
+  "reflection": [
+    "Have the children understood the key learning objectives?",
+    "Can they explain the coaching points?",
+    "What is agility, and how did it help you escape the castle?",
+    "How do you shield the ball, and when would you use it?",
+    "What two beat-the-player moves did we learn? Ask for demonstrations.",
+    "Why use speed after the move?",
+    "What did you enjoy most, and what was most challenging? Did you persevere?"
+  ],
+  "afterTeach": [
+    "Did the children engage with the session?",
+    "Did the children engage with the hook?",
+    "Did you complete all the sections on the session plan?",
+    "Did the reflection show that the children took on the key learning points?",
+    "Did you enjoy this session? Note down why."
+  ]
+}
