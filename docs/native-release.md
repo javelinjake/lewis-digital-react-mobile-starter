@@ -12,6 +12,19 @@ pnpm --filter <app> exec cap sync
 
 Native builds need an absolute `VITE_API_URL` (https). The build number is minutes since 2025-01-01.
 
+## Running locally
+
+Build against the api on your machine, then open the native project or run it from the command line:
+
+```bash
+APP_ENV=dev VITE_DATA_MODE=live VITE_API_URL=http://localhost:3001 pnpm --filter <app> build:native
+APP_ENV=dev pnpm --filter <app> exec cap sync
+```
+
+- **iOS simulator:** reaches the Mac at `localhost`. Xcode needs the iOS platform matching its SDK (Xcode > Settings > Components, or `xcodebuild -downloadPlatform iOS`).
+- **Android emulator:** run `adb reverse tcp:3001 tcp:3001` so the emulator's `localhost:3001` is the Mac's. Gradle needs Java 21; Android Studio's bundled one works: `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`. Plain http to `localhost` is allowed in debug builds only (`android/app/src/debug/res/xml/network_security_config.xml`); release builds are https-only.
+- Start the api with `ALLOW_TIME_TRAVEL=1` to skip ahead with the `X-Debug-Now` header in tests.
+
 ## Workflows
 
 `native.yaml` builds unsigned Android and iOS-simulator apps on every native change. `release-native.yaml` (manual) builds signed apps and uploads to TestFlight and the Play internal track. It has not been run yet: it needs the secrets listed at its top.

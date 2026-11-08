@@ -501,6 +501,9 @@ importers:
       playwright:
         specifier: 'catalog:'
         version: 1.61.0
+      sharp:
+        specifier: 'catalog:'
+        version: 0.34.4
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3

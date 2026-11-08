@@ -5,6 +5,7 @@
  * fresh clones need neither Python nor this step.
  */
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
@@ -58,4 +59,43 @@ if (existsSync(ios)) {
     info: { version: 1, author: 'xcode' },
   }, null, 2)}\n`)
   console.log('Wrote the iOS app icon and launch screen.')
+}
+
+// Android: launcher icons (adaptive foreground on the navy, plus legacy square and round icons for Android 7) and
+// splash drawables. Resized with nearest-neighbour so the pixel art stays sharp; Capacitor's asset tool smooths it.
+const android = path.resolve(here, '../app/android/app/src/main/res')
+if (existsSync(android)) {
+  const sharp = createRequire(path.resolve(here, '../app/package.json'))('sharp') as typeof import('sharp')
+  const NAVY = '#1b1f3b'
+  const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 } as const
+  const nearest = { kernel: 'nearest' } as const
+  const icon = path.join(source, 'app/icon_1024.png')
+  const foreground = path.join(source, 'app/icon_android_foreground_432.png')
+
+  writeFileSync(path.join(android, 'values/ic_launcher_background.xml'), `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">${NAVY}</color>\n</resources>\n`)
+
+  for (const [density, scale] of Object.entries(DENSITIES)) {
+    const dir = path.join(android, `mipmap-${density}`)
+    const legacy = Math.round(48 * scale)
+    await sharp(foreground).resize(Math.round(108 * scale), Math.round(108 * scale), nearest).png().toFile(path.join(dir, 'ic_launcher_foreground.png'))
+    await sharp(icon).resize(legacy, legacy, nearest).png().toFile(path.join(dir, 'ic_launcher.png'))
+    const circle = Buffer.from(`<svg width="${legacy}" height="${legacy}"><circle cx="${legacy / 2}" cy="${legacy / 2}" r="${legacy / 2}"/></svg>`)
+    await sharp(icon).resize(legacy, legacy, nearest).composite([{ input: circle, blend: 'dest-in' }]).png().toFile(path.join(dir, 'ic_launcher_round.png'))
+  }
+
+  // The splash is a tall portrait picture. Widen it by repeating its edge columns (plain sky above, grass stripes
+  // below), then crop each drawable to its own shape, so no screen shows a cut-off edge or stretched pixels.
+  const splash = path.join(source, 'app/splash_1170x2532.png')
+  const { width = 0, height = 0 } = await sharp(splash).metadata()
+  const side = Math.ceil((height - width) / 2)
+  const square = await sharp(splash).extend({ left: side, right: side, extendWith: 'copy' }).png().toBuffer()
+  for (const folder of readdirSync(android).filter(name => /^drawable(-(port|land)-\w+)?$/.test(name))) {
+    const file = path.join(android, folder, 'splash.png')
+    if (!existsSync(file))
+      continue
+    const { width: w = 0, height: h = 0 } = await sharp(file).metadata()
+    const out = await sharp(square).resize(w, h, { ...nearest, fit: 'cover', position: 'centre' }).png().toBuffer()
+    writeFileSync(file, out)
+  }
+  console.log('Wrote the Android launcher icons and splash.')
 }

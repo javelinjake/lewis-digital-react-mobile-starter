@@ -90,6 +90,7 @@
     "eslint": "catalog:",
     "jsdom": "catalog:",
     "playwright": "catalog:",
+    "sharp": "catalog:",
     "tailwindcss": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
