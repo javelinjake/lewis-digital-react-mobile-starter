@@ -13,7 +13,8 @@
     "architecture:check": "bash ../../../tooling/architecture-check/architecture-check.sh ."
   },
   "dependencies": {
-    "@ld/utils": "workspace:*"
+    "@ld/utils": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@ld/config-typescript": "workspace:*",
