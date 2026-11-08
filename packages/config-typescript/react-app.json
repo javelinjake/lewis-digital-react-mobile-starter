@@ -11,6 +11,11 @@
       "@ld/mobile-ui": ["../mobile-ui/src/index.ts"],
       "@ld/native": ["../native/src/index.ts"],
       "@ld/native/react": ["../native/src/react.ts"],
+      "@ld/native/notifications": ["../native/src/local-notifications.ts"],
+      "@ld/native/notification-plan": ["../native/src/notification-plan.ts"],
+      "@ld/native/orientation": ["../native/src/screen-orientation.ts"],
+      "@ld/native/social": ["../native/src/social-sign-in.ts"],
+      "@ld/native/purchases": ["../native/src/purchases.ts"],
       "@ld/offline": ["../offline/src/index.ts"],
       "@ld/pwa": ["../pwa/src/index.ts"]
     }
