@@ -4,7 +4,7 @@
  * Run after changing the pack: `pnpm --filter @ld/app-pixel-pitch art:build`. The output is committed, so CI and
  * fresh clones need neither Python nor this step.
  */
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
@@ -39,3 +39,22 @@ for (const folder of FOLDERS) {
 }
 cpSync(path.join(source, 'palette/palette.json'), path.join(target, 'palette.json'))
 console.log(`Copied ${FOLDERS.length} folders of art into ${path.relative(process.cwd(), target)}.`)
+
+// Native icon and launch screen, from the pack's app art. The splash is a full-screen portrait picture (grass along
+// the bottom), so it goes in as it is: Capacitor's asset tool expects a square splash and would crop the grass off.
+// The app is iPhone-only, so one portrait image (1170×2532, used at 3x) fits every screen with aspect-fill.
+const ios = path.resolve(here, '../app/ios/App/App/Assets.xcassets')
+if (existsSync(ios)) {
+  const iconSet = path.join(ios, 'AppIcon.appiconset')
+  cpSync(path.join(source, 'app/icon_1024.png'), path.join(iconSet, 'AppIcon-512@2x.png'))
+
+  const splashSet = path.join(ios, 'Splash.imageset')
+  for (const file of readdirSync(splashSet).filter(name => name.endsWith('.png')))
+    rmSync(path.join(splashSet, file))
+  cpSync(path.join(source, 'app/splash_1170x2532.png'), path.join(splashSet, 'splash.png'))
+  writeFileSync(path.join(splashSet, 'Contents.json'), `${JSON.stringify({
+    images: [{ idiom: 'universal', filename: 'splash.png', scale: '3x' }],
+    info: { version: 1, author: 'xcode' },
+  }, null, 2)}\n`)
+  console.log('Wrote the iOS app icon and launch screen.')
+}
