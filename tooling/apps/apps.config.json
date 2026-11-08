@@ -3,14 +3,16 @@
     {
       "slug": "template",
       "packageName": "@ld/app-template",
-      "path": "apps/template",
+      "path": "apps/template/app",
+      "api": {
+        "packageName": "@ld/api-template",
+        "path": "apps/template/api"
+      },
+      "web": "pwa",
+      "budget": {
+        "initialJsKb": 170
+      },
       "deployable": false
-    },
-    {
-      "slug": "zactiv-family",
-      "packageName": "@ld/app-zactiv-family",
-      "path": "apps/zactiv-family",
-      "deployable": true
     }
   ]
 }

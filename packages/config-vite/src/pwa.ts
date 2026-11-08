@@ -7,54 +7,15 @@ export interface PwaConfigOptions {
   description?: string
   themeColor?: string
   backgroundColor?: string
-  apiOrigins?: string[]
   devEnabled?: boolean
   iconSource?: string | false
 }
 
-const ONE_DAY = 60 * 60 * 24
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function normaliseOrigin(origin: string) {
-  return origin.trim().replace(/\/+$/, '')
-}
-
-const ANY_ORIGIN = 'https?://[^/]+'
-
-function createApiRuntimeCaching(origins: string[]) {
-  const bases = origins.map(normaliseOrigin).filter(Boolean).map(escapeRegExp)
-
-  return (bases.length > 0 ? bases : [ANY_ORIGIN])
-    .flatMap((base) => {
-      return [
-        {
-          urlPattern: new RegExp(`^${base}/assets/`),
-          handler: 'CacheFirst' as const,
-          method: 'GET' as const,
-          options: {
-            cacheName: 'ld-api-assets',
-            expiration: { maxEntries: 200, maxAgeSeconds: 30 * ONE_DAY },
-            cacheableResponse: { statuses: [0, 200] },
-          },
-        },
-        {
-          urlPattern: new RegExp(`^${base}/(items|users|files|fields|collections)/`),
-          handler: 'NetworkFirst' as const,
-          method: 'GET' as const,
-          options: {
-            cacheName: 'ld-api-data',
-            networkTimeoutSeconds: 5,
-            expiration: { maxEntries: 300, maxAgeSeconds: 7 * ONE_DAY },
-            cacheableResponse: { statuses: [0, 200] },
-          },
-        },
-      ]
-    })
-}
-
+/**
+ * The service worker caches the app shell only. It never touches `/api`: responses there belong to one signed-in
+ * user, and a cache keyed by URL is shared by everyone who uses the device (two users can both own
+ * `/api/private-media/file/photo.png`). Offline data comes from the per-user IndexedDB cache in `@ld/react-utils`.
+ */
 export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
   const {
     name,
@@ -62,7 +23,6 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
     description = '',
     themeColor = '#ffffff',
     backgroundColor = themeColor,
-    apiOrigins = [],
     devEnabled = false,
     iconSource = 'public/pwa-icon.svg',
   } = options
@@ -90,7 +50,9 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
       cleanupOutdatedCaches: true,
       clientsClaim: true,
       navigateFallbackDenylist: [/^\/api\//],
-      runtimeCaching: createApiRuntimeCaching(apiOrigins),
+      // Large lazy chunks load on demand instead of bloating the first install.
+      maximumFileSizeToCacheInBytes: 600 * 1024,
+      runtimeCaching: [],
     },
     devOptions: {
       enabled: devEnabled,

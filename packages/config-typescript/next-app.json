@@ -1,0 +1,17 @@
+{
+  "extends": "./base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": [
+      "node"
+    ],
+    "noEmit": true
+  }
+}

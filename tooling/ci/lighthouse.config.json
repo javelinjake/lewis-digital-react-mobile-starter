@@ -1,0 +1,16 @@
+{
+  "runs": 3,
+  "minimumScores": {
+    "performance": 90,
+    "accessibility": 95,
+    "best-practices": 90,
+    "seo": 90
+  },
+  "paths": {
+    "default": [
+      "/login",
+      "/home?mock-user=ada",
+      "/notes?mock-user=ada"
+    ]
+  }
+}

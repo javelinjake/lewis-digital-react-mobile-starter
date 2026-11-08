@@ -46,7 +46,8 @@ export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = 
       env: {
         ...process.env,
         VITE_BUILD_TARGET: 'web',
-        VITE_DIRECTUS_URL: process.env.VITE_DIRECTUS_URL ?? 'http://localhost:8055',
+        VITE_DATA_MODE: process.env.VITE_DATA_MODE ?? 'mock',
+        VITE_API_URL: process.env.VITE_API_URL ?? 'http://localhost:3001',
         VITE_FRONTEND_URL: process.env.VITE_FRONTEND_URL ?? `http://localhost:${previewPort}`,
       },
     },

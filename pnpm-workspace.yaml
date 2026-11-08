@@ -1,24 +1,28 @@
 packages:
-  - "apps/*"
+  - "apps/*/*"
   - "packages/*"
   - "tooling/*"
 
 catalog:
-  react: ^19.1.1
-  react-dom: ^19.1.1
+  react: ^19.3.1
+  react-dom: ^19.3.1
+  "@types/react": ^19.3.0
+  "@types/react-dom": ^19.3.0
   react-router: ^7.9.4
   "@tanstack/react-query": ^5.90.2
   "@tanstack/react-query-persist-client": ^5.90.2
   zustand: ^5.0.8
   react-hook-form: ^7.63.0
   "@hookform/resolvers": ^5.2.2
-  "@directus/sdk": ^22.0.0
   vite: ^7.0.0
   typescript: ^5.8.3
   tailwindcss: ^4.1.11
   "@tailwindcss/vite": ^4.1.11
   daisyui: ^5.0.46
-  vitest: ^3.2.4
+  vitest: ^4.1.12
+  "@types/node": ^22.18.0
+  "@testing-library/user-event": ^14.6.1
+  "@testing-library/jest-dom": ^6.6.3
   "@testing-library/react": ^16.3.0
   "@vitejs/plugin-react": ^5.0.4
   jsdom: ^26.1.0
@@ -30,7 +34,6 @@ catalog:
   "@eslint-react/eslint-plugin": ^1.38.4
   eslint-plugin-react-hooks: ^5.2.0
   eslint-plugin-react-refresh: ^0.4.24
-  directus-sdk-typegen: ^0.2.1
   valibot: ^1.1.0
   idb-keyval: ^6.3.0
   "@egoist/tailwindcss-icons": ^1.9.0
@@ -38,6 +41,24 @@ catalog:
   "@tailwindcss/typography": ^0.5.16
   "video.js": ^8.23.4
   "@videojs/themes": ^1.0.1
+
+  # Backend (one Payload + Better Auth app per product; versions match lewis-digital-next-starter)
+  next: ^16.4.2
+  payload: 3.92.0
+  "@payloadcms/next": 3.92.0
+  "@payloadcms/ui": 3.92.0
+  "@payloadcms/db-postgres": 3.92.0
+  "@payloadcms/richtext-lexical": 3.92.0
+  "@payloadcms/storage-gcs": 3.92.0
+  "@payloadcms/plugin-cloud-storage": 3.92.0
+  "@payloadcms/email-resend": 3.92.0
+  "@delmaredigital/payload-better-auth": 0.14.0
+  better-auth: 1.7.12
+  graphql: 16.11.0
+  sharp: 0.34.4
+  tsx: ^4.20.3
+  zod: ^4.6.7
+  "@vercel/config": 0.14.1
 
   # PWA
   vite-plugin-pwa: ^1.3.0

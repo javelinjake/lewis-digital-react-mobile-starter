@@ -4,7 +4,6 @@ import { join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
 import { getRepoRoot } from '../lib/repo'
-import { bootstrapProjectCms } from '../directus-template/bootstrap-project-cms'
 
 interface AppsRegistry {
   apps: Array<{
@@ -12,11 +11,6 @@ interface AppsRegistry {
     packageName: string
     path: string
     deployable: boolean
-    directusTemplate?: string
-    deploy?: {
-      staging?: { caproverApp: string }
-      production?: { caproverApp: string }
-    }
   }>
 }
 
@@ -74,14 +68,14 @@ async function main() {
   while (!isValidAppId(appId))
     appId = await prompt('Invalid ID. Use reverse-DNS like uk.co.lewisdigital.myapp', `uk.co.lewisdigital.${toBundleSegment(slug)}`)
   const hostname = await prompt('Production hostname for app links (blank to skip)', '')
-  const includeCms = (await prompt('Include Directus CMS project? (y/n)', 'y')).toLowerCase() !== 'n'
   const addNative = (await prompt('Generate iOS and Android projects now? (y/n)', 'n')).toLowerCase() === 'y'
 
-  const targetPath = join(repoRoot, 'apps', slug)
+  const targetPath = join(repoRoot, 'apps', slug, 'app')
   if (existsSync(targetPath))
     throw new Error(`App already exists at ${targetPath}`)
 
-  cpSync(join(repoRoot, 'apps/template'), targetPath, { recursive: true })
+  mkdirSync(targetPath, { recursive: true })
+  cpSync(join(repoRoot, 'apps/template/app'), targetPath, { recursive: true, filter: source => !/\/(node_modules|dist|test-results|\.turbo)(\/|$)/.test(source) })
   const packageJsonPath = join(targetPath, 'package.json')
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { name?: string, version?: string }
   packageJson.name = packageName
@@ -105,24 +99,10 @@ async function main() {
   registry.apps.push({
     slug,
     packageName,
-    path: `apps/${slug}`,
+    path: `apps/${slug}/app`,
     deployable: false,
-    ...(includeCms ? { directusTemplate: `cms/projects/${slug}` } : {}),
   })
   writeFileSync(registryPath, `${JSON.stringify(registry, null, 2)}\n`)
-
-  if (includeCms) {
-    mkdirSync(join(repoRoot, 'cms/projects', slug), { recursive: true })
-    const setupCms = (await prompt('Bootstrap Directus project marker now? (y/n)', 'y')).toLowerCase() !== 'n'
-    if (setupCms) {
-      await bootstrapProjectCms({
-        slug,
-        packageName,
-        appRelativePath: `apps/${slug}`,
-        platform: 'react',
-      })
-    }
-  }
 
   if (addNative) {
     execSync('pnpm install', { cwd: repoRoot, stdio: 'inherit' })
@@ -131,7 +111,7 @@ async function main() {
     execSync(`pnpm --filter ${packageName} native:configure`, { cwd: repoRoot, stdio: 'inherit' })
   }
 
-  console.log(`\nCreated app at apps/${slug}`)
+  console.log(`\nCreated app at apps/${slug}/app`)
   console.log(`App ID: ${appId}`)
   console.log('Next: pnpm install && pnpm --filter ' + packageName + ' dev')
 }

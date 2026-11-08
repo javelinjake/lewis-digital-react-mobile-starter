@@ -61,7 +61,9 @@ export function BottomTabBar({ items }: { items: TabBarItem[] }) {
         <NavLink
           key={item.to}
           to={item.to}
-          className={({ isActive }) => `flex min-h-11 items-center justify-center text-sm ${isActive ? 'font-semibold text-primary' : 'opacity-70'}`}
+          // The active tab is marked by a bar in the theme's primary colour, not by coloured text: a brand colour on
+          // the page background often fails contrast, and the bar carries no text-contrast requirement.
+          className={({ isActive }) => `flex min-h-11 items-center justify-center border-t-2 text-sm ${isActive ? 'border-primary font-semibold' : 'border-transparent opacity-70'}`}
         >
           {item.label}
         </NavLink>

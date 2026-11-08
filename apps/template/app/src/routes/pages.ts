@@ -1,0 +1,31 @@
+/**
+ * Every page loads on demand, so the first screen only downloads what it shows. The tab screens are also fetched when
+ * the browser is idle (`preloadTabScreens`), so switching tabs never waits on the network.
+ */
+export const pages = {
+  login: () => import('@/pages/LoginPage').then(m => ({ Component: m.LoginPage })),
+  register: () => import('@/pages/RegisterPage').then(m => ({ Component: m.RegisterPage })),
+  forgotPassword: () => import('@/pages/ForgotPasswordPage').then(m => ({ Component: m.ForgotPasswordPage })),
+  resetPassword: () => import('@/pages/ResetPasswordPage').then(m => ({ Component: m.ResetPasswordPage })),
+  home: () => import('@/pages/HomePage').then(m => ({ Component: m.HomePage })),
+  notes: () => import('@/pages/NotesPage').then(m => ({ Component: m.NotesPage })),
+  noteDetail: () => import('@/pages/NoteDetailPage').then(m => ({ Component: m.NoteDetailPage })),
+  settings: () => import('@/pages/SettingsPage').then(m => ({ Component: m.SettingsPage })),
+  notFound: () => import('@/pages/NotFoundPage').then(m => ({ Component: m.NotFoundPage })),
+}
+
+export function preloadTabScreens() {
+  const load = () => {
+    void pages.home()
+    void pages.notes()
+    void pages.settings()
+  }
+
+  if ('requestIdleCallback' in window) {
+    const handle = window.requestIdleCallback(load, { timeout: 4000 })
+    return () => window.cancelIdleCallback(handle)
+  }
+
+  const handle = setTimeout(load, 2000)
+  return () => clearTimeout(handle)
+}

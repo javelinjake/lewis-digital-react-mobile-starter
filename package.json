@@ -19,12 +19,15 @@
     "review": "turbo run lint ts test:unit architecture:check",
     "review:push": "turbo run lint ts test:unit architecture:check build",
     "create:app": "tsx tooling/create-app/create-app.ts",
-    "create:project": "tsx tooling/create-app/create-app.ts",
-    "directus:bootstrap-project": "tsx tooling/directus-template/bootstrap-project.ts",
     "cap:sync": "turbo run cap:sync",
-    "test:native-tooling": "node --import tsx --test tooling/native/lib/*.spec.ts"
+    "test:native-tooling": "node --import tsx --test tooling/native/lib/*.spec.ts",
+    "db:up": "docker compose -f tooling/cms/docker-compose.yaml up -d --wait",
+    "db:down": "docker compose -f tooling/cms/docker-compose.yaml down",
+    "db:dev": "tsx tooling/cms/dev-db.ts",
+    "test:tooling": "node --import tsx --test \"tooling/*/lib/*.spec.ts\" \"tooling/*/*.spec.ts\""
   },
   "devDependencies": {
+    "embedded-postgres": "18.6.0-beta.19",
     "tsx": "^4.20.3",
     "turbo": "^2.5.4"
   },
