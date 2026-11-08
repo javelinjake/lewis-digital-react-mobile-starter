@@ -1,13 +1,39 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
+const HOUR = 60 * 60 * 1000
+
 async function signIn(page: Page, email: string) {
   await page.goto('/login')
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill('secret')
   await page.getByRole('button', { name: 'Sign in' }).click()
-  await expect(page).toHaveURL(/\/home/)
 }
+
+async function guest(page: Page) {
+  await page.goto('/login')
+  await page.getByRole('button', { name: 'Continue as guest' }).click()
+  await expect(page).toHaveURL(/\/onboarding/)
+}
+
+/** Founds a club, watches nothing of the debut (skips it) and lands on the squad, as a new player would. */
+async function foundClub(page: Page, name = 'Harbour Town') {
+  await guest(page)
+  await page.getByLabel('Club name').fill(name)
+  await page.getByRole('button', { name: 'Blue and white' }).click()
+  await page.getByRole('button', { name: 'Found the club' }).click()
+  await expect(page).toHaveURL(/\/match\/-1/)
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await expect(page).toHaveURL(/\/squad/)
+}
+
+/** The mock game runs on a clock Playwright can move. */
+async function advanceClock(page: Page, ms: number) {
+  await page.evaluate(by => window.__pixelPitchClock!.advance(by), ms)
+}
+
+const tab = (page: Page, name: string) => page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name })
 
 test.describe('App smoke @smoke', () => {
   test('login screen renders', async ({ page }) => {
@@ -21,157 +47,99 @@ test.describe('App smoke @smoke', () => {
     expect(viewport).toContain('viewport-fit=cover')
   })
 
-  test('home route is protected', async ({ page }) => {
-    await page.goto('/home')
+  test('the club is protected', async ({ page }) => {
+    await page.goto('/club')
     await expect(page).toHaveURL(/\/login/)
   })
 })
 
-test.describe('Tabs layout @layout', () => {
-  test('shows the bottom tab bar and navigates between tabs', async ({ page }) => {
-    await signIn(page, 'user-a@example.com')
+test.describe('First session @game', () => {
+  test('a new player founds a club, wins the debut and gets a fielded squad', async ({ page }) => {
+    await guest(page)
+    await page.getByLabel('Club name').fill('Harbour Town')
+    await page.getByRole('button', { name: 'Found the club' }).click()
 
-    const nav = page.getByRole('navigation', { name: 'Primary' })
-    await expect(nav).toBeVisible()
-    await nav.getByRole('link', { name: 'Notes' }).click()
-    await expect(page).toHaveURL(/\/notes/)
-    await expect(page.getByText('Welcome')).toBeVisible()
-  })
-})
+    await expect(page).toHaveURL(/\/match\/-1\?debut=1/)
+    await expect(page.getByRole('img', { name: 'Match replay' }).or(page.getByLabel('Match replay'))).toBeVisible()
+    await page.getByRole('button', { name: 'Skip' }).click()
+    await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
+    await page.getByRole('button', { name: 'Continue' }).click()
 
-test.describe('Offline @offline', () => {
-  test('notes created offline are marked pending and shown in the banner', async ({ page, context }) => {
-    await signIn(page, 'user-a@example.com')
-    await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Notes' }).click()
-    await expect(page.getByText('Welcome')).toBeVisible()
-
-    await context.setOffline(true)
-    await expect(page.getByRole('status').filter({ hasText: 'You are offline' })).toBeVisible()
-
-    await page.getByRole('button', { name: 'Add note' }).click()
-    await page.getByLabel('Title').fill('Written offline')
-    await page.getByLabel('Body').fill('Still on this device')
-    await page.getByRole('button', { name: 'Save' }).click()
-
-    const offlineNote = page.getByRole('link', { name: /Written offline/ })
-    await expect(offlineNote).toBeVisible()
-    await expect(offlineNote.getByText('Pending', { exact: true })).toBeVisible()
-    await expect(page.getByRole('status').getByText('1 pending')).toBeVisible()
-
-    await context.setOffline(false)
-    await expect(offlineNote.getByText('Pending', { exact: true })).toBeHidden({ timeout: 10_000 })
+    await expect(page).toHaveURL(/\/squad/)
+    await expect(page.getByRole('button', { name: /^(GK|DEF|MID|FWD): .+rated \d+/ })).toHaveCount(5)
+    await expect(page.getByText(/Win \d+% · Draw \d+% · Loss \d+%/)).toBeVisible()
   })
 
-  test('create, reopen, reconnect stores exactly one server record', async ({ page }) => {
-    await signIn(page, 'user-a@example.com')
-    await page.getByRole('link', { name: 'Notes' }).click()
-    await expect(page.getByText('Welcome')).toBeVisible()
-
-    await page.evaluate(() => window.__ldNotesTest?.setOffline(true))
-    await page.getByRole('button', { name: 'Add note' }).click()
-    await page.getByLabel('Title').fill('Written offline')
-    await page.getByLabel('Body').fill('Survives reopen')
-    await page.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByRole('link', { name: /Written offline/ }).getByText('Pending', { exact: true })).toBeVisible()
-
-    await page.reload()
-    await expect(page.getByRole('link', { name: /Written offline/ }).getByText('Pending', { exact: true })).toBeVisible()
-
-    await page.evaluate(() => window.__ldNotesTest?.setOffline(false))
-    await page.evaluate(() => window.__ldTest?.flush())
-    await expect(page.getByText('Pending', { exact: true })).toBeHidden({ timeout: 10_000 })
-    await expect(page.getByRole('link', { name: /Written offline/ })).toHaveCount(1)
-
-    const ids = await page.evaluate(() => window.__ldNotesTest?.serverIds() ?? [])
-    expect(ids.filter(id => id !== 'welcome')).toHaveLength(1)
-  })
-
-  test('expired session keeps the write with the same account', async ({ page }) => {
-    await signIn(page, 'user-a@example.com')
-    await page.getByRole('link', { name: 'Notes' }).click()
-    await page.evaluate(() => window.__ldNotesTest?.setOffline(true))
-    await page.getByRole('button', { name: 'Add note' }).click()
-    await page.getByLabel('Title').fill('Held for Ada')
-    await page.getByLabel('Body').fill('Do not replay as Bee')
-    await page.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByText('Held for Ada')).toBeVisible()
-
-    await page.evaluate(() => {
-      window.__ldNotesTest?.setOffline(false)
-      window.__ldNotesTest?.expireSession()
+  test('the replay plays the match on a canvas and counts the minutes', async ({ page }) => {
+    await guest(page)
+    await page.getByRole('button', { name: 'Found the club' }).click()
+    const minute = page.locator('main span.text-center')
+    await expect(minute).toHaveText(/^\d+'$/)
+    await expect.poll(async () => Number.parseInt(await minute.textContent() ?? '0'), { timeout: 10_000 }).toBeGreaterThan(10)
+    const drawn = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
+      const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data
+      return pixels.some((value, index) => index % 4 === 3 && value > 0)
     })
-    await page.evaluate(() => window.__ldTest?.flush())
-    await expect(page).toHaveURL(/\/login/, { timeout: 10_000 })
-
-    await signIn(page, 'bee@example.com')
-    await page.getByRole('link', { name: 'Notes' }).click()
-    await expect(page.getByText('Held for Ada')).toHaveCount(0)
-    const whileBee = await page.evaluate(() => window.__ldNotesTest?.serverIds() ?? [])
-    expect(whileBee.filter(id => id !== 'welcome')).toHaveLength(0)
-
-    await page.getByRole('link', { name: 'Settings' }).click()
-    await page.getByRole('button', { name: /Account/ }).click()
-    await page.getByRole('button', { name: 'Sign out', exact: true }).click()
-    await signIn(page, 'user-a@example.com')
-    await page.getByRole('link', { name: 'Notes' }).click()
-    await expect(page.getByText('Held for Ada')).toBeVisible()
-    await page.evaluate(() => window.__ldTest?.flush())
-    await expect(page.getByText('Pending', { exact: true })).toBeHidden({ timeout: 10_000 })
-    const ids = await page.evaluate(() => window.__ldNotesTest?.serverIds() ?? [])
-    expect(ids.filter(id => id !== 'welcome')).toHaveLength(1)
+    expect(drawn).toBe(true)
   })
 
-  test('account switch does not replay another user queue', async ({ page }) => {
-    await signIn(page, 'user-a@example.com')
-    await page.getByRole('link', { name: 'Notes' }).click()
-    await page.evaluate(() => window.__ldNotesTest?.setOffline(true))
-    await page.getByRole('button', { name: 'Add note' }).click()
-    await page.getByLabel('Title').fill('Ada only')
-    await page.getByLabel('Body').fill('Parked')
-    await page.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByText('Ada only')).toBeVisible()
+  test('the formation changes the lineup, the odds and the hint', async ({ page }) => {
+    await foundClub(page)
+    const odds = page.getByText(/Win \d+% · Draw \d+% · Loss \d+%/)
+    const before = await odds.textContent()
+    await page.getByRole('radio', { name: /Wall/ }).click()
+    await expect(page.getByRole('radio', { name: /Wall/ })).toHaveAttribute('aria-checked', 'true')
+    await expect(odds).not.toHaveText(before!)
+    await expect(page.getByRole('button', { name: /^Try .+ against their/ }).or(page.getByText('This is your best formation against them.'))).toBeVisible()
+  })
 
-    await page.getByRole('link', { name: 'Settings' }).click()
-    await page.getByRole('button', { name: /Account/ }).click()
-    await page.getByRole('button', { name: 'Sign out', exact: true }).click()
-    await expect(page).toHaveURL(/\/login/)
+  test('a slot can be refilled from the squad sheet', async ({ page }) => {
+    await foundClub(page)
+    await page.getByRole('button', { name: /^GK: / }).click()
+    const sheet = page.getByRole('dialog', { name: 'Pick a GK' })
+    await expect(sheet).toBeVisible()
+    await sheet.getByRole('button', { name: 'Leave this slot empty' }).click()
+    await expect(page.getByRole('button', { name: 'GK: empty' })).toBeVisible()
+    await page.getByRole('button', { name: 'Auto-pick' }).click()
+    await expect(page.getByRole('button', { name: /^GK: .+rated/ })).toBeVisible()
+  })
+})
 
-    await signIn(page, 'bee@example.com')
-    await page.getByRole('link', { name: 'Notes' }).click()
-    await expect(page.getByText('Ada only')).toHaveCount(0)
+test.describe('Time away @game', () => {
+  test('a day away plays eight matches and shows them in the table and the summary', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 24 * HOUR + 5 * 60_000)
+    await page.goto('/club')
+    const welcome = page.getByRole('dialog', { name: 'Welcome back' })
+    await expect(welcome).toBeVisible()
+    await expect(welcome.getByText(/8 matches played/)).toBeVisible()
+    await welcome.getByRole('button', { name: 'Let\'s go' }).click()
 
-    await page.getByRole('link', { name: 'Settings' }).click()
-    await page.getByRole('button', { name: /Account/ }).click()
-    await page.getByRole('button', { name: 'Sign out', exact: true }).click()
-    await signIn(page, 'user-a@example.com')
-    await page.getByRole('link', { name: 'Notes' }).click()
-    await expect(page.getByText('Ada only')).toBeVisible()
-    await page.evaluate(() => window.__ldNotesTest?.setOffline(false))
-    await page.evaluate(() => window.__ldTest?.flush())
-    await expect(page.getByText('Pending', { exact: true })).toBeHidden({ timeout: 10_000 })
-    const ids = await page.evaluate(() => window.__ldNotesTest?.serverIds() ?? [])
-    expect(ids.filter(id => id !== 'welcome')).toHaveLength(1)
+    await tab(page, 'League').click()
+    const ours = page.getByRole('row', { name: /Harbour Town/ })
+    await expect(ours.getByRole('cell').nth(2)).toHaveText('8')
+    await expect(page.getByRole('link', { name: /^Match 8 v / })).toBeVisible()
+  })
+
+  test('a week away climbs out of League 5', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 7 * 24 * HOUR)
+    await page.goto('/club')
+    await expect(page.getByRole('dialog', { name: 'Welcome back' }).getByText(/Promoted to League [1-4]!/)).toBeVisible()
   })
 })
 
 test.describe('Accounts @auth', () => {
-  test('a guest can start without an account and is offered one in settings', async ({ page }) => {
-    await page.goto('/login')
-    await page.getByRole('button', { name: 'Continue as guest' }).click()
-    await expect(page).toHaveURL(/\/home/)
-
-    await page.getByRole('link', { name: 'Settings' }).click()
-    await expect(page.getByRole('button', { name: /Create an account/ })).toBeVisible()
+  test('a guest is offered an account in settings', async ({ page }) => {
+    await foundClub(page)
+    await tab(page, 'Settings').click()
     await page.getByRole('button', { name: /Create an account/ }).click()
     await expect(page).toHaveURL(/\/register/)
     await expect(page.getByRole('heading', { name: 'Keep your progress' })).toBeVisible()
   })
 
   test('a guest can still reach sign in, to keep what they made', async ({ page }) => {
-    await page.goto('/login')
-    await page.getByRole('button', { name: 'Continue as guest' }).click()
-    await expect(page).toHaveURL(/\/home/)
-
+    await guest(page)
     await page.goto('/login')
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
     await expect(page.getByText('what you made as a guest comes with you')).toBeVisible()
@@ -184,7 +152,6 @@ test.describe('Accounts @auth', () => {
     await page.getByLabel('Password').fill('a-long-enough-password')
     await page.getByRole('button', { name: 'Create account' }).click()
     await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible()
-    await expect(page.getByText('ada@example.com')).toBeVisible()
   })
 
   test('refuses a short password before sending anything', async ({ page }) => {
@@ -203,14 +170,8 @@ test.describe('Accounts @auth', () => {
     await expect(page.getByRole('heading', { name: 'Choose a new password' })).toBeVisible()
   })
 
-  test('deleting the account signs out and clears what the device held', async ({ page }) => {
+  test('a signed-in player without a club starts at onboarding', async ({ page }) => {
     await signIn(page, 'user-a@example.com')
-    await page.getByRole('link', { name: 'Settings' }).click()
-    await page.getByRole('button', { name: /Account/ }).click()
-    await page.getByRole('button', { name: 'Delete my account' }).click()
-    await page.getByRole('button', { name: 'Delete account', exact: true }).click()
-    await expect(page).toHaveURL(/\/login/)
-    await page.goto('/home')
-    await expect(page).toHaveURL(/\/login/)
+    await expect(page).toHaveURL(/\/onboarding/)
   })
 })

@@ -6,10 +6,10 @@ import { useRouteTitle } from '@/hooks/use-route-title'
 export function StackLayout() {
   const title = useRouteTitle('Back')
   const navigate = useNavigate()
-  const { offline, pendingCount } = useConnectivity()
+  const { offline } = useConnectivity()
 
   return (
-    <MobileShell footer={<OfflineBanner offline={offline} pendingCount={pendingCount} />}>
+    <MobileShell footer={<OfflineBanner offline={offline} pendingCount={0} />}>
       <AppBar title={title} onBack={() => navigate(-1)} />
       <Outlet />
     </MobileShell>

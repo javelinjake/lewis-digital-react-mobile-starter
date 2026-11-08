@@ -3,6 +3,7 @@ import { AuthLayout } from '@/components/layout/AuthLayout'
 import { GuestOnly, RequireAuth } from '@/components/layout/guards'
 import { StackLayout } from '@/components/layout/StackLayout'
 import { TabsLayout } from '@/components/layout/TabsLayout'
+import { ClubGate, NoClubGate } from '@/features/game/components/ClubGate'
 import { HomeRedirect } from '@/pages/HomeRedirect'
 import { RootLayout } from '@/routes/root-layout'
 import { pages } from './pages'
@@ -29,18 +30,26 @@ export const router = createBrowserRouter([
         Component: RequireAuth,
         children: [
           {
-            Component: TabsLayout,
-            children: [
-              { path: '/', Component: HomeRedirect },
-              { path: '/home', lazy: pages.home, handle: { title: 'Home' } },
-              { path: '/notes', lazy: pages.notes, handle: { title: 'Notes' } },
-              { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
-            ],
+            Component: NoClubGate,
+            children: [{ path: '/onboarding', lazy: pages.onboarding, handle: { title: 'New club' } }],
           },
           {
-            Component: StackLayout,
+            Component: ClubGate,
             children: [
-              { path: '/notes/:id', lazy: pages.noteDetail, handle: { title: 'Note' } },
+              {
+                Component: TabsLayout,
+                children: [
+                  { path: '/', Component: HomeRedirect },
+                  { path: '/club', lazy: pages.club, handle: { title: 'Club' } },
+                  { path: '/squad', lazy: pages.squad, handle: { title: 'Squad' } },
+                  { path: '/league', lazy: pages.league, handle: { title: 'League' } },
+                  { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
+                ],
+              },
+              {
+                Component: StackLayout,
+                children: [{ path: '/match/:no', lazy: pages.match, handle: { title: 'Match' } }],
+              },
             ],
           },
         ],

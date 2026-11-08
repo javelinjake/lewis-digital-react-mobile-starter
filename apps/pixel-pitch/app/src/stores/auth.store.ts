@@ -2,7 +2,6 @@ import type { SessionUser } from '@/lib/auth/session-user'
 import { isApiError } from '@ld/api-client'
 import { readOnlineHint } from '@ld/native'
 import { create } from 'zustand'
-import { runBeforeUserSwitch } from '@/app/switch-hooks'
 import { onSessionLost } from '@/lib/api/client'
 import { authApi } from '@/lib/auth/auth-api'
 import { clearSessionProfile, readSessionProfile, writeSessionProfile } from '@/lib/platform/session-profile'
@@ -17,7 +16,7 @@ interface AuthState {
   /** A guest account, created on first launch so people can start without an account. */
   loginAsGuest: () => Promise<void>
   logout: () => Promise<void>
-  /** The server rejected the session. Drops it locally; queued writes stay with this user's outbox. */
+  /** The server rejected the session. Drops it locally. */
   expireSession: () => Promise<void>
   deleteAccount: () => Promise<void>
 }
@@ -29,7 +28,7 @@ function isUnreachable(error: unknown) {
   return error instanceof TypeError || (isApiError(error) && (error.status >= 500 || error.status === 0))
 }
 
-export const useAuthStore = create<AuthState>((set, get) => {
+export const useAuthStore = create<AuthState>((set) => {
   async function become(user: SessionUser) {
     await writeSessionProfile(user)
     bootstrapPromise = Promise.resolve()
@@ -79,8 +78,6 @@ export const useAuthStore = create<AuthState>((set, get) => {
       return bootstrapPromise
     },
     login: async (email, password) => {
-      if (get().user?.isAnonymous)
-        await runBeforeUserSwitch()
       await become(await authApi.signInWithEmail(email, password))
     },
     loginAsGuest: async () => {
@@ -91,7 +88,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         await authApi.signOut()
       }
       catch {
-        // The local session still ends. Pending writes stay in this user's outbox.
+        // The local session still ends.
       }
       await leave()
     },

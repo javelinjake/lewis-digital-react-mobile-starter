@@ -1,5 +1,5 @@
 import type { ActionContext } from '@ld/backend'
-import type { ClubState, FixtureResult, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
+import type { ClubState, ClubView, FixtureResult, GameResponse, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
 import type { PayloadRequest } from 'payload'
 import type { Card, Club, Fixture } from '../../payload-types'
 import type { LoadedGame } from './load'
@@ -41,29 +41,7 @@ export interface GameInput {
   now: number
 }
 
-export interface ClubView {
-  id: number
-  name: string
-  crest: number
-  kitPrimary: string
-  kitSecondary: string
-  state: ClubState
-  version: number
-}
-
-export interface CardView extends OwnedCard {}
-
-/** What every game action answers with: the club as it now is, its squad, and what happened. */
-export interface GameResponse {
-  club: ClubView
-  cards: CardView[]
-  /** Matches played by this request, oldest first. */
-  fixtures: FixtureResult[]
-  events: WelcomeBackEvent[]
-  /** The server's time for this answer, so the app's countdowns start from the server clock. */
-  now: number
-  configVersion: number
-}
+export type { ClubView, GameResponse }
 
 export const toOwnedCard = (doc: Card): OwnedCard => ({ id: String(doc.id), playerId: doc.playerId, stars: doc.stars, trained: doc.trained })
 

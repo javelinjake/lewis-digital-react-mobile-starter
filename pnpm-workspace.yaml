@@ -4,6 +4,8 @@ packages:
   - "tooling/*"
 
 catalog:
+  "@fontsource/press-start-2p": ^5.3.0
+  "@fontsource/vt323": ^5.3.0
   react: ^19.3.1
   react-dom: ^19.3.1
   "@types/react": ^19.3.0

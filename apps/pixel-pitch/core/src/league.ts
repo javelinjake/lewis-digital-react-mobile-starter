@@ -5,7 +5,7 @@ import type { FormationId, Position } from './positions'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
 import { NATIONS } from './catalogue'
 import { scoreLineup } from './lineup'
-import { playMatch } from './match'
+import { matchOdds, playMatch } from './match'
 import { FORMATION_IDS, FORMATIONS } from './positions'
 
 const HOUR = 60 * 60 * 1000
@@ -19,10 +19,12 @@ export interface LeagueState {
   nextKickoffAt: number
   /** ATT bonus waiting for the next match from the warm-up kick. */
   warmupBonus: number
+  /** `fixtureNo` when the club arrived in this tier, so the table knows how many rounds have been played in it. */
+  tierStartNo?: number
 }
 
 export function newLeagueState(now: number, config: GameConfig): LeagueState {
-  return { tier: 1, points: 0, fixtureNo: 0, nextKickoffAt: now + config.league.matchIntervalHours * HOUR, warmupBonus: 0 }
+  return { tier: 1, points: 0, fixtureNo: 0, nextKickoffAt: now + config.league.matchIntervalHours * HOUR, warmupBonus: 0, tierStartNo: 0 }
 }
 
 export type LeagueLabel = { kind: 'league', league: number } | { kind: 'prestige', level: number }
@@ -172,10 +174,43 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
       promotedTo,
     })
     coins += matchCoins
-    league = { tier: nextTier, points: nextPoints, fixtureNo: league.fixtureNo + 1, nextKickoffAt: kickoffAt + interval, warmupBonus: 0 }
+    league = { tier: nextTier, points: nextPoints, fixtureNo: league.fixtureNo + 1, nextKickoffAt: kickoffAt + interval, warmupBonus: 0, tierStartNo: promotedTo ? league.fixtureNo + 1 : league.tierStartNo ?? 0 }
     if (promotedTo)
       rivals = generateRivals(league.tier, config)
   }
 
   return { league, results, coins, skipped }
+}
+
+export interface TableRow {
+  name: string
+  /** The player's own club. */
+  isClub: boolean
+  played: number
+  points: number
+}
+
+/**
+ * The six-team table for the club's current tier. The club's row is its real points. Each rival plays one match a
+ * round against an average side of the tier, seeded by club, tier and round, so the table is the same on every
+ * device and every sync, and stronger rivals finish higher more often.
+ */
+export function leagueTable(input: { league: LeagueState, clubName: string, clubId: string | number, config: GameConfig }): TableRow[] {
+  const { league, clubName, clubId, config } = input
+  const start = league.tierStartNo ?? 0
+  const played = Math.max(0, league.fixtureNo - start)
+  const average = { formation: '2-2' as FormationId, ...formationStrength('2-2', tierRating(league.tier, config)) }
+
+  const rivals = generateRivals(league.tier, config).map((rival) => {
+    const odds = matchOdds({ formation: rival.formation, att: rival.att, def: rival.def }, average, config)
+    let points = 0
+    for (let round = start; round < league.fixtureNo; round++) {
+      const roll = createRng(hashSeed(clubId, 'table', league.tier, round, rival.index)).next()
+      points += roll < odds.win ? config.league.winPoints : roll < odds.win + odds.draw ? config.league.drawPoints : config.league.lossPoints
+    }
+    return { name: rival.name, isClub: false, played, points }
+  })
+
+  return [{ name: clubName, isClub: true, played, points: league.points }, ...rivals]
+    .sort((a, b) => b.points - a.points || Number(b.isClub) - Number(a.isClub) || a.name.localeCompare(b.name))
 }

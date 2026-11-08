@@ -3,12 +3,11 @@ import { hideSplashScreen, isNativePlatform, setStatusBarAppearance } from '@ld/
 import { useAppState, useBackButton, useDeepLinks } from '@ld/native/react'
 import { ReloadPrompt, useServiceWorker } from '@ld/pwa'
 import { ToastProvider } from '@ld/ui'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
-import { useOutbox } from '@/app/use-outbox'
-import { useConnectivity } from '@/hooks/use-connectivity'
-import { useTheme } from '@/hooks/use-theme'
+import { gameKeys } from '@/features/game/queries/game.keys'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -36,22 +35,23 @@ export function App() {
 export function NativeRuntime() {
   const navigate = useNavigate()
   const { onResume } = useAppState()
-  const outbox = useOutbox()
-  const { theme } = useTheme()
+  const client = useQueryClient()
 
   useDeepLinks(path => navigate(path))
   useBackButton({ onBack: () => navigate(-1) })
 
+  // Opening or coming back to the app is when the most has happened: catch the club up straight away, even when the
+  // cached club is only seconds old.
+  useEffect(() => {
+    void client.invalidateQueries({ queryKey: gameKeys.all })
+  }, [client])
   useEffect(() => onResume(() => {
-    void outbox?.flush()
-  }), [onResume, outbox])
+    void client.invalidateQueries({ queryKey: gameKeys.all })
+  }), [onResume, client])
 
   useEffect(() => {
-    void setStatusBarAppearance({
-      light: theme === 'dracula',
-      backgroundColor: theme === 'dracula' ? '#111827' : '#ffffff',
-    })
-  }, [theme])
+    void setStatusBarAppearance({ light: true, backgroundColor: '#1b1f3b' })
+  }, [])
 
   return null
 }
@@ -60,15 +60,14 @@ export function UpdatePrompt() {
   const nativeShell = isNativePlatform() || import.meta.env.VITE_BUILD_TARGET === 'native'
   const sw = useServiceWorker({ enabled: !nativeShell })
   const dirty = useFormDirty()
-  const { pendingCount } = useConnectivity()
   const [dismissed, setDismissed] = useState(false)
-  const blocked = dirty || pendingCount > 0
+  const blocked = dirty
 
   return (
     <ReloadPrompt
       needRefresh={sw.needRefresh && !dismissed}
       blocked={blocked}
-      blockedReason={pendingCount > 0 ? 'Notes are still waiting to sync.' : 'Finish editing before reloading.'}
+      blockedReason="Finish editing before reloading."
       onUpdate={() => {
         if (!blocked)
           void sw.update()

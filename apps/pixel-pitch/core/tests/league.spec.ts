@@ -1,7 +1,7 @@
 import type { Fielded, LineupForMatch, LeagueState } from '../src'
 import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CONFIG, FORMATIONS, generateRivals, leagueLabel, newLeagueState, playDueFixtures, tierRating } from '../src'
+import { DEFAULT_CONFIG, FORMATIONS, generateRivals, leagueLabel, leagueTable, newLeagueState, playDueFixtures, tierRating } from '../src'
 
 const config = DEFAULT_CONFIG
 const HOUR = 60 * 60 * 1000
@@ -162,5 +162,31 @@ describe('a long absence', () => {
     expect(result.league.nextKickoffAt).toBeGreaterThan(T0 + 30 * 24 * HOUR)
     expect(result.league.nextKickoffAt - (T0 + 30 * 24 * HOUR)).toBeLessThanOrEqual(3 * HOUR)
     expect(result.league.fixtureNo).toBe(30 * 8)
+  })
+})
+
+describe('the table', () => {
+  it('has six rows with the club real points, sorted, and the same every time', () => {
+    const result = play(newLeagueState(T0, config), average, T0 + 30 * HOUR)
+    const table = leagueTable({ league: result.league, clubName: 'Harbour Town', clubId: 'club-1', config })
+    expect(table).toHaveLength(6)
+    expect(table.find(row => row.isClub)).toMatchObject({ name: 'Harbour Town', points: result.league.points, played: 10 })
+    expect(table.every(row => row.played === 10)).toBe(true)
+    expect(table.map(row => row.points)).toEqual([...table.map(row => row.points)].sort((a, b) => b - a))
+    expect(leagueTable({ league: result.league, clubName: 'Harbour Town', clubId: 'club-1', config })).toEqual(table)
+  })
+
+  it('starts empty in a new tier', () => {
+    const promoted = play(newLeagueState(T0, config), strong, T0 + 56 * 3 * HOUR)
+    const fresh = { ...promoted.league, fixtureNo: promoted.league.tierStartNo! }
+    expect(leagueTable({ league: { ...fresh, points: 0 }, clubName: 'Us', clubId: 'c', config }).every(row => row.points === 0 && row.played === 0)).toBe(true)
+  })
+
+  it('puts stronger rivals higher over a long run', () => {
+    const long = { ...newLeagueState(T0, config), fixtureNo: 400 }
+    const rivals = generateRivals(1, config)
+    const table = leagueTable({ league: long, clubName: 'Us', clubId: 'c', config })
+    const pointsOf = (index: number) => table.find(row => row.name === rivals[index].name)!.points
+    expect(pointsOf(4)).toBeGreaterThan(pointsOf(0))
   })
 })

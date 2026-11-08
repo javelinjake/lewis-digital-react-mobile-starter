@@ -7,17 +7,20 @@ export const pages = {
   register: () => import('@/pages/RegisterPage').then(m => ({ Component: m.RegisterPage })),
   forgotPassword: () => import('@/pages/ForgotPasswordPage').then(m => ({ Component: m.ForgotPasswordPage })),
   resetPassword: () => import('@/pages/ResetPasswordPage').then(m => ({ Component: m.ResetPasswordPage })),
-  home: () => import('@/pages/HomePage').then(m => ({ Component: m.HomePage })),
-  notes: () => import('@/pages/NotesPage').then(m => ({ Component: m.NotesPage })),
-  noteDetail: () => import('@/pages/NoteDetailPage').then(m => ({ Component: m.NoteDetailPage })),
+  onboarding: () => import('@/pages/OnboardingPage').then(m => ({ Component: m.OnboardingPage })),
+  club: () => import('@/pages/ClubPage').then(m => ({ Component: m.ClubPage })),
+  squad: () => import('@/pages/SquadPage').then(m => ({ Component: m.SquadPage })),
+  league: () => import('@/pages/LeaguePage').then(m => ({ Component: m.LeaguePage })),
+  match: () => import('@/pages/MatchPage').then(m => ({ Component: m.MatchPage })),
   settings: () => import('@/pages/SettingsPage').then(m => ({ Component: m.SettingsPage })),
   notFound: () => import('@/pages/NotFoundPage').then(m => ({ Component: m.NotFoundPage })),
 }
 
 export function preloadTabScreens() {
   const load = () => {
-    void pages.home()
-    void pages.notes()
+    void pages.club()
+    void pages.squad()
+    void pages.league()
     void pages.settings()
   }
 

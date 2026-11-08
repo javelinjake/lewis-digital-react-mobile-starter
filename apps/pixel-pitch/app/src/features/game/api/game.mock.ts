@@ -1,0 +1,131 @@
+import type { ClubState, FixtureResult, GameConfig, GameResponse, OwnedCard, Player, PoolPlayer } from '@ld/pixel-pitch-core'
+import type { GameApi } from './game-api.types'
+import { autoPick, DEFAULT_CONFIG, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, toFielded, trainInClub } from '@ld/pixel-pitch-core'
+import { useAuthStore } from '@/stores/auth.store'
+
+// The game rules running in the browser instead of on the server: development, Playwright and Lighthouse use it.
+// It mirrors the api's actions using the same rules from @ld/pixel-pitch-core, and keeps each user's club in
+// sessionStorage. Playwright moves the clock with window.__pixelPitchClock.
+
+interface MockClub {
+  club: GameResponse['club']
+  cards: OwnedCard[]
+  fixtures: FixtureResult[]
+  nextCardId: number
+}
+
+const config: GameConfig = DEFAULT_CONFIG
+const catalogue: Player[] = generateCatalogue(config, 'pixel-pitch-catalogue')
+const byId = new Map(catalogue.map(player => [player.id, player]))
+const players = (id: string) => byId.get(id)
+const CLOCK_KEY = 'pp-mock-clock'
+
+class MockRuleError extends Error {
+  constructor(message: string, readonly status = 400) {
+    super(message)
+  }
+}
+
+function clockOffset() {
+  return Number(sessionStorage.getItem(CLOCK_KEY) ?? 0)
+}
+
+function now() {
+  return Date.now() + clockOffset()
+}
+
+if (typeof window !== 'undefined') {
+  window.__pixelPitchClock = {
+    advance: (ms: number) => sessionStorage.setItem(CLOCK_KEY, String(clockOffset() + ms)),
+    offset: clockOffset,
+  }
+}
+
+function storageKey() {
+  return `pp-mock-club:${useAuthStore.getState().userId ?? 'anonymous'}`
+}
+
+function load(): MockClub | null {
+  const raw = sessionStorage.getItem(storageKey())
+  return raw ? JSON.parse(raw) as MockClub : null
+}
+
+function save(club: MockClub) {
+  sessionStorage.setItem(storageKey(), JSON.stringify(club))
+}
+
+/** Gives new cards real ids and swaps them into the lineup, as the api does. */
+function assignIds(mock: MockClub, state: ClubState, cards: OwnedCard[]) {
+  const ids = new Map<string, string>()
+  const next = cards.map((card) => {
+    if (!card.id.startsWith(NEW_CARD_PREFIX))
+      return card
+    const id = String(mock.nextCardId++)
+    ids.set(card.id, id)
+    return { ...card, id }
+  })
+  return { cards: next, state: { ...state, lineup: state.lineup.map(id => (id ? ids.get(id) ?? id : null)) } }
+}
+
+async function respond(run: (mock: MockClub, at: number) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[] }): Promise<GameResponse> {
+  const mock = load()
+  if (!mock)
+    throw new MockRuleError('Create your club first.', 404)
+  const at = now()
+  const synced = syncClub({ state: mock.club.state, cards: mock.cards, players, clubId: mock.club.id, config, now: at })
+  const result = run({ ...mock, club: { ...mock.club, state: synced.state } }, at)
+  const assigned = assignIds(mock, result.state, result.cards ?? mock.cards)
+  const fixtures = [...synced.fixtures, ...(result.fixtures ?? [])]
+  const next: MockClub = {
+    club: { ...mock.club, state: assigned.state, version: mock.club.version + 1 },
+    cards: assigned.cards,
+    fixtures: [...mock.fixtures, ...fixtures],
+    nextCardId: mock.nextCardId,
+  }
+  save(next)
+  // A little latency, so pending states show in development as they would on a phone.
+  await new Promise(resolve => setTimeout(resolve, 120))
+  return { club: next.club, cards: next.cards, fixtures, events: synced.events, now: at, configVersion: config.version }
+}
+
+function wrap<T>(run: () => T): T {
+  try {
+    return run()
+  }
+  catch (error) {
+    throw new MockRuleError(error instanceof Error ? error.message : String(error))
+  }
+}
+
+export const gameApi: GameApi = {
+  async sync() {
+    if (!load())
+      return null
+    return respond(mock => ({ state: mock.club.state }))
+  },
+  async createClub(input) {
+    if (load())
+      throw new MockRuleError('You already have a club.', 409)
+    const at = now()
+    const id = Math.floor(Math.random() * 1_000_000)
+    const state = newClubState(at, config)
+    const starters = rollStarterSquad({ catalogue, seed: `starter:${id}`, config })
+    const cards = starters.map((player, index) => ({ id: String(index + 1), playerId: player.id, stars: 1, trained: 0 }))
+    const pool: PoolPlayer[] = cards.map((card, index) => ({ id: card.id, ...toFielded(card, starters[index], config) }))
+    const fielded = setLineup(state, state.formation, autoPick(state.formation, pool).ids, cards)
+    const debut = playDebut({ state: fielded, cards, players, clubId: id, config, now: at })
+    const caughtUp = syncClub({ state: debut.state, cards, players, clubId: id, config, now: at })
+    const club = { id, ...input, state: caughtUp.state, version: 1 }
+    save({ club, cards, fixtures: [debut.fixture], nextCardId: cards.length + 1 })
+    return { club, cards, fixtures: [debut.fixture], events: caughtUp.events, now: at, configVersion: config.version }
+  },
+  setLineup: (formation, lineup) => respond(mock => wrap(() => ({ state: setLineup(mock.club.state, formation, lineup, mock.cards) }))),
+  sell: cardId => respond(mock => wrap(() => sellCard(mock.club.state, mock.cards, cardId, players, config))),
+  merge: cardIds => respond(mock => wrap(() => mergeInClub(mock.club.state, mock.cards, cardIds, config))),
+  train: cardId => respond(mock => wrap(() => trainInClub(mock.club.state, mock.cards, cardId, players, config))),
+  readCatalogue: async () => catalogue,
+  readConfig: async () => config,
+  async readFixtures(limit) {
+    return [...(load()?.fixtures ?? [])].sort((a, b) => b.no - a.no).slice(0, limit)
+  },
+}

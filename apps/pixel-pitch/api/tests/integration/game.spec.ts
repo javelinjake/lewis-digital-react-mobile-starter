@@ -52,6 +52,7 @@ describe('creating a club', () => {
     expect(aliceClub.fixtures).toHaveLength(1)
     expect(aliceClub.fixtures[0]).toMatchObject({ no: -1, result: 'win', coins: config.league.winCoins })
     expect(aliceClub.club.state.coins).toBe(config.league.winCoins)
+    expect(aliceClub.club.state.idle.gems).toBe(config.daily.gems)
     expect(aliceClub.club.state.league.nextKickoffAt).toBe(T0 + 3 * HOUR)
   })
 

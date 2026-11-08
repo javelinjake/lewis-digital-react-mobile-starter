@@ -1,0 +1,109 @@
+{
+ "frames": {
+  "fan_pink_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  },
+  "fan_pink_1": {
+   "frame": {
+    "x": 5,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  },
+  "fan_yellow_0": {
+   "frame": {
+    "x": 10,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  },
+  "fan_yellow_1": {
+   "frame": {
+    "x": 15,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  },
+  "fan_blue_0": {
+   "frame": {
+    "x": 20,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  },
+  "fan_blue_1": {
+   "frame": {
+    "x": 25,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  },
+  "fan_white_0": {
+   "frame": {
+    "x": 30,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  },
+  "fan_white_1": {
+   "frame": {
+    "x": 35,
+    "y": 0,
+    "w": 4,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 4,
+    "h": 5
+   }
+  }
+ },
+ "meta": {
+  "image": "crowd_fans.png",
+  "size": {
+   "w": 40,
+   "h": 6
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

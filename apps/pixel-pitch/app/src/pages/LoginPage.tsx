@@ -1,6 +1,7 @@
 import { EmailInput, FormActions, LdForm, PasswordInput, SubmitButton } from '@ld/forms'
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
+import { appConfig } from '@/config/app.config'
 import { authMethods } from '@/config/auth.config'
 import { loginSchema } from '@/features/auth/forms/login.schema'
 import { useAuthStore } from '@/stores/auth.store'
@@ -14,7 +15,7 @@ export function LoginPage() {
   const [params] = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [guestPending, setGuestPending] = useState(false)
-  const destination = params.get('redirect') || '/home'
+  const destination = params.get('redirect') || appConfig.defaultRoute
 
   return (
     <div>

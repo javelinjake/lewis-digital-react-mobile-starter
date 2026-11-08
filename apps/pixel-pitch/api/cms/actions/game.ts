@@ -1,7 +1,7 @@
 import type { ActionContext } from '@ld/backend'
 import type { PoolPlayer } from '@ld/pixel-pitch-core'
 import { defineAction } from '@ld/backend'
-import { autoPick, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, toFielded, trainInClub } from '@ld/pixel-pitch-core'
+import { autoPick, CREST_COUNT, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, toFielded, trainInClub } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { serverNow } from '../game/clock'
 import { loadGame } from '../game/load'
@@ -10,7 +10,6 @@ import { findClub, mutateClub, rule, saveClub, stateJson } from '../game/mutate-
 // Every game action is a defineAction: signed in, idempotent on its Idempotency-Key, rate limited and run in one
 // transaction. The client says what it wants; the rules in @ld/pixel-pitch-core decide what happens.
 
-const CREST_COUNT = 16
 const HEX = /^#[0-9a-f]{6}$/i
 
 function text(body: Record<string, unknown>, key: string): string {
@@ -63,14 +62,16 @@ export const createClubAction = defineAction({
     const lineup = autoPick(state.formation, pool).ids
     const fielded = rule(() => setLineup(state, state.formation, lineup, cards))
     const debut = rule(() => playDebut({ state: fielded, cards, players: game.players, clubId: club.id, config: game.config, now }))
+    // Catch up at once, which grants today's gems. No league match is due yet.
+    const caughtUp = syncClub({ state: debut.state, cards, players: game.players, clubId: club.id, config: game.config, now })
 
     const response = await saveClub(ctx, { game, club, state: fielded, cards: [], now }, {
-      state: debut.state,
+      state: caughtUp.state,
       cards,
       source: 'starter',
       fixtures: [debut.fixture],
       ledger: [{ currency: 'coins', amount: debut.fixture.coins, reason: 'debut' }],
-    }, { fixtures: [], events: [] })
+    }, { fixtures: [], events: caughtUp.events })
     return { status: 201, body: response }
   },
 })

@@ -24,7 +24,8 @@
     "cap:dev:android": "tsx ../../../tooling/native/cap-dev.ts android",
     "native:assets": "capacitor-assets generate --ios --android --assetPath resources --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#111827' --splashBackgroundColor '#ffffff' --splashBackgroundColorDark '#111827'",
     "native:configure": "tsx ../../../tooling/native/configure.ts",
-    "build:vercel": "tsx ../../../tooling/deploy/vercel-build.ts"
+    "build:vercel": "tsx ../../../tooling/deploy/vercel-build.ts",
+    "art:build": "tsx ../art/build.ts"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "catalog:",
@@ -43,11 +44,15 @@
     "@capacitor/splash-screen": "catalog:",
     "@capacitor/status-bar": "catalog:",
     "@capgo/capacitor-social-login": "catalog:",
+    "@fontsource/press-start-2p": "catalog:",
+    "@fontsource/vt323": "catalog:",
     "@ld/api-client": "workspace:*",
     "@ld/forms": "workspace:*",
+    "@ld/game": "workspace:*",
     "@ld/mobile-ui": "workspace:*",
     "@ld/native": "workspace:*",
     "@ld/offline": "workspace:*",
+    "@ld/pixel-pitch-core": "workspace:*",
     "@ld/pwa": "workspace:*",
     "@ld/react-utils": "workspace:*",
     "@ld/ui": "workspace:*",

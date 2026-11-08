@@ -1,0 +1,73 @@
+{
+ "frames": {
+  "ball_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "ball_1": {
+   "frame": {
+    "x": 9,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "ball_2": {
+   "frame": {
+    "x": 18,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "ball_3": {
+   "frame": {
+    "x": 27,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   }
+  },
+  "ball_shadow": {
+   "frame": {
+    "x": 36,
+    "y": 0,
+    "w": 8,
+    "h": 3
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 3
+   }
+  }
+ },
+ "meta": {
+  "image": "ball.png",
+  "size": {
+   "w": 45,
+   "h": 9
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

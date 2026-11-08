@@ -21,15 +21,10 @@ interface ImportMeta {
 declare global {
   interface Window {
     __APP_CONFIG__?: AppRuntimeConfig
-    __ldTest?: {
-      flush: () => Promise<void>
-      pending: () => number
-    }
-    __ldNotesTest?: {
-      setOffline: (offline: boolean) => void
-      failNextWrite: () => void
-      serverIds: () => string[]
-      expireSession: () => void
+    /** Mock data mode only: lets Playwright move the game clock forward (milliseconds added to now). */
+    __pixelPitchClock?: {
+      advance: (ms: number) => void
+      offset: () => number
     }
   }
 }

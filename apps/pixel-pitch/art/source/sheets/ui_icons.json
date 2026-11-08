@@ -1,0 +1,301 @@
+{
+ "frames": {
+  "club": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "packs": {
+   "frame": {
+    "x": 13,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "squad": {
+   "frame": {
+    "x": 26,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "league": {
+   "frame": {
+    "x": 39,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "shop": {
+   "frame": {
+    "x": 52,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "settings": {
+   "frame": {
+    "x": 65,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "lock": {
+   "frame": {
+    "x": 78,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "sound_on": {
+   "frame": {
+    "x": 91,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "sound_off": {
+   "frame": {
+    "x": 0,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "music": {
+   "frame": {
+    "x": 13,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "haptics": {
+   "frame": {
+    "x": 26,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "bell": {
+   "frame": {
+    "x": 39,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "close": {
+   "frame": {
+    "x": 52,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "back": {
+   "frame": {
+    "x": 65,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "info": {
+   "frame": {
+    "x": 78,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "check": {
+   "frame": {
+    "x": 91,
+    "y": 13,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "plus": {
+   "frame": {
+    "x": 0,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "arrow_up": {
+   "frame": {
+    "x": 13,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "arrow_down": {
+   "frame": {
+    "x": 26,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "clock": {
+   "frame": {
+    "x": 39,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "refresh": {
+   "frame": {
+    "x": 52,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "share": {
+   "frame": {
+    "x": 65,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "swap": {
+   "frame": {
+    "x": 78,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "whistle": {
+   "frame": {
+    "x": 91,
+    "y": 26,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  }
+ },
+ "meta": {
+  "image": "ui_icons.png",
+  "size": {
+   "w": 104,
+   "h": 39
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

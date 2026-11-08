@@ -16,7 +16,7 @@ The server owns every clock. Store timestamps (`lastCollectedAt`), not counters.
 
 The key property to test: `advance(advance(s, t1), t2)` equals `advance(s, t2)`. The game pays the same whether the player checks in every five minutes or once a day.
 
-Tests and playtesters can skip time with the `X-Debug-Now` header, honoured only when `ALLOW_TIME_TRAVEL=1` (refused in production).
+Tests and playtesters can skip time with the `X-Debug-Now` header, honoured only when `ALLOW_TIME_TRAVEL=1` (refused in production). In mock data mode the app runs the rules in the browser on a clock Playwright moves with `window.__pixelPitchClock.advance(ms)`.
 
 ## Rewards and cheating
 
