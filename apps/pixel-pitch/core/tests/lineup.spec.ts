@@ -40,14 +40,14 @@ describe('formations', () => {
     }
   })
 
-  it('shows the canvas\'s ATT and DEF for five 70s in position', () => {
+  it('splits five 70s into ATT and DEF that always add up to 140', () => {
     const fiveSeventies = (id: FormationId) => scoreLineup(id, FORMATIONS[id].roles.map((role, index): Fielded => ({ position: role, rating: 70, nation: index % 4 })))
     const rounded = (id: FormationId) => [Math.round(fiveSeventies(id).att), Math.round(fiveSeventies(id).def)]
-    expect(rounded('2-2')).toEqual([77, 65])
-    expect(rounded('1-2-1')).toEqual([74, 68])
-    expect(rounded('2-1-1')).toEqual([63, 75])
-    expect(rounded('3-1')).toEqual([53, 82])
-    expect(rounded('1-1-2')).toEqual([88, 58])
+    expect(rounded('2-2')).toEqual([62, 78])
+    expect(rounded('1-2-1')).toEqual([59, 81])
+    expect(rounded('2-1-1')).toEqual([50, 90])
+    expect(rounded('3-1')).toEqual([42, 98])
+    expect(rounded('1-1-2')).toEqual([70, 70])
   })
 })
 

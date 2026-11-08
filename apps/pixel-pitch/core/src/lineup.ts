@@ -8,7 +8,7 @@ export interface Fielded extends PositionedPlayer {
 }
 
 export interface SlotScore {
-  role: string
+  role: Position
   /** 0 for an empty slot. */
   fit: number
   /** rating × fit, 0 for an empty slot. */
@@ -25,6 +25,7 @@ export interface LineupScore {
   overall: number
   /** Exact values. The match uses these, not the rounded display. */
   exact: number
+  /** Attack and defence strength. They always add up to 2 × `exact`. */
   att: number
   def: number
 }
@@ -68,9 +69,11 @@ export function scoreLineup(formation: FormationId, players: ReadonlyArray<Field
     chemistry,
     overall: Math.round(exact),
     exact,
-    // ATT is split over the two attacking-minded slots' worth of weight, DEF over three.
-    att: (attSum / 2) * (1 + chemistry),
-    def: (defSum / 3) * (1 + chemistry),
+    // Every role's weights add up to 1, so attSum + defSum is the sum of the slot scores. Halving the five slots for
+    // each side makes ATT + DEF exactly twice the score: a formation moves strength between attack and defence and
+    // never adds any. (The spec divided ATT by 2 and DEF by 3, which made Blitz best against everything.)
+    att: (attSum / (SLOT_COUNT / 2)) * (1 + chemistry),
+    def: (defSum / (SLOT_COUNT / 2)) * (1 + chemistry),
   }
 }
 

@@ -1,17 +1,38 @@
 import type { GameConfig } from './config'
-import type { Position } from './positions'
+import type { FormationId, Position } from './positions'
 import { createRng, poisson } from '@ld/utils/random/rng'
 import { ROLE_WEIGHTS } from './positions'
+import { tacticalEdge } from './tactics'
 
-const MAX_EXPECTED_GOALS = 8
+/** A side going into a match: its formation and its ATT and DEF from `scoreLineup`. */
+export interface Side {
+  formation: FormationId
+  att: number
+  def: number
+}
 
-/** Goals each side is expected to score. A stronger attack against a weaker defence scores more, squared. */
+/**
+ * Goals a side is expected to score. Every `doublingGap` points its attack is above the other side's defence doubles
+ * them (and every `doublingGap` below halves them), so the gap matters, not the ratio. That is what lets a defensive
+ * formation be the right reply to a stronger side and an attacking one to a weaker side. A side with no attack at all
+ * scores nothing.
+ */
 export function expectedGoals(att: number, opponentDef: number, config: GameConfig): number {
-  // No defence at all concedes as much as the cap allows (and nothing if there was no attack either).
-  if (!(opponentDef > 0))
-    return att > 0 ? MAX_EXPECTED_GOALS : 0
-  // Capped so an absurd mismatch cannot produce an absurd score.
-  return Math.min(MAX_EXPECTED_GOALS, config.match.xgScale * (att / opponentDef) ** 2)
+  if (!(att > 0))
+    return 0
+  return Math.min(config.match.maxXg, config.match.baseXg * 2 ** ((att - opponentDef) / config.match.doublingGap))
+}
+
+/** Expected goals both ways, with the formation matchup and any warm-up bonus applied. */
+export function matchExpectation(ours: Side, theirs: Side, config: GameConfig, warmupBonus = 0) {
+  const edge = tacticalEdge(ours.formation, theirs.formation, config)
+  // An empty side stays empty: the edge only adds to strength that is there.
+  const lift = (value: number, by: number) => (value > 0 ? Math.max(0, value + by) : 0)
+  const att = lift(ours.att * (1 + warmupBonus), edge)
+  const def = lift(ours.def, edge)
+  const theirAtt = lift(theirs.att, -edge)
+  const theirDef = lift(theirs.def, -edge)
+  return { edge, for: expectedGoals(att, theirDef, config), against: expectedGoals(theirAtt, def, config) }
 }
 
 export interface Odds {
@@ -30,15 +51,16 @@ function poissonRow(mean: number): number[] {
 }
 
 /** Chance of a win, draw and loss before kick-off, from the same maths the match itself uses. */
-export function winProbabilities(att: number, def: number, opponentAtt: number, opponentDef: number, config: GameConfig): Odds {
-  const ours = poissonRow(expectedGoals(att, opponentDef, config))
-  const theirs = poissonRow(expectedGoals(opponentAtt, def, config))
+export function matchOdds(ours: Side, theirs: Side, config: GameConfig, warmupBonus = 0): Odds {
+  const expectation = matchExpectation(ours, theirs, config, warmupBonus)
+  const goalsFor = poissonRow(expectation.for)
+  const goalsAgainst = poissonRow(expectation.against)
   let win = 0
   let draw = 0
   let loss = 0
   for (let a = 0; a <= MAX_GOALS; a++) {
     for (let b = 0; b <= MAX_GOALS; b++) {
-      const p = ours[a] * theirs[b]
+      const p = goalsFor[a] * goalsAgainst[b]
       if (a > b)
         win += p
       else if (a === b)
@@ -49,6 +71,11 @@ export function winProbabilities(att: number, def: number, opponentAtt: number, 
   }
   const total = win + draw + loss
   return { win: win / total, draw: draw / total, loss: loss / total }
+}
+
+/** League points a match is worth on average at these odds. Used to rank formations against a rival. */
+export function expectedPoints(odds: Odds, config: GameConfig): number {
+  return odds.win * config.league.winPoints + odds.draw * config.league.drawPoints + odds.loss * config.league.lossPoints
 }
 
 export type MatchSide = 'for' | 'against'
@@ -62,12 +89,10 @@ export interface MatchEvent {
   slot: number
 }
 
-export interface MatchInput {
-  att: number
-  def: number
+export interface MatchInput extends Side {
   /** Roles and strengths of our five slots, to choose who scores. */
   slots: ReadonlyArray<{ role: Position, score: number }>
-  opponent: { att: number, def: number, roles: readonly Position[] }
+  opponent: Side & { roles: readonly Position[] }
   /** Extra ATT for this match from the warm-up kick, as a fraction (0.1 is +10%). */
   warmupBonus?: number
   seed: number | string
@@ -97,9 +122,9 @@ function pickScorer(rng: ReturnType<typeof createRng>, weights: number[]): numbe
  */
 export function playMatch(input: MatchInput, config: GameConfig): MatchOutcome {
   const rng = createRng(input.seed)
-  const att = input.att * (1 + (input.warmupBonus ?? 0))
-  const expectedFor = expectedGoals(att, input.opponent.def, config)
-  const expectedAgainst = expectedGoals(input.opponent.att, input.def, config)
+  const expectation = matchExpectation(input, input.opponent, config, input.warmupBonus ?? 0)
+  const expectedFor = expectation.for
+  const expectedAgainst = expectation.against
 
   const goalsFor = poisson(rng.fork('goals-for'), expectedFor)
   const goalsAgainst = poisson(rng.fork('goals-against'), expectedAgainst)

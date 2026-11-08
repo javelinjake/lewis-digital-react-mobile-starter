@@ -9,6 +9,7 @@ const byRarity = <T extends z.ZodType>(value: T) => z.object({ grassroots: value
  */
 const positive = z.number().positive()
 const count = z.number().int().nonnegative()
+const formationId = z.enum(['2-2', '1-2-1', '2-1-1', '3-1', '1-1-2'])
 
 export const gameConfigSchema = z.object({
   /** Bumped on every change. Stamped on results so a result can be traced to the rules that produced it. */
@@ -69,12 +70,26 @@ export const gameConfigSchema = z.object({
   }),
 
   match: z.object({
-    /** Expected goals = scale × (attack ÷ their defence)². */
-    xgScale: positive,
+    /**
+     * Expected goals = baseXg × 2^((ATT − their DEF) ÷ doublingGap), at most maxXg. Every `doublingGap` points of
+     * attack over the other side's defence doubles the goals expected. With these defaults two Boxes of equal players
+     * expect the spec's 1.35 goals each.
+     */
+    baseXg: positive,
+    doublingGap: positive,
+    maxXg: positive,
     /** Pre-match kick: how much of the team's ATT the next match gets. */
     warmupGold: z.number().min(0).max(0.5),
     warmupGreen: z.number().min(0).max(0.5),
     warmupMiss: z.number().min(0).max(0.5),
+  }),
+
+  formations: z.object({
+    /**
+     * Tactical edges: `formation` playing against `over` adds `points` to its ATT and DEF and takes them off the other
+     * side's. Counter-picks come from this table. PLACEHOLDER values, to tune in playtest.
+     */
+    edges: z.array(z.object({ formation: formationId, over: formationId, points: z.number().nonnegative() })),
   }),
 
   cards: z.object({
@@ -115,7 +130,7 @@ export const gameConfigSchema = z.object({
 export type GameConfig = z.infer<typeof gameConfigSchema>
 
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 1,
+  version: 2,
   shelf: {
     intervalMinutes: 45,
     capacity: 10,
@@ -156,7 +171,22 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     rivalSpread: 4,
     maxCatchUpMatches: 56,
   },
-  match: { xgScale: 1.35, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
+  match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
+  formations: {
+    // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.
+    edges: [
+      { formation: '3-1', over: '1-1-2', points: 5 },
+      { formation: '1-2-1', over: '3-1', points: 5 },
+      { formation: '1-1-2', over: '1-2-1', points: 5 },
+      { formation: '1-2-1', over: '2-2', points: 2 },
+      { formation: '2-1-1', over: '1-1-2', points: 2 },
+      { formation: '2-2', over: '2-1-1', points: 2 },
+      { formation: '2-2', over: '3-1', points: 1 },
+      { formation: '2-1-1', over: '1-2-1', points: 1 },
+      { formation: '1-1-2', over: '2-2', points: 1 },
+      { formation: '3-1', over: '2-1-1', points: 1 },
+    ],
+  },
   cards: {
     catalogueCounts: { grassroots: 60, semipro: 60, pro: 45, star: 25, legend: 10 },
     ratingBands: { grassroots: [44, 52], semipro: [55, 63], pro: [65, 73], star: [76, 84], legend: [86, 94] },
@@ -196,6 +226,15 @@ export function parseConfig(raw: unknown): GameConfig {
   for (const [rarity, [low, high]] of Object.entries(config.cards.ratingBands)) {
     if (low > high)
       throw new Error(`cards.ratingBands.${rarity} has its low end above its high end.`)
+  }
+  const pairs = new Set<string>()
+  for (const edge of config.formations.edges) {
+    if (edge.formation === edge.over)
+      throw new Error(`formations.edges has ${edge.formation} with an edge over itself.`)
+    const pair = [edge.formation, edge.over].sort().join(' v ')
+    if (pairs.has(pair))
+      throw new Error(`formations.edges lists ${pair} more than once. Give one side the edge.`)
+    pairs.add(pair)
   }
   return config
 }

@@ -1,7 +1,7 @@
 import type { GameConfig } from './config'
 import type { Fielded } from './lineup'
 import type { MatchEvent, MatchResult } from './match'
-import type { FormationId } from './positions'
+import type { FormationId, Position } from './positions'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
 import { NATIONS } from './catalogue'
 import { scoreLineup } from './lineup'
@@ -44,7 +44,7 @@ export interface Rival {
   rating: number
   att: number
   def: number
-  roles: readonly string[]
+  roles: readonly Position[]
 }
 
 const CLUB_SUFFIXES = ['Rovers', 'Athletic', 'Town', 'Wanderers', 'Albion', 'Rangers', 'City', 'Dynamos', 'United', 'Harriers']
@@ -134,10 +134,11 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
     const rival = rivals[league.fixtureNo % rivals.length]
     const warmup = league.warmupBonus
     const outcome = playMatch({
+      formation: lineup.formation,
       att: score.att,
       def: score.def,
-      slots: score.slots.map(slot => ({ role: slot.role as 'GK' | 'DEF' | 'MID' | 'FWD', score: slot.score })),
-      opponent: { att: rival.att, def: rival.def, roles: rival.roles as readonly ('GK' | 'DEF' | 'MID' | 'FWD')[] },
+      slots: score.slots.map(slot => ({ role: slot.role, score: slot.score })),
+      opponent: { formation: rival.formation, att: rival.att, def: rival.def, roles: rival.roles },
       warmupBonus: warmup,
       seed: hashSeed(clubId, 'fixture', league.fixtureNo),
     }, config)

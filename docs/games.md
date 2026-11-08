@@ -30,11 +30,25 @@ A reward endpoint is a `defineAction`. The client sends what it did; the server 
 - `createAudioManager`: separate music and effects switches, mutes music in the background, unlocks on the first tap.
 - `useReducedEffects` (`@ld/react-utils`): low-effects mode for weak devices and reduced-motion users. One class on the root; every feature still works.
 
-## Open design issue: formation balance (Pixel Pitch)
+## Formations and the match (Pixel Pitch)
 
-With the spec's normalisation (ATT = sum of attack / 2, DEF = sum of defence / 3), the formations have different totals for the same five players. Five 70-rated players give Blitz 146, Box and Diamond 142, Pyramid 138 and Wall 135. Blitz is therefore the best reply to almost every opponent and Wall is never the best. The "counter-pick" the spec promises for League 3 does not emerge: formation moves win probability by only 1 to 2 points once totals are equalised.
+The spec's `xG = 1.35 × (ATT ÷ their DEF)²`, with ATT divided by 2 and DEF by 3, could not produce counter-picks. A ratio squared makes a side's strength one number, ATT × DEF. Every role's weights add up to 1, so that product is highest for the most balanced formation: Blitz was the best reply to everything and Wall was never worth picking. The rule now is:
 
-Options: keep the spec as written; scale each formation so totals match; or change the model so a formation rewards specialisation (for example opposing ATT against DEF by zone). The pending `it.todo('has a counter-pick ...')` in `apps/pixel-pitch/core/tests/match.spec.ts` should become a real test once a rule is chosen.
+- `ATT = Σ(slot × att weight) ÷ 2.5` and `DEF = Σ(slot × def weight) ÷ 2.5`, both × (1 + chemistry). ATT + DEF is always twice the lineup score, so a formation moves strength between attack and defence and never adds any.
+- `xG = baseXg × 2^((ATT − their DEF) ÷ doublingGap)`, capped at `maxXg` (defaults 2.4, 20, 8). The gap counts, not the ratio. Two Boxes of equal players expect the spec's 1.35 goals each.
+- A tactical-edge table (`formations.edges` in the config) gives one formation a few rating points over another: added to its ATT and DEF and taken off the other side's. The defaults are placeholders: two cycles (Wall > Blitz > Diamond > Wall by 5; Diamond > Box > Pyramid > Blitz by 2) and 1-point edges for the other pairs.
+
+Five 70-rated players a side (win % for the row against the column):
+
+| | Box | Diamond | Pyramid | Wall | Blitz | Average points | Goals each, mirror | Best reply to it |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Box (2-2) | 37 | 29 | 41 | 33 | 34 | 1.99 | 1.34 | Diamond |
+| Diamond (1-2-1) | 45 | 35 | 30 | 44 | 18 | 1.98 | 1.10 | Blitz |
+| Pyramid (2-1-1) | 27 | 36 | 29 | 24 | 45 | 2.01 | 0.62 | Box |
+| Wall (3-1) | 28 | 18 | 28 | 22 | 52 | 2.01 | 0.34 | Diamond |
+| Blitz (1-1-2) | 44 | 63 | 29 | 19 | 41 | 2.01 | 2.40 | Wall |
+
+Every formation averages 2 points against the field, and the best reply changes with the rival's formation. Without any edge, defending pays against a stronger side (against a +7 rival: Wall 1.84 points, Blitz 1.71) and attacking pays against a weaker one (against −7: Blitz 2.31, Wall 2.19). `bestFormation(squad, rival)` ranks the five for the squad screen's hint. `tests/match.spec.ts` checks the balance, the counter-picks and the stronger/weaker rule, so a config change that breaks them fails CI.
 
 ## Art
 
