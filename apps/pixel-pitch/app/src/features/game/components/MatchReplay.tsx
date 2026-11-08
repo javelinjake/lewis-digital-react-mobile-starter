@@ -94,16 +94,19 @@ export function MatchReplay({ fixture, clubName, onDone }: { fixture: FixtureRes
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between font-display text-xs" aria-live="polite">
-        <span className="max-w-[40%] truncate">{clubName}</span>
-        <span className="text-lg text-primary tabular-nums">{`${score.ours} – ${score.theirs}`}</span>
-        <span className="max-w-[40%] truncate text-right">{fixture.rival.name}</span>
+      <div className="flex items-center gap-2 font-display text-xs" aria-live="polite">
+        <span className="min-w-0 flex-1 truncate">{clubName}</span>
+        <span className="shrink-0 whitespace-nowrap text-lg text-primary tabular-nums">{`${score.ours}–${score.theirs}`}</span>
+        <span className="min-w-0 flex-1 truncate text-right">{fixture.rival.name}</span>
       </div>
       <span className="text-center text-muted tabular-nums">{finished ? 'Full time' : `${clock}'`}</span>
 
       {reduced
         ? null
         : <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} className="pixel w-full border-2 border-slate" aria-label="Match replay" />}
+
+      {/* Above the goal list, so it stays in one place as goals are added. */}
+      {finished ? null : <button type="button" className="btn btn-ghost min-h-11" onClick={() => setFinished(true)}>Skip</button>}
 
       <ul className="flex flex-col gap-1 text-lg" aria-label="Goals">
         {goals.filter(goal => finished || goal.minute <= clock).map(goal => (
@@ -122,7 +125,7 @@ export function MatchReplay({ fixture, clubName, onDone }: { fixture: FixtureRes
               <button type="button" className="btn btn-primary min-h-11 w-full font-display text-xs" onClick={onDone}>Continue</button>
             </div>
           )
-        : <button type="button" className="btn btn-ghost min-h-11" onClick={() => setFinished(true)}>Skip</button>}
+        : null}
     </div>
   )
 }

@@ -6,9 +6,13 @@ export interface TabBarItem {
   label: string
 }
 
+/**
+ * A screen with a fixed height: the header and footer (the tab bar) stay put and only `ScreenContent` scrolls. With
+ * a minimum height instead, a long screen grew the page and pushed the tab bar off the bottom.
+ */
 export function MobileShell({ children, footer }: { children: ReactNode, footer?: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-base-200">
+    <div className="flex h-dvh flex-col bg-base-200">
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       {footer}
     </div>

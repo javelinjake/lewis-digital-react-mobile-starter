@@ -53,8 +53,10 @@ export function validateEnv(): AppRuntimeConfig {
   const config = readRuntimeConfig()
   const dataMode = getDataMode()
 
-  if (dataMode === 'live' && import.meta.env.VITE_BUILD_TARGET === 'native' && !/^https:\/\//.test(config.VITE_API_URL)) {
-    throw new Error('Native builds need VITE_API_URL set to the https address of the api app. See .env.local.example.')
+  // https, except an api on this machine (the simulator reaches the Mac at localhost), for local native testing.
+  const local = /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(config.VITE_API_URL)
+  if (dataMode === 'live' && import.meta.env.VITE_BUILD_TARGET === 'native' && !/^https:\/\//.test(config.VITE_API_URL) && !local) {
+    throw new Error('Native builds need VITE_API_URL set to the https address of the api app (or http://localhost for the simulator). See .env.local.example.')
   }
 
   return config

@@ -55,6 +55,14 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
             NSPhotoLibraryAddUsageDescription: identity.usage.photos,
             UIViewControllerBasedStatusBarAppearance: true,
             UIStatusBarStyle: 'UIStatusBarStyleDefault',
+          },
+        ],
+      },
+      {
+        // Trapeze merges arrays unless told to replace them, which would keep the template's landscape entries.
+        replace: true,
+        entries: [
+          {
             UISupportedInterfaceOrientations: orientations.phone,
             'UISupportedInterfaceOrientations~ipad': orientations.ipad,
           },
@@ -62,6 +70,10 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
       },
     ],
   }
+
+  // A phone-only app is an iPhone app: on an iPad it runs in iPhone size rather than stretched.
+  if (identity.tablet === false)
+    iosTarget.buildSettings = { TARGETED_DEVICE_FAMILY: '1' }
 
   if (hostname) {
     iosTarget.entitlements = [

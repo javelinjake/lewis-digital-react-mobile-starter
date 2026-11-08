@@ -68,6 +68,10 @@ test.describe('First session @game', () => {
     await expect(page).toHaveURL(/\/squad/)
     await expect(page.getByRole('button', { name: /^(GK|DEF|MID|FWD): .+rated \d+/ })).toHaveCount(5)
     await expect(page.getByText(/Win \d+% · Draw \d+% · Loss \d+%/)).toBeVisible()
+    // The squad is longer than the screen: the tab bar stays on screen while it scrolls.
+    await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
+    await page.getByRole('heading', { name: /^Squad \(/ }).scrollIntoViewIfNeeded()
+    await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
   })
 
   test('the replay plays the match on a canvas and counts the minutes', async ({ page }) => {
