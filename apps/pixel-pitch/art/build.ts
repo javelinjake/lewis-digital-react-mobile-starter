@@ -4,7 +4,7 @@
  * Run after changing the pack: `pnpm --filter @ld/app-pixel-pitch art:build`. The output is committed, so CI and
  * fresh clones need neither Python nor this step.
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
@@ -37,7 +37,8 @@ for (const folder of FOLDERS) {
   mkdirSync(path.dirname(destination), { recursive: true })
   cpSync(path.join(source, folder), destination, { recursive: true, filter: file => !file.endsWith('.DS_Store') })
 }
-cpSync(path.join(source, 'palette/palette.json'), path.join(target, 'palette.json'))
+// Re-indented to the repo's JSON style, so lint and the art build agree.
+writeFileSync(path.join(target, 'palette.json'), `${JSON.stringify(JSON.parse(readFileSync(path.join(source, 'palette/palette.json'), 'utf8')), null, 2)}\n`)
 console.log(`Copied ${FOLDERS.length} folders of art into ${path.relative(process.cwd(), target)}.`)
 
 // Native icon and launch screen, from the pack's app art. The splash is a full-screen portrait picture (grass along
