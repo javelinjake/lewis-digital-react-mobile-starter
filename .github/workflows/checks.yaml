@@ -1,0 +1,176 @@
+# Checks for every pull request and every push to main.
+# Only the packages and apps a change affects are checked. Each affected client app gets a job (production build,
+# bundle budget, Lighthouse on mobile, end-to-end tests) and each affected api app gets a job with a real Postgres
+# (migrations, access-control and auth integration tests, production build).
+# Results appear as tables in each run's summary. This workflow does not deploy; Vercel does that.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Check one client app, for example @ld/app-template. Leave empty to check every app.
+        required: false
+        type: string
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Compare against the pull request's base, or the previous commit on main.
+  TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+
+jobs:
+  code:
+    name: Lint, types, unit tests
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.pick.outputs.apps }}
+      apis: ${{ steps.pick.outputs.apis }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Choose what to check
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.app }}" ]; then
+            node tooling/ci/affected.mjs --only "${{ inputs.app }}"
+            echo "apis=[]" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            node tooling/ci/affected.mjs --all
+            node tooling/ci/affected.mjs --all --kind api
+          else
+            node tooling/ci/affected.mjs
+            node tooling/ci/affected.mjs --kind api
+          fi
+
+      - name: Lint, types and architecture
+        run: pnpm turbo run lint ts architecture:check --affected
+
+      - name: Unit tests
+        run: pnpm turbo run test:unit --affected -- --reporter=default --reporter=json --outputFile=test-results/vitest.json
+
+      - name: Unit test summary
+        if: ${{ !cancelled() }}
+        run: node tooling/ci/test-summary.mjs "Unit tests" apps/*/*/test-results/vitest.json packages/*/test-results/vitest.json
+
+      - name: Tooling tests (native config, Vercel config)
+        run: pnpm test:tooling
+
+  app:
+    name: ${{ matrix.app.slug }} (app)
+    needs: code
+    if: ${{ needs.code.outputs.apps != '[]' && needs.code.outputs.apps != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.code.outputs.apps) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # A release build must be live (the build refuses anything else). This one is a measurement build: mock data,
+      # so signed-in screens can be reached without a backend. It is never deployed.
+      - name: Production build (mock data, for measuring)
+        run: pnpm turbo run build --filter=${{ matrix.app.name }}
+        env:
+          VITE_DATA_MODE: mock
+          VITE_ALLOW_MOCK_BUILD: '1'
+          VITE_FRONTEND_URL: http://localhost:4300
+
+      - name: Bundle budget
+        run: node tooling/ci/bundle-budget.mjs ${{ matrix.app.path }}
+
+      - name: Serve the production build
+        run: |
+          (cd ${{ matrix.app.path }} && pnpm exec vite preview --port 4300 --strictPort > ../../../server.log 2>&1 &)
+          for attempt in $(seq 1 30); do
+            curl -sf http://localhost:4300/ > /dev/null && exit 0
+            sleep 2
+          done
+          cat server.log
+          exit 1
+
+      - name: Lighthouse (mobile)
+        if: ${{ matrix.app.web == 'pwa' }}
+        run: node tooling/ci/lighthouse.mjs --app ${{ matrix.app.name }} --base-url http://localhost:4300
+
+      - name: Install the Playwright browsers
+        if: ${{ !cancelled() }}
+        run: pnpm --filter ${{ matrix.app.name }} exec playwright install --with-deps chromium webkit
+
+      - name: End-to-end tests (mock data)
+        if: ${{ !cancelled() }}
+        run: pnpm --filter ${{ matrix.app.name }} test:e2e
+
+      - name: End-to-end test summary
+        if: ${{ !cancelled() }}
+        run: node tooling/ci/test-summary.mjs "End-to-end tests" ${{ matrix.app.path }}/test-results/playwright.json
+
+      - name: Server log on failure
+        if: ${{ failure() }}
+        run: tail -n 100 server.log || true
+
+  api:
+    name: ${{ matrix.api.slug }} (api)
+    needs: code
+    if: ${{ needs.code.outputs.apis != '[]' && needs.code.outputs.apis != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: ${{ fromJSON(needs.code.outputs.apis) }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: payload
+          POSTGRES_PASSWORD: payload
+          POSTGRES_DB: ${{ matrix.api.slug }}_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U payload"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URI: postgres://payload:payload@127.0.0.1:5432/${{ matrix.api.slug }}_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Migrations apply to an empty database
+        run: pnpm --filter ${{ matrix.api.name }} cms:migrate
+
+      - name: Access-control, auth and purchase tests (real Postgres)
+        run: pnpm --filter ${{ matrix.api.name }} test:integration
+
+      - name: Production build
+        run: pnpm --filter ${{ matrix.api.name }} build

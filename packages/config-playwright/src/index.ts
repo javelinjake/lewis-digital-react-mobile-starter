@@ -21,7 +21,8 @@ export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = 
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
-    reporter: 'list',
+    // The JSON report feeds the job summary in CI (tooling/ci/test-summary.mjs).
+    reporter: process.env.CI ? [['list'], ['json', { outputFile: 'test-results/playwright.json' }]] : 'list',
     use: {
       baseURL: `http://localhost:${previewPort}`,
       trace: 'on-first-retry',
