@@ -30,6 +30,12 @@ A reward endpoint is a `defineAction`. The client sends what it did; the server 
 - `createAudioManager`: separate music and effects switches, mutes music in the background, unlocks on the first tap.
 - `useReducedEffects` (`@ld/react-utils`): low-effects mode for weak devices and reduced-motion users. One class on the root; every feature still works.
 
+## Open design issue: formation balance (Pixel Pitch)
+
+With the spec's normalisation (ATT = sum of attack / 2, DEF = sum of defence / 3), the formations have different totals for the same five players. Five 70-rated players give Blitz 146, Box and Diamond 142, Pyramid 138 and Wall 135. Blitz is therefore the best reply to almost every opponent and Wall is never the best. The "counter-pick" the spec promises for League 3 does not emerge: formation moves win probability by only 1 to 2 points once totals are equalised.
+
+Options: keep the spec as written; scale each formation so totals match; or change the model so a formation rewards specialisation (for example opposing ATT against DEF by zone). The pending `it.todo('has a counter-pick ...')` in `apps/pixel-pitch/core/tests/match.spec.ts` should become a real test once a rule is chosen.
+
 ## Art
 
 Source in `apps/<slug>/art`. Scale by whole numbers only. Fonts must be bundled (never loaded from a CDN).
