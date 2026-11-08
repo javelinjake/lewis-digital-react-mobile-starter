@@ -64,6 +64,12 @@ describe('resolveBackendEnv', () => {
     expect(() => resolveBackendEnv({ ...production, AUTH_RATE_LIMIT: 'off' })).toThrow('only for tests')
   })
 
+  it('allows time travel only outside production', () => {
+    expect(resolveBackendEnv({ ALLOW_TIME_TRAVEL: '1' }).allowTimeTravel).toBe(true)
+    expect(resolveBackendEnv({}).allowTimeTravel).toBe(false)
+    expect(() => resolveBackendEnv({ ...production, ALLOW_TIME_TRAVEL: '1' })).toThrow('only for tests')
+  })
+
   it('rejects an unknown email delivery mode', () => {
     expect(() => resolveBackendEnv({ EMAIL_DELIVERY_MODE: 'smtp' })).toThrow('EMAIL_DELIVERY_MODE')
   })

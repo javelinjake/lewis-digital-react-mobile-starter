@@ -135,8 +135,9 @@ export function createAppBackend(options: AppBackendOptions) {
     ],
     serverURL: env.serverUrl,
     secret: env.payloadSecret,
-    // Browsers and Capacitor WebViews may only call the API from these origins. Idempotency-Key is a custom header.
-    cors: { origins, headers: ['Idempotency-Key'] },
+    // Browsers and Capacitor WebViews may only call the API from these origins. Idempotency-Key is a custom header;
+    // X-Debug-Now is ignored unless ALLOW_TIME_TRAVEL=1 (never in production).
+    cors: { origins, headers: ['Idempotency-Key', 'X-Debug-Now'] },
     csrf: origins,
     email: createEmailAdapter(env),
     sharp,

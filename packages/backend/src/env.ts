@@ -30,6 +30,11 @@ export interface BackendEnv {
   cronSecret?: string
   /** Better Auth's built-in rate limiting. Only ever off outside production (tests). */
   authRateLimit: boolean
+  /**
+   * Lets a request set the server's clock with an `X-Debug-Now` header, so tests and playtesters can skip ahead in
+   * time-based games. `ALLOW_TIME_TRAVEL=1`; refused in production.
+   */
+  allowTimeTravel: boolean
   mediaStorage: MediaStorage
   mediaDir: string
   gcsBucket?: string
@@ -102,6 +107,8 @@ export function resolveBackendEnv(env: Env = process.env): BackendEnv {
       throw new Error('EMAIL_FROM is required for Resend delivery')
     if (env.AUTH_RATE_LIMIT === 'off')
       throw new Error('AUTH_RATE_LIMIT=off is only for tests. Production keeps sign-in rate limiting on.')
+    if (env.ALLOW_TIME_TRAVEL === '1')
+      throw new Error('ALLOW_TIME_TRAVEL=1 is only for tests and playtest builds. Production uses the real clock.')
     if (!env.APP_ORIGINS?.trim())
       throw new Error('APP_ORIGINS is required in production (the web origins allowed to call this API)')
   }
@@ -125,6 +132,7 @@ export function resolveBackendEnv(env: Env = process.env): BackendEnv {
     revenuecatWebhookSecret: env.REVENUECAT_WEBHOOK_SECRET?.trim() || undefined,
     cronSecret: env.CRON_SECRET?.trim() || undefined,
     authRateLimit: env.AUTH_RATE_LIMIT !== 'off',
+    allowTimeTravel: env.ALLOW_TIME_TRAVEL === '1',
     mediaStorage: resolveMediaStorage(env, productionRuntime),
     mediaDir: env.MEDIA_DIR || '.data/uploads',
     gcsBucket: env.GCS_BUCKET,

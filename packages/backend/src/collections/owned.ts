@@ -1,6 +1,6 @@
 import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint, Field, PayloadRequest } from 'payload'
 import { APIError } from 'payload'
-import { authenticated, idOf, isAdminUser } from '../access'
+import { adminOnly, authenticated, idOf, isAdminUser } from '../access'
 import { asSlug } from '../loose'
 import { withTransaction } from '../transactions'
 
@@ -17,6 +17,13 @@ export interface OwnedCollectionOptions extends Omit<CollectionConfig, 'access' 
    * so apps that need sharing later can add it without changing how existing collections are declared.
    */
   scope?: 'owner'
+  /**
+   * Who writes the documents. `owner` (the default): the signed-in user creates, updates and deletes their own, and
+   * gets the idempotent create endpoint. `server`: members can only read theirs; every write goes through a
+   * `defineAction` (server code passes `overrideAccess: true`) or an admin. Use it for anything the server decides,
+   * such as a game's coins, cards and results, so a client cannot PATCH its way to a better score.
+   */
+  writes?: 'owner' | 'server'
 }
 
 /** Read, update and delete reach the signed-in user's own documents. Admins reach everything. */
@@ -127,25 +134,27 @@ function idempotentCreateEndpoint(slug: string): Endpoint {
  * collection in an api app unless it is marked `// architecture: public-data`.
  */
 export function ownedCollection(options: OwnedCollectionOptions): CollectionConfig {
-  const { fields, endpoints, hooks, custom, admin, indexes, scope = 'owner', ...rest } = options
+  const { fields, endpoints, hooks, custom, admin, indexes, scope = 'owner', writes = 'owner', ...rest } = options
   void scope
+  const serverWrites = writes === 'server'
+  const ownEndpoints = endpoints === false ? [] : endpoints ?? []
 
   return {
     ...rest,
     admin: { defaultColumns: ['id', OWNER_FIELD, 'createdAt'], ...admin },
     custom: { ...custom, owned: true },
     access: {
-      create: authenticated,
+      create: serverWrites ? adminOnly : authenticated,
       read: ownerScoped,
-      update: ownerScoped,
-      delete: ownerScoped,
+      update: serverWrites ? adminOnly : ownerScoped,
+      delete: serverWrites ? adminOnly : ownerScoped,
     },
     indexes: [{ fields: [OWNER_FIELD, MUTATION_ID_FIELD], unique: true }, ...(indexes ?? [])],
     hooks: {
       ...hooks,
       beforeChange: [enforceOwner, ...(hooks?.beforeChange ?? [])],
     },
-    endpoints: [...(endpoints === false ? [] : endpoints ?? []), idempotentCreateEndpoint(options.slug)],
+    endpoints: serverWrites ? ownEndpoints : [...ownEndpoints, idempotentCreateEndpoint(options.slug)],
     fields: [
       {
         name: OWNER_FIELD,

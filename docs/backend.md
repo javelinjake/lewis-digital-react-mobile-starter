@@ -20,11 +20,15 @@ Better Auth stores its data in Payload collections. Sign-in methods are chosen p
 
 `ownedCollection({ slug, fields })` is the only way to declare user data. It adds an `owner` the member cannot choose or change, read/update/delete limited to the owner, and an idempotent create: `POST /api/<slug>/idempotent` with a `clientMutationId` returns the existing document on a retry. The architecture check fails a collection that is neither owned nor marked `// architecture: public-data`.
 
+Add `writes: 'server'` when the server decides the data (a game's coins, cards and results): members can then read their own documents and nothing else, every write goes through an action with `overrideAccess: true`, and there is no idempotent create endpoint.
+
 The integration tests prove isolation over REST: reading by id, filtering by another owner, OR filters, updating, deleting, reassigning, and the users collection itself.
 
 ## Actions
 
 Anything that grants, charges or rolls is a `defineAction`: signed in, `Idempotency-Key` required, rate limited, and run in one transaction. A retry with the same key returns the first answer. A failure releases the key. The path must not begin with a collection slug (the backend refuses to start if it does).
+
+When an action reads a document and writes it back (a balance, a game state), call `lockRows(req, table, column, value)` first. It runs `SELECT … FOR UPDATE` in the action's transaction, so two devices acting at once are applied one after the other. Payload's `update({ where: { version } })` is not enough on its own: it selects the ids first and updates them afterwards, so a concurrent request can slip in between.
 
 ## Purchases
 
@@ -36,4 +40,4 @@ RevenueCat posts to `/api/purchases/revenuecat` with a shared secret. Each event
 
 ## Environment
 
-See `apps/<slug>/api/.env.example`. Production refuses to start without a real `PAYLOAD_SECRET`, a `BETTER_AUTH_SECRET` of 32+ characters, a database, `APP_ORIGINS`, and Resend. In development email is written to `.data/mail` instead of sent.
+See `apps/<slug>/api/.env.example`. Production refuses to start without a real `PAYLOAD_SECRET`, a `BETTER_AUTH_SECRET` of 32+ characters, a database, `APP_ORIGINS`, and Resend. In development email is written to `.data/mail` instead of sent. `ALLOW_TIME_TRAVEL=1` lets a request set the server clock with an `X-Debug-Now` header (games and tests); production refuses to start with it.
