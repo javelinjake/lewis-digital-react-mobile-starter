@@ -60,6 +60,11 @@ catalog:
   zod: ^4.6.7
   "@vercel/config": 0.14.1
 
+  # Telemetry. @sentry/capacitor needs @sentry/react at exactly the same version.
+  posthog-js: 1.447.3
+  "@sentry/react": 10.76.2
+  "@sentry/capacitor": 4.5.0
+
   # PWA
   vite-plugin-pwa: ^1.3.0
   workbox-window: ^7.4.1

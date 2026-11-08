@@ -1,0 +1,26 @@
+{
+  "name": "@ld/telemetry",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "architecture:check": "bash ../../tooling/architecture-check/architecture-check.sh ."
+  },
+  "dependencies": {
+    "@sentry/capacitor": "catalog:",
+    "@sentry/react": "catalog:",
+    "posthog-js": "catalog:"
+  },
+  "devDependencies": {
+    "@ld/config-typescript": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
