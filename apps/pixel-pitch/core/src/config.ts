@@ -119,6 +119,13 @@ export const gameConfigSchema = z.object({
     positionBoost: positive,
   }),
 
+  onboarding: z.object({
+    /** The starter pack: one player for each of these positions, so the first lineup can be filled. */
+    starterPositions: z.array(z.enum(['GK', 'DEF', 'MID', 'FWD'])).min(1),
+    /** How many of them are Pro (the spec guarantees one). The rest are Grassroots or Semi-Pro. */
+    starterPros: count,
+  }),
+
   daily: z.object({
     gems: count,
     gemsWithPass: count,
@@ -210,6 +217,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     pityPlayers: 40,
     positionBoost: 2,
   },
+  onboarding: { starterPositions: ['FWD', 'FWD', 'DEF', 'DEF', 'GK'], starterPros: 1 },
   daily: { gems: 15, gemsWithPass: 35, dayStartOffsetMinutes: 0 },
 })
 
@@ -223,6 +231,8 @@ export function parseConfig(raw: unknown): GameConfig {
     if (Math.abs(total - 100) > 0.01)
       throw new Error(`packs.oddsByLeague row ${league + 1} adds up to ${total}, not 100.`)
   }
+  if (config.onboarding.starterPros > config.onboarding.starterPositions.length)
+    throw new Error('onboarding.starterPros is more than the number of starter players.')
   for (const [rarity, [low, high]] of Object.entries(config.cards.ratingBands)) {
     if (low > high)
       throw new Error(`cards.ratingBands.${rarity} has its low end above its high end.`)

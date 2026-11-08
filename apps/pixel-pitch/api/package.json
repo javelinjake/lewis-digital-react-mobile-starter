@@ -26,6 +26,7 @@
   "dependencies": {
     "@delmaredigital/payload-better-auth": "catalog:",
     "@ld/backend": "workspace:*",
+    "@ld/pixel-pitch-core": "workspace:*",
     "@payloadcms/db-postgres": "catalog:",
     "@payloadcms/next": "catalog:",
     "@payloadcms/ui": "catalog:",

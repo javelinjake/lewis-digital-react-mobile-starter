@@ -21,6 +21,8 @@ export default defineConfig({
       CRON_SECRET: 'test-cron-secret',
       // Many guests sign in from one address during a run. tests/integration/rate-limit.spec.ts turns it back on.
       AUTH_RATE_LIMIT: 'off',
+      // Game tests skip ahead with X-Debug-Now.
+      ALLOW_TIME_TRAVEL: '1',
     },
   },
 })

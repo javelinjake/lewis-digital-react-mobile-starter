@@ -5,11 +5,13 @@ import type { FixtureResult, LeagueState, LineupForMatch } from './league'
 import type { Fielded } from './lineup'
 import type { FormationId } from './positions'
 import type { IdleState, WelcomeBackEvent } from './state'
+import { hashSeed } from '@ld/utils/random/rng'
 import { advance, notificationTimes } from './advance'
-import { toFielded } from './cards'
+import { mergeCards, sellValue, toFielded, train, trainingCost } from './cards'
 import { GameRuleError } from './errors'
-import { newLeagueState, playDueFixtures } from './league'
-import { SLOT_COUNT } from './lineup'
+import { generateRivals, newLeagueState, playDueFixtures } from './league'
+import { scoreLineup, SLOT_COUNT } from './lineup'
+import { playMatch } from './match'
 import { isFormationId } from './positions'
 import { newIdleState } from './state'
 
@@ -114,4 +116,107 @@ export function setLineup(state: ClubState, formation: string, lineup: ReadonlyA
 /** Every alert time for the club: the idle timers and the next kick-off ("full time" fires when it has been played). */
 export function clubNotificationTimes(state: ClubState, config: GameConfig, now: number) {
   return { ...notificationTimes(state.idle, config, now), nextKickoffAt: state.league.nextKickoffAt }
+}
+
+/** A card the rules have just made. The api replaces `id` with the database id once it is stored. */
+export const NEW_CARD_PREFIX = 'new:'
+
+export interface CardChange {
+  state: ClubState
+  /** The squad after the change. Ids starting with `NEW_CARD_PREFIX` are new cards. */
+  cards: OwnedCard[]
+  /** Coins gained (selling) or spent (training, as a negative number). */
+  coins: number
+}
+
+function findCard(cards: readonly OwnedCard[], cardId: string) {
+  const card = cards.find(entry => entry.id === cardId)
+  if (!card)
+    throw new GameRuleError('not-owned', 'That player is not in your squad.')
+  return card
+}
+
+function playerOf(card: OwnedCard, players: PlayerLookup) {
+  const player = players(card.playerId)
+  if (!player)
+    throw new Error(`Card ${card.id} refers to ${card.playerId}, which is not in the catalogue.`)
+  return player
+}
+
+/** Sells a bench card for coins. A player in the lineup must be taken out first. */
+export function sellCard(state: ClubState, cards: readonly OwnedCard[], cardId: string, players: PlayerLookup, config: GameConfig): CardChange {
+  const card = findCard(cards, cardId)
+  if (state.lineup.includes(cardId))
+    throw new GameRuleError('in-lineup', 'Take this player out of the lineup before selling.')
+  const coins = sellValue(card, playerOf(card, players), config)
+  return { state: { ...state, coins: state.coins + coins }, cards: cards.filter(entry => entry.id !== cardId), coins }
+}
+
+/** Merges copies into one card a star higher. If one of them was in the lineup, the merged card takes its place. */
+export function mergeInClub(state: ClubState, cards: readonly OwnedCard[], cardIds: readonly string[], config: GameConfig): CardChange & { merged: OwnedCard } {
+  const result = mergeCards(cards, cardIds, `${NEW_CARD_PREFIX}merged`, config)
+  const lineup = state.lineup.map(id => (id !== null && cardIds.includes(id) ? null : id))
+  const slot = state.lineup.findIndex(id => id !== null && cardIds.includes(id))
+  if (slot >= 0)
+    lineup[slot] = result.merged.id
+  return { state: { ...state, lineup }, cards: result.cards, coins: 0, merged: result.merged }
+}
+
+/** Spends coins on +1 rating. */
+export function trainInClub(state: ClubState, cards: readonly OwnedCard[], cardId: string, players: PlayerLookup, config: GameConfig): CardChange {
+  const card = findCard(cards, cardId)
+  const next = trainingCost(card, playerOf(card, players), config)
+  if ('blocked' in next)
+    throw new GameRuleError('maxed', 'This card is fully trained.')
+  if (state.coins < next.cost)
+    throw new GameRuleError('coins', `Training costs ${next.cost} coins.`)
+  const trained = train(card, playerOf(card, players), config)
+  return {
+    state: { ...state, coins: state.coins - trained.cost },
+    cards: cards.map(entry => (entry.id === cardId ? trained.card : entry)),
+    coins: -trained.cost,
+  }
+}
+
+/**
+ * The scripted first win from onboarding: a friendly against the weakest League 5 side, outside the league table.
+ * Seeds are tried in order until the club wins, so the result is fixed for a club but still a real simulated match.
+ */
+export function playDebut(input: { state: ClubState, cards: readonly OwnedCard[], players: PlayerLookup, clubId: string | number, config: GameConfig, now: number }): { state: ClubState, fixture: FixtureResult } {
+  const { state, cards, players, clubId, config, now } = input
+  const lineup = lineupForMatch(state, cards, players, config)
+  const score = scoreLineup(lineup.formation, lineup.players)
+  const rival = generateRivals(1, config)[0]
+
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const outcome = playMatch({
+      formation: lineup.formation,
+      att: score.att,
+      def: score.def,
+      slots: score.slots.map(slot => ({ role: slot.role, score: slot.score })),
+      opponent: { formation: rival.formation, att: rival.att, def: rival.def, roles: rival.roles },
+      seed: hashSeed(clubId, 'debut', attempt),
+    }, config)
+    if (outcome.result !== 'win')
+      continue
+    const coins = config.league.winCoins
+    return {
+      state: { ...state, coins: state.coins + coins },
+      fixture: {
+        no: -1,
+        tier: 1,
+        kickoffAt: now,
+        rival: { index: rival.index, name: rival.name, formation: rival.formation, rating: rival.rating, att: rival.att, def: rival.def },
+        goalsFor: outcome.goalsFor,
+        goalsAgainst: outcome.goalsAgainst,
+        result: outcome.result,
+        points: 0,
+        coins,
+        events: outcome.events,
+        warmupBonus: 0,
+        promotedTo: null,
+      },
+    }
+  }
+  throw new GameRuleError('debut', 'Field at least one player to play the first match.')
 }

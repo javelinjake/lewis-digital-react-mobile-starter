@@ -8,7 +8,7 @@ export { advance, type AdvanceResult, dayIndex, notificationTimes, pendingStadiu
 export { DEFAULT_CONFIG, type GameConfig, gameConfigSchema, parseConfig } from './config'
 export { type IdleState, newIdleState, type WelcomeBackEvent } from './state'
 
-export { type ClubState, clubNotificationTimes, lineupForMatch, newClubState, type PlayerLookup, setLineup, syncClub, type SyncResult } from './club'
+export { type CardChange, type ClubState, clubNotificationTimes, lineupForMatch, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, type PlayerLookup, sellCard, setLineup, syncClub, type SyncResult, trainInClub } from './club'
 export { GameRuleError, isGameRuleError } from './errors'
 export { cardRating, benchCount, benchHasRoom, MAX_RATING, mergeable, mergeCards, type OwnedCard, sellValue, toFielded, train, trainingCost } from './cards'
 export { generateCatalogue, HAIR_COLOURS, HAIR_STYLES, NATIONS, type Player, SKIN_TONES, type SpriteParts } from './catalogue'
@@ -16,6 +16,6 @@ export { autoPick, type AutoPickResult, chemistryBonus, type Fielded, type Lineu
 export { type FixtureResult, formationStrength, generateRivals, type LeagueLabel, type LeagueState, leagueLabel, type LineupForMatch, newLeagueState, playDueFixtures, type Rival, tierRating, type CatchUpResult } from './league'
 export { bestFormation, type FormationOption } from './counter-pick'
 export { expectedGoals, expectedPoints, matchExpectation, type MatchEvent, type MatchEventKind, type MatchInput, matchOdds, type MatchOutcome, type MatchResult, type MatchSide, type Odds, playMatch, type Side, warmupBonus, type WarmupZone } from './match'
-export { isStarOrBetter, oddsForTier, type PackRoll, rollPack, type RollPackInput } from './packs'
+export { isStarOrBetter, oddsForTier, type PackRoll, rollPack, type RollPackInput, rollStarterSquad } from './packs'
 export { tacticalEdge } from './tactics'
 export { FORMATION_IDS, FORMATIONS, type Formation, type FormationId, isFormationId, NATION_COUNT, POSITIONS, positionFit, type Position, type PositionedPlayer, type Rarity, RARITIES, ROLE_WEIGHTS } from './positions'

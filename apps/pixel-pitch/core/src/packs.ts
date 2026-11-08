@@ -72,3 +72,26 @@ export function rollPack(input: RollPackInput): PackRoll {
 
   return { players, pityAfter: pity, guaranteed }
 }
+
+/**
+ * The starter pack from onboarding: one player for each starter position, so a full lineup can be fielded at once.
+ * `starterPros` of them (chosen at random) are Pro, the rest Grassroots or Semi-Pro in League 5's proportions.
+ */
+export function rollStarterSquad(input: { catalogue: readonly Player[], seed: number | string, config: GameConfig }): Player[] {
+  const { catalogue, seed, config } = input
+  const rng = createRng(seed)
+  const positions = config.onboarding.starterPositions
+  const proSlots = new Set(rng.shuffle(positions.map((_, index) => index)).slice(0, config.onboarding.starterPros))
+  const [grassrootsOdds, semiproOdds] = oddsForTier(1, config)
+  const chosen = new Set<string>()
+
+  return positions.map((position, index) => {
+    const rarity: Rarity = proSlots.has(index) ? 'pro' : rng.weighted([grassrootsOdds, semiproOdds]) === 0 ? 'grassroots' : 'semipro'
+    const pool = catalogue.filter(player => player.position === position && player.rarity === rarity && !chosen.has(player.id))
+    if (pool.length === 0)
+      throw new Error(`The catalogue has no ${rarity} ${position} left for a starter pack.`)
+    const player = rng.pick(pool)
+    chosen.add(player.id)
+    return player
+  })
+}

@@ -1,7 +1,7 @@
 import type { ClubState, OwnedCard, Player, SyncResult } from '../src'
 import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
-import { clubNotificationTimes, DEFAULT_CONFIG, generateCatalogue, isGameRuleError, lineupForMatch, newClubState, setLineup, syncClub } from '../src'
+import { clubNotificationTimes, DEFAULT_CONFIG, generateCatalogue, isGameRuleError, lineupForMatch, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, trainInClub } from '../src'
 
 const config = DEFAULT_CONFIG
 const HOUR = 60 * 60 * 1000
@@ -108,5 +108,71 @@ describe('clubNotificationTimes', () => {
   it('includes the next kick-off', () => {
     const club = ready()
     expect(clubNotificationTimes(club, config, T0).nextKickoffAt).toBe(T0 + 3 * HOUR)
+  })
+})
+
+describe('starter squad and debut', () => {
+  it('gives one player per starter position, exactly one Pro, no duplicates', () => {
+    for (let seed = 0; seed < 50; seed++) {
+      const squad = rollStarterSquad({ catalogue, seed, config })
+      expect(squad.map(player => player.position)).toEqual(config.onboarding.starterPositions)
+      expect(squad.filter(player => player.rarity === 'pro')).toHaveLength(1)
+      expect(squad.every(player => ['grassroots', 'semipro', 'pro'].includes(player.rarity))).toBe(true)
+      expect(new Set(squad.map(player => player.id)).size).toBe(squad.length)
+    }
+  })
+
+  it('always wins the debut, the same way for the same club, and pays a win', () => {
+    const starters = rollStarterSquad({ catalogue, seed: 'club-9', config })
+    const squad: OwnedCard[] = starters.map((player, index) => ({ id: `s${index}`, playerId: player.id, stars: 1, trained: 0 }))
+    const club = setLineup(newClubState(T0, config), '2-2', squad.map(card => card.id), squad)
+    const debut = playDebut({ state: club, cards: squad, players, clubId: 'club-9', config, now: T0 })
+    expect(debut.fixture.result).toBe('win')
+    expect(debut.state.coins).toBe(config.league.winCoins)
+    expect(debut.state.league).toEqual(club.league)
+    expect(playDebut({ state: club, cards: squad, players, clubId: 'club-9', config, now: T0 })).toEqual(debut)
+  })
+})
+
+describe('selling, merging and training in a club', () => {
+  const copies: OwnedCard[] = [0, 1, 2].map(index => ({ id: `copy-${index}`, playerId: cards[0].playerId, stars: 1, trained: index }))
+  const squad = [...cards, ...copies]
+  const code = (run: () => unknown) => {
+    try {
+      run()
+      return 'accepted'
+    }
+    catch (error) {
+      return isGameRuleError(error) ? error.code : 'other'
+    }
+  }
+
+  it('sells a bench player for coins but not one in the lineup', () => {
+    const club = setLineup(newClubState(T0, config), '2-2', cards.map(card => card.id), squad)
+    const sold = sellCard(club, squad, 'copy-0', players, config)
+    expect(sold.coins).toBe(config.cards.sellValue.pro)
+    expect(sold.state.coins).toBe(sold.coins)
+    expect(sold.cards.map(card => card.id)).not.toContain('copy-0')
+    expect(code(() => sellCard(club, squad, 'card-0', players, config))).toBe('in-lineup')
+    expect(code(() => sellCard(club, squad, 'nope', players, config))).toBe('not-owned')
+  })
+
+  it('merges three copies into a new card that takes a merged card\'s lineup slot', () => {
+    const club = setLineup(newClubState(T0, config), '2-2', ['copy-0', 'card-1', 'card-2', 'card-3', 'card-4'], squad)
+    const merged = mergeInClub(club, squad, ['copy-0', 'copy-1', 'copy-2'], config)
+    expect(merged.merged).toMatchObject({ id: `${NEW_CARD_PREFIX}merged`, stars: 2, trained: 2 })
+    expect(merged.state.lineup[0]).toBe(merged.merged.id)
+    expect(merged.cards).toHaveLength(squad.length - 2)
+    expect(code(() => mergeInClub(club, squad, ['copy-0', 'copy-1', 'card-2'], config))).toBe('merge-mismatch')
+  })
+
+  it('trains for coins, refusing when the club cannot afford it', () => {
+    const broke = newClubState(T0, config)
+    expect(code(() => trainInClub(broke, squad, 'card-0', players, config))).toBe('coins')
+    const rich = { ...broke, coins: 10_000 }
+    const trained = trainInClub(rich, squad, 'card-0', players, config)
+    expect(trained.coins).toBe(-config.cards.trainingCost.pro)
+    expect(trained.state.coins).toBe(10_000 - config.cards.trainingCost.pro)
+    expect(trained.cards.find(card => card.id === 'card-0')!.trained).toBe(1)
   })
 })

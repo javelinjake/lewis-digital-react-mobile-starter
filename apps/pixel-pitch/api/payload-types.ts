@@ -74,6 +74,11 @@ export interface Config {
     'purchase-events': PurchaseEvent;
     'idempotency-keys': IdempotencyKey;
     'action-throttles': ActionThrottle;
+    players: Player;
+    clubs: Club;
+    cards: Card;
+    fixtures: Fixture;
+    ledger: Ledger;
     notes: Note;
     sessions: Session;
     accounts: Account;
@@ -93,6 +98,11 @@ export interface Config {
     'purchase-events': PurchaseEventsSelect<false> | PurchaseEventsSelect<true>;
     'idempotency-keys': IdempotencyKeysSelect<false> | IdempotencyKeysSelect<true>;
     'action-throttles': ActionThrottlesSelect<false> | ActionThrottlesSelect<true>;
+    players: PlayersSelect<false> | PlayersSelect<true>;
+    clubs: ClubsSelect<false> | ClubsSelect<true>;
+    cards: CardsSelect<false> | CardsSelect<true>;
+    fixtures: FixturesSelect<false> | FixturesSelect<true>;
+    ledger: LedgerSelect<false> | LedgerSelect<true>;
     notes: NotesSelect<false> | NotesSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
@@ -107,8 +117,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'game-config': GameConfig;
+  };
+  globalsSelect: {
+    'game-config': GameConfigSelect<false> | GameConfigSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -297,6 +311,152 @@ export interface ActionThrottle {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "players".
+ */
+export interface Player {
+  id: number;
+  /**
+   * Cards refer to this id. Never change it.
+   */
+  catalogueId: string;
+  name: string;
+  nation: number;
+  position: 'GK' | 'DEF' | 'MID' | 'FWD';
+  altPosition?: ('GK' | 'DEF' | 'MID' | 'FWD') | null;
+  rarity: 'grassroots' | 'semipro' | 'pro' | 'star' | 'legend';
+  rating: number;
+  sprite:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clubs".
+ */
+export interface Club {
+  id: number;
+  owner: number | User;
+  /**
+   * Set by the app so a retried write is applied once.
+   */
+  clientMutationId?: string | null;
+  name: string;
+  crest: number;
+  kitPrimary: string;
+  kitSecondary: string;
+  state:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  version: number;
+  tier?: number | null;
+  points?: number | null;
+  coins?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cards".
+ */
+export interface Card {
+  id: number;
+  owner: number | User;
+  /**
+   * Set by the app so a retried write is applied once.
+   */
+  clientMutationId?: string | null;
+  /**
+   * The catalogue id of the player.
+   */
+  playerId: string;
+  stars: number;
+  trained: number;
+  source: 'starter' | 'pack' | 'merge' | 'arcade';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fixtures".
+ */
+export interface Fixture {
+  id: number;
+  owner: number | User;
+  /**
+   * Set by the app so a retried write is applied once.
+   */
+  clientMutationId?: string | null;
+  no: number;
+  kind: 'league' | 'debut';
+  tier: number;
+  kickoffAt: number;
+  rival:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  goalsFor: number;
+  goalsAgainst: number;
+  result: 'win' | 'draw' | 'loss';
+  points: number;
+  coins: number;
+  events:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  warmupBonus: number;
+  promotedTo?: number | null;
+  configVersion: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ledger".
+ */
+export interface Ledger {
+  id: number;
+  owner: number | User;
+  /**
+   * Set by the app so a retried write is applied once.
+   */
+  clientMutationId?: string | null;
+  currency: 'coins' | 'gems' | 'tokens';
+  amount: number;
+  /**
+   * The balance after this change.
+   */
+  balance: number;
+  reason: string;
+  ref?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notes".
  */
 export interface Note {
@@ -427,6 +587,26 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'action-throttles';
         value: number | ActionThrottle;
+      } | null)
+    | ({
+        relationTo: 'players';
+        value: number | Player;
+      } | null)
+    | ({
+        relationTo: 'clubs';
+        value: number | Club;
+      } | null)
+    | ({
+        relationTo: 'cards';
+        value: number | Card;
+      } | null)
+    | ({
+        relationTo: 'fixtures';
+        value: number | Fixture;
+      } | null)
+    | ({
+        relationTo: 'ledger';
+        value: number | Ledger;
       } | null)
     | ({
         relationTo: 'notes';
@@ -625,6 +805,94 @@ export interface ActionThrottlesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "players_select".
+ */
+export interface PlayersSelect<T extends boolean = true> {
+  catalogueId?: T;
+  name?: T;
+  nation?: T;
+  position?: T;
+  altPosition?: T;
+  rarity?: T;
+  rating?: T;
+  sprite?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clubs_select".
+ */
+export interface ClubsSelect<T extends boolean = true> {
+  owner?: T;
+  clientMutationId?: T;
+  name?: T;
+  crest?: T;
+  kitPrimary?: T;
+  kitSecondary?: T;
+  state?: T;
+  version?: T;
+  tier?: T;
+  points?: T;
+  coins?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cards_select".
+ */
+export interface CardsSelect<T extends boolean = true> {
+  owner?: T;
+  clientMutationId?: T;
+  playerId?: T;
+  stars?: T;
+  trained?: T;
+  source?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fixtures_select".
+ */
+export interface FixturesSelect<T extends boolean = true> {
+  owner?: T;
+  clientMutationId?: T;
+  no?: T;
+  kind?: T;
+  tier?: T;
+  kickoffAt?: T;
+  rival?: T;
+  goalsFor?: T;
+  goalsAgainst?: T;
+  result?: T;
+  points?: T;
+  coins?: T;
+  events?: T;
+  warmupBonus?: T;
+  promotedTo?: T;
+  configVersion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ledger_select".
+ */
+export interface LedgerSelect<T extends boolean = true> {
+  owner?: T;
+  clientMutationId?: T;
+  currency?: T;
+  amount?: T;
+  balance?: T;
+  reason?: T;
+  ref?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notes_select".
  */
 export interface NotesSelect<T extends boolean = true> {
@@ -727,6 +995,37 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "game-config".
+ */
+export interface GameConfig {
+  id: number;
+  /**
+   * Leave empty to use the built-in defaults. Invalid values are refused on save.
+   */
+  config?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "game-config_select".
+ */
+export interface GameConfigSelect<T extends boolean = true> {
+  config?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
