@@ -1,5 +1,6 @@
 @import "tailwindcss" source("..");
 @import "@ld/ui/motion.css";
+@import "@ld/mobile-ui/native-feel.css";
 
 @source "../../../../../packages/ui/src";
 @source "../../../../../packages/forms/src";
@@ -25,29 +26,6 @@
 
   html {
     font-family: var(--font-sans);
-    -webkit-text-size-adjust: 100%;
-    overscroll-behavior: none;
-  }
-
-  body {
-    min-height: 100dvh;
-    overscroll-behavior: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  button,
-  [role="button"],
-  a,
-  input,
-  select,
-  textarea {
-    touch-action: manipulation;
-  }
-
-  input,
-  select,
-  textarea {
-    font-size: max(16px, 1em);
   }
 }
 

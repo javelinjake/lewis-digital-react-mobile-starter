@@ -8,6 +8,8 @@ export interface PwaConfigOptions {
   themeColor?: string
   backgroundColor?: string
   devEnabled?: boolean
+  /** `any` omits the lock so the manifest follows the device. */
+  orientation?: 'portrait' | 'landscape' | 'any'
   iconSource?: string | false
 }
 
@@ -24,6 +26,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
     themeColor = '#ffffff',
     backgroundColor = themeColor,
     devEnabled = false,
+    orientation = 'portrait',
     iconSource = 'public/pwa-icon.svg',
   } = options
 
@@ -38,7 +41,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
       theme_color: themeColor,
       background_color: backgroundColor,
       display: 'standalone',
-      orientation: 'portrait',
+      ...(orientation === 'any' ? {} : { orientation }),
       start_url: '/',
       scope: '/',
     },

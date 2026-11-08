@@ -47,4 +47,24 @@ describe('deriveBuildNumber', () => {
     assert.equal(later - earlier, 1)
     assert.ok(deriveBuildNumber(new Date('2100-01-01T00:00:00Z')) < 2_100_000_000)
   })
+
+  it('locks a portrait phone-only app on both platforms', () => {
+    const config = buildTrapezeConfig({ ...identity, orientation: 'portrait', tablet: false })
+    const ios = (config.platforms.ios.targets as { App: { plist: Array<{ entries: Array<Record<string, unknown>> }> } }).App
+    const entries = ios.plist[0].entries[0]
+    const manifest = config.platforms.android.manifest as Array<{ attrs?: Record<string, string> }>
+
+    assert.deepEqual(entries.UISupportedInterfaceOrientations, ['UIInterfaceOrientationPortrait'])
+    assert.deepEqual(entries['UISupportedInterfaceOrientations~ipad'], ['UIInterfaceOrientationPortrait'])
+    assert.equal(manifest[0].attrs?.['android:screenOrientation'], 'portrait')
+  })
+
+  it('lets a tablet app rotate fully on iPad while the phone follows the lock', () => {
+    const config = buildTrapezeConfig({ ...identity, orientation: 'any', tablet: true })
+    const ios = (config.platforms.ios.targets as { App: { plist: Array<{ entries: Array<Record<string, unknown>> }> } }).App
+    const entries = ios.plist[0].entries[0]
+
+    assert.equal((entries['UISupportedInterfaceOrientations~ipad'] as string[]).length, 4)
+    assert.equal(config.platforms.android.manifest, undefined)
+  })
 })

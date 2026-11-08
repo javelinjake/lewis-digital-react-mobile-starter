@@ -4,6 +4,10 @@ export interface NativeIdentity {
   version: string
   buildNumber: number
   hostname?: string
+  /** Locks the app. Omit for `any`. */
+  orientation?: 'portrait' | 'landscape' | 'any'
+  /** False: iPad is portrait-only too, matching a phone-only app. Default true. */
+  tablet?: boolean
   /** iOS usage strings shown in permission prompts; required for App Store review. */
   usage: {
     camera: string
@@ -22,8 +26,19 @@ export interface TrapezeConfig {
  * Builds the Trapeze configuration object from app metadata so identity lives
  * in `app.meta.ts` and `package.json`, never hand-edited in Xcode or Gradle.
  */
+const IOS_PORTRAIT = ['UIInterfaceOrientationPortrait']
+const IOS_LANDSCAPE = ['UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight']
+const IOS_ALL = ['UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown', ...IOS_LANDSCAPE]
+
+function iosOrientations(orientation: NativeIdentity['orientation'], tablet: boolean) {
+  const phone = orientation === 'portrait' ? IOS_PORTRAIT : orientation === 'landscape' ? IOS_LANDSCAPE : ['UIInterfaceOrientationPortrait', ...IOS_LANDSCAPE]
+  const ipad = !tablet ? phone : orientation === 'portrait' ? IOS_PORTRAIT : orientation === 'landscape' ? IOS_LANDSCAPE : IOS_ALL
+  return { phone, ipad }
+}
+
 export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
   const hostname = identity.hostname?.trim()
+  const orientations = iosOrientations(identity.orientation, identity.tablet ?? true)
 
   const iosTarget: Record<string, unknown> = {
     bundleId: identity.appId,
@@ -40,13 +55,8 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
             NSPhotoLibraryAddUsageDescription: identity.usage.photos,
             UIViewControllerBasedStatusBarAppearance: true,
             UIStatusBarStyle: 'UIStatusBarStyleDefault',
-            UISupportedInterfaceOrientations: ['UIInterfaceOrientationPortrait'],
-            'UISupportedInterfaceOrientations~ipad': [
-              'UIInterfaceOrientationPortrait',
-              'UIInterfaceOrientationPortraitUpsideDown',
-              'UIInterfaceOrientationLandscapeLeft',
-              'UIInterfaceOrientationLandscapeRight',
-            ],
+            UISupportedInterfaceOrientations: orientations.phone,
+            'UISupportedInterfaceOrientations~ipad': orientations.ipad,
           },
         ],
       },
@@ -66,8 +76,17 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
     versionCode: identity.buildNumber,
   }
 
+  const manifest: Array<Record<string, unknown>> = []
+  if (identity.orientation === 'portrait' || identity.orientation === 'landscape') {
+    manifest.push({
+      file: 'AndroidManifest.xml',
+      target: 'manifest/application/activity',
+      attrs: { 'android:screenOrientation': identity.orientation },
+    })
+  }
+
   if (hostname) {
-    android.manifest = [
+    manifest.push(
       {
         file: 'AndroidManifest.xml',
         target: 'manifest/application/activity',
@@ -80,8 +99,11 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
           '</intent-filter>',
         ].join('\n'),
       },
-    ]
+    )
   }
+
+  if (manifest.length > 0)
+    android.manifest = manifest
 
   return {
     platforms: {

@@ -19,6 +19,7 @@ export default createViteConfig({
         themeColor: appMeta.themeColor,
         backgroundColor: appMeta.backgroundColor,
         devEnabled: process.env.VITE_PWA_DEV === 'true',
+        orientation: appMeta.orientation,
         iconSource: false,
       }
     : undefined,

@@ -4,6 +4,8 @@ import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/te
 export interface CreatePlaywrightConfigOptions {
   testDir?: string
   previewPort?: number
+  /** False for a phone-only app: the tablet project is left out. */
+  tablet?: boolean
 }
 
 /**
@@ -11,7 +13,7 @@ export interface CreatePlaywrightConfigOptions {
  * Offline flows toggle `context.setOffline(true)` inside the test after the first load.
  */
 export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = {}): PlaywrightTestConfig {
-  const { testDir = './tests/e2e', previewPort = 4173 } = options
+  const { testDir = './tests/e2e', previewPort = 4173, tablet = true } = options
 
   return defineConfig({
     testDir,
@@ -33,10 +35,7 @@ export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = 
         name: 'phone-ios',
         use: { ...devices['iPhone 15'] },
       },
-      {
-        name: 'tablet',
-        use: { ...devices['iPad Pro 11'] },
-      },
+      ...(tablet ? [{ name: 'tablet', use: { ...devices['iPad Pro 11'] } }] : []),
     ],
     webServer: {
       command: `pnpm dev --port ${previewPort} --strictPort`,
