@@ -111,9 +111,10 @@ function ScopedSession({ userId, children }: { userId: string | null, children: 
 }
 
 function restorePending(client: ReturnType<typeof createAppQueryClient>, items: OutboxItem[]) {
-  if (items.length === 0)
+  const current = client.getQueryData<Note[]>(notesQueryKeys.list())
+  // Even with nothing queued, a restored cache may still show a note as pending that has since been sent.
+  if (!current && items.length === 0)
     return
 
-  const current = client.getQueryData<Note[]>(notesQueryKeys.list())
   client.setQueryData(notesQueryKeys.list(), mergeNotes(current, items))
 }

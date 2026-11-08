@@ -98,7 +98,7 @@ test.describe('Offline @offline', () => {
 
     await page.evaluate(() => {
       window.__ldNotesTest?.setOffline(false)
-      window.__ldNotesTest?.failNextWrite()
+      window.__ldNotesTest?.expireSession()
     })
     await page.evaluate(() => window.__ldTest?.flush())
     await expect(page).toHaveURL(/\/login/, { timeout: 10_000 })

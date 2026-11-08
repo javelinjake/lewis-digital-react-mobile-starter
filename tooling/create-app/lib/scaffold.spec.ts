@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, it } from 'node:test'
@@ -14,8 +14,11 @@ function fakeRepo() {
   roots.push(root)
   const skip = (source: string) => !/\/(node_modules|dist|test-results|\.next|\.data|ios|android)(\/|$)/.test(source)
   cpSync(join(realRoot, 'apps/template'), join(root, 'apps/template'), { recursive: true, filter: skip })
-  cpSync(join(realRoot, 'tooling/apps'), join(root, 'tooling/apps'), { recursive: true })
-  cpSync(join(realRoot, 'tooling/cms/init-databases.sql'), join(root, 'tooling/cms/init-databases.sql'), { recursive: true })
+  // Its own minimal registry and database list, so the test does not depend on which apps the real repo has today.
+  mkdirSync(join(root, 'tooling/apps'), { recursive: true })
+  mkdirSync(join(root, 'tooling/cms'), { recursive: true })
+  writeFileSync(join(root, 'tooling/apps/apps.config.json'), `${JSON.stringify({ apps: [{ slug: 'template', packageName: '@ld/app-template', path: 'apps/template/app', deployable: false }] }, null, 2)}\n`)
+  writeFileSync(join(root, 'tooling/cms/init-databases.sql'), 'CREATE DATABASE template;\nCREATE DATABASE template_test;\n')
   return root
 }
 

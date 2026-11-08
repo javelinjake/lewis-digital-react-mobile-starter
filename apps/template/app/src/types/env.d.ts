@@ -29,6 +29,7 @@ declare global {
       setOffline: (offline: boolean) => void
       failNextWrite: () => void
       serverIds: () => string[]
+      expireSession: () => void
     }
   }
 }
