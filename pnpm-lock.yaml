@@ -233,6 +233,285 @@ importers:
         specifier: ^2.5.4
         version: 2.11.5
 
+  apps/pixel-pitch/api:
+    dependencies:
+      '@delmaredigital/payload-better-auth':
+        specifier: 'catalog:'
+        version: 0.14.0(cnctrhqouz4pw6422dkuyi5s3y)
+      '@ld/backend':
+        specifier: workspace:*
+        version: link:../../../packages/backend
+      '@payloadcms/db-postgres':
+        specifier: 'catalog:'
+        version: 3.92.0(@opentelemetry/api@1.9.1)(kysely@0.29.8)(payload@3.92.0(graphql@16.11.0)(typescript@5.9.3))
+      '@payloadcms/next':
+        specifier: 'catalog:'
+        version: 3.92.0(@types/react@19.3.0)(graphql@16.11.0)(monaco-editor@0.57.0)(next@16.4.5(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(payload@3.92.0(graphql@16.11.0)(typescript@5.9.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@5.9.3)
+      '@payloadcms/ui':
+        specifier: 'catalog:'
+        version: 3.92.0(@types/react@19.3.0)(monaco-editor@0.57.0)(next@16.4.5(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(payload@3.92.0(graphql@16.11.0)(typescript@5.9.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@5.9.3)
+      better-auth:
+        specifier: 'catalog:'
+        version: 1.7.12(@opentelemetry/api@1.9.1)(drizzle-kit@0.31.7)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.29.8)(pg@8.23.1))(next@16.4.5(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(pg@8.23.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@4.1.12(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(jsdom@26.1.0)(vite@7.3.6(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)))
+      graphql:
+        specifier: 'catalog:'
+        version: 16.11.0
+      next:
+        specifier: 'catalog:'
+        version: 16.4.5(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4)
+      payload:
+        specifier: 'catalog:'
+        version: 3.92.0(graphql@16.11.0)(typescript@5.9.3)
+      react:
+        specifier: 'catalog:'
+        version: 19.3.1
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.3.1(react@19.3.1)
+      sharp:
+        specifier: 'catalog:'
+        version: 0.34.4
+    devDependencies:
+      '@ld/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
+      '@ld/config-eslint':
+        specifier: workspace:*
+        version: link:../../../packages/config-eslint
+      '@ld/config-typescript':
+        specifier: workspace:*
+        version: link:../../../packages/config-typescript
+      '@ld/config-vitest':
+        specifier: workspace:*
+        version: link:../../../packages/config-vitest
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.5
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.3.0(@types/react@19.3.0)
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.5(jiti@2.7.0)
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.15
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.12(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(jsdom@26.1.0)(vite@7.3.6(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  apps/pixel-pitch/app:
+    dependencies:
+      '@aparajita/capacitor-secure-storage':
+        specifier: 'catalog:'
+        version: 8.0.1
+      '@capacitor/app':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/camera':
+        specifier: 'catalog:'
+        version: 8.2.4(@capacitor/core@8.5.2)
+      '@capacitor/core':
+        specifier: 'catalog:'
+        version: 8.5.2
+      '@capacitor/device':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capacitor/haptics':
+        specifier: 'catalog:'
+        version: 8.0.2(@capacitor/core@8.5.2)
+      '@capacitor/keyboard':
+        specifier: 'catalog:'
+        version: 8.0.5(@capacitor/core@8.5.2)
+      '@capacitor/local-notifications':
+        specifier: 'catalog:'
+        version: 8.3.1(@capacitor/core@8.5.2)
+      '@capacitor/network':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
+      '@capacitor/preferences':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
+      '@capacitor/push-notifications':
+        specifier: 'catalog:'
+        version: 8.1.2(@capacitor/core@8.5.2)
+      '@capacitor/screen-orientation':
+        specifier: 'catalog:'
+        version: 8.0.2(@capacitor/core@8.5.2)
+      '@capacitor/share':
+        specifier: 'catalog:'
+        version: 8.0.2(@capacitor/core@8.5.2)
+      '@capacitor/splash-screen':
+        specifier: 'catalog:'
+        version: 8.0.2(@capacitor/core@8.5.2)
+      '@capacitor/status-bar':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capgo/capacitor-social-login':
+        specifier: 'catalog:'
+        version: 8.7.7(@capacitor/core@8.5.2)
+      '@ld/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
+      '@ld/forms':
+        specifier: workspace:*
+        version: link:../../../packages/forms
+      '@ld/mobile-ui':
+        specifier: workspace:*
+        version: link:../../../packages/mobile-ui
+      '@ld/native':
+        specifier: workspace:*
+        version: link:../../../packages/native
+      '@ld/offline':
+        specifier: workspace:*
+        version: link:../../../packages/offline
+      '@ld/pwa':
+        specifier: workspace:*
+        version: link:../../../packages/pwa
+      '@ld/react-utils':
+        specifier: workspace:*
+        version: link:../../../packages/react-utils
+      '@ld/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      '@ld/utils':
+        specifier: workspace:*
+        version: link:../../../packages/utils
+      '@revenuecat/purchases-capacitor':
+        specifier: 'catalog:'
+        version: 14.1.0(@capacitor/core@8.5.2)
+      '@tanstack/react-query':
+        specifier: 'catalog:'
+        version: 5.104.0(react@19.3.1)
+      react:
+        specifier: 'catalog:'
+        version: 19.3.1
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.3.1(react@19.3.1)
+      react-router:
+        specifier: 'catalog:'
+        version: 7.18.4(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      valibot:
+        specifier: 'catalog:'
+        version: 1.5.0(typescript@5.9.3)
+      workbox-window:
+        specifier: 'catalog:'
+        version: 7.4.1
+      zustand:
+        specifier: 'catalog:'
+        version: 5.0.15(@types/react@19.3.0)(react@19.3.1)
+    devDependencies:
+      '@capacitor/android':
+        specifier: 'catalog:'
+        version: 8.5.2(@capacitor/core@8.5.2)
+      '@capacitor/assets':
+        specifier: 'catalog:'
+        version: 3.0.5(@types/node@22.20.5)
+      '@capacitor/cli':
+        specifier: 'catalog:'
+        version: 8.5.2
+      '@capacitor/ios':
+        specifier: 'catalog:'
+        version: 8.5.2(@capacitor/core@8.5.2)
+      '@ld/config-capacitor':
+        specifier: workspace:*
+        version: link:../../../packages/config-capacitor
+      '@ld/config-eslint':
+        specifier: workspace:*
+        version: link:../../../packages/config-eslint
+      '@ld/config-playwright':
+        specifier: workspace:*
+        version: link:../../../packages/config-playwright
+      '@ld/config-typescript':
+        specifier: workspace:*
+        version: link:../../../packages/config-typescript
+      '@ld/config-vite':
+        specifier: workspace:*
+        version: link:../../../packages/config-vite
+      '@ld/config-vitest':
+        specifier: workspace:*
+        version: link:../../../packages/config-vitest
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.61.0
+      '@tailwindcss/vite':
+        specifier: 'catalog:'
+        version: 4.3.3(vite@7.3.6(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@trapezedev/configure':
+        specifier: 'catalog:'
+        version: 7.1.10
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.5
+      '@types/react':
+        specifier: ^19.1.13
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.1.9
+        version: 19.3.0(@types/react@19.3.0)
+      '@vercel/config':
+        specifier: 'catalog:'
+        version: 0.14.1
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 5.2.0(vite@7.3.6(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
+      daisyui:
+        specifier: 'catalog:'
+        version: 5.7.47
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.5(jiti@2.7.0)
+      jsdom:
+        specifier: 'catalog:'
+        version: 26.1.0
+      playwright:
+        specifier: 'catalog:'
+        version: 1.61.0
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.3
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.15
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: 'catalog:'
+        version: 7.3.6(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+      vite-plugin-pwa:
+        specifier: 'catalog:'
+        version: 1.3.0(vite@7.3.6(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.12(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(jsdom@26.1.0)(vite@7.3.6(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  apps/pixel-pitch/core:
+    dependencies:
+      '@ld/utils':
+        specifier: workspace:*
+        version: link:../../../packages/utils
+    devDependencies:
+      '@ld/config-typescript':
+        specifier: workspace:*
+        version: link:../../../packages/config-typescript
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.12(@opentelemetry/api@1.9.1)(@types/node@26.6.3)(jsdom@26.1.0)(vite@7.3.6(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
+
   apps/template/api:
     dependencies:
       '@delmaredigital/payload-better-auth':

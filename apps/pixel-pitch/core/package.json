@@ -1,0 +1,23 @@
+{
+  "name": "@ld/pixel-pitch-core",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "architecture:check": "bash ../../../tooling/architecture-check/architecture-check.sh ."
+  },
+  "dependencies": {
+    "@ld/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@ld/config-typescript": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -3,3 +3,5 @@
 --   docker exec ld-mobile-postgres createdb -U payload <name> && docker exec ld-mobile-postgres createdb -U payload <name>_test
 CREATE DATABASE template;
 CREATE DATABASE template_test;
+CREATE DATABASE pixel_pitch;
+CREATE DATABASE pixel_pitch_test;

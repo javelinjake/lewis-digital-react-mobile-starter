@@ -162,8 +162,10 @@ fi
 if [[ "$(basename "$APP_DIR")" == "core" && -d src ]]; then
   scan "core packages are pure TypeScript. No React, Capacitor, Payload, browser or Node-only imports" \
     "from ['\"](react|react-dom|react-router|@capacitor/|payload|@payloadcms/|@ld/backend|@ld/native|@ld/ui|@ld/mobile-ui|node:)" src
-  scan "core packages must be deterministic. Use the seeded random from @ld/utils/random, not Math.random or Date.now()" \
-    "Math\.random\(|Date\.now\(|new Date\(\)" src
+  # Comment lines are skipped, so a comment can explain the rule without tripping it.
+  report "core packages must be deterministic. Use the seeded random from @ld/utils/random, not Math.random or Date.now()" < <(
+    grep -rnE "Math\.random\(|Date\.now\(|new Date\(\)" src "${EXCLUDES[@]}" 2>/dev/null | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(\*|//|/\*)" || true
+  )
 fi
 
 # ---------------------------------------------------------------------------

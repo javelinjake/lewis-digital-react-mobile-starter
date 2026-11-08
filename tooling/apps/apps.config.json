@@ -13,6 +13,24 @@
         "initialJsKb": 170
       },
       "deployable": false
+    },
+    {
+      "slug": "pixel-pitch",
+      "packageName": "@ld/app-pixel-pitch",
+      "path": "apps/pixel-pitch/app",
+      "api": {
+        "packageName": "@ld/api-pixel-pitch",
+        "path": "apps/pixel-pitch/api"
+      },
+      "core": {
+        "packageName": "@ld/pixel-pitch-core",
+        "path": "apps/pixel-pitch/core"
+      },
+      "web": "playtest",
+      "budget": {
+        "initialJsKb": 400
+      },
+      "deployable": false
     }
   ]
 }
