@@ -227,6 +227,7 @@ overrides:
   '@capacitor/cli@5>tar': 7.5.22
   '@capacitor/assets>sharp': 0.35.5
   '@videojs/themes>postcss-inline-svg': '-'
+  dompurify: ^3.4.17
 
 importers:
 
@@ -4853,8 +4854,8 @@ packages:
     resolution: {integrity: sha512-GrwoxYN+uWlzO8uhUXRl0P+kHE4GtVPfYzVLcUxPL7KNdHKj66vvlhiweIHqYYXWlw+T8iLMp42Lm67ghw4WMQ==}
     engines: {node: '>= 4'}
 
-  dompurify@3.4.15:
-    resolution: {integrity: sha512-EUBjM+B+lkDE41iE82DDSCfkoPGfXx8IxFxPMjNzm/Uk4xDet77rTN9wqlxlVg71kK7XGuUMv6wUxJUwwv+Xyw==}
+  dompurify@3.4.17:
+    resolution: {integrity: sha512-B/pSlYVHQ58kqISD/yDjuJ1yfzI34m1gF4lAod2bwSRhiN4K5Cl3H8Af7hqB2PmTL911tdEudnnXn5FnhRoz0w==}
 
   domutils@2.8.0:
     resolution: {integrity: sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==}
@@ -10469,7 +10470,7 @@ snapshots:
     dependencies:
       '@posthog/core': 1.64.1
       '@posthog/types': 1.421.1
-      dompurify: 3.4.15
+      dompurify: 3.4.17
       preact: 10.29.8
     transitivePeerDependencies:
       - preact-render-to-string
@@ -11849,7 +11850,7 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
-  dompurify@3.4.15:
+  dompurify@3.4.17:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -13893,7 +13894,7 @@ snapshots:
 
   monaco-editor@0.57.0:
     dependencies:
-      dompurify: 3.4.15
+      dompurify: 3.4.17
       marked: 14.0.0
 
   ms@2.1.2: {}
@@ -14282,7 +14283,7 @@ snapshots:
       '@posthog/core': 1.64.1
       '@posthog/types': 1.421.1
       core-js: 3.51.0
-      dompurify: 3.4.15
+      dompurify: 3.4.17
       fflate: 0.4.9
       preact: 10.29.8
       query-selector-shadow-dom: 1.0.1

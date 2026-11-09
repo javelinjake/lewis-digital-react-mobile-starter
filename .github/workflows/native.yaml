@@ -80,12 +80,16 @@ jobs:
     name: ${{ matrix.app.slug }} (iOS simulator)
     needs: pick
     if: ${{ needs.pick.outputs.native != '[]' && needs.pick.outputs.native != '' }}
-    runs-on: macos-15
+    runs-on: macos-26
     strategy:
       fail-fast: false
       matrix:
         app: ${{ fromJSON(needs.pick.outputs.native) }}
     steps:
+      # Capacitor 8 needs Xcode 26, and App Store uploads need the iOS 26 SDK. Pinned so a new runner default
+      # does not change the build under us; matches the Xcode used locally.
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.4.app
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -103,5 +107,5 @@ jobs:
       - name: Build for the simulator (unsigned)
         working-directory: ${{ matrix.app.path }}/ios/App
         run: >-
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug
           -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build

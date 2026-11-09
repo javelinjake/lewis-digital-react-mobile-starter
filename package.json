@@ -35,7 +35,8 @@
     "overrides": {
       "@capacitor/cli@5>tar": "7.5.22",
       "@capacitor/assets>sharp": "0.35.5",
-      "@videojs/themes>postcss-inline-svg": "-"
+      "@videojs/themes>postcss-inline-svg": "-",
+      "dompurify": "^3.4.17"
     }
   }
 }

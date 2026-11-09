@@ -148,8 +148,8 @@ if [[ -f payload.config.ts ]]; then
   fi
 
   { grep -rlE "'use client'|\"use client\"" app --include='*.ts' --include='*.tsx' "${EXCLUDES[@]}" 2>/dev/null \
-      | xargs grep -lE "from ['\"](payload|@payloadcms/db-|@ld/backend)" 2>/dev/null \
-      | xargs grep -L "architecture: admin-only" 2>/dev/null || true; } \
+      | xargs -r grep -lE "from ['\"](payload|@payloadcms/db-|@ld/backend)" 2>/dev/null \
+      | xargs -r grep -L "architecture: admin-only" 2>/dev/null || true; } \
     | report "Client components must not import Payload or @ld/backend (unless marked 'architecture: admin-only')"
 
   { grep -rnE "NEXT_PUBLIC_[A-Z0-9_]*(SECRET|TOKEN|PASSWORD|PRIVATE)" . "${EXCLUDES[@]}" --include='*.ts' --include='*.tsx' --include='.env*' 2>/dev/null || true; } \
