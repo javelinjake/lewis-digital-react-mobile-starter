@@ -1,6 +1,7 @@
 import { ErrorState, LoadingState } from '@ld/ui'
 import { Navigate, Outlet } from 'react-router'
 import { useClub } from '../queries/use-game'
+import { NotificationScheduler } from './NotificationScheduler'
 
 /** Game screens need a club. Until the player has one, they go to onboarding. A cached club shows while syncing. */
 export function ClubGate() {
@@ -12,7 +13,12 @@ export function ClubGate() {
   }
   if (club.data === null)
     return <Navigate to="/onboarding" replace />
-  return <Outlet />
+  return (
+    <>
+      <Outlet />
+      <NotificationScheduler />
+    </>
+  )
 }
 
 /**

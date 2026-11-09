@@ -1,15 +1,37 @@
-import type { WelcomeBackEvent } from '@ld/pixel-pitch-core'
+import type { GameResponse, WelcomeBackEvent } from '@ld/pixel-pitch-core'
+import { pendingStadiumCoins, pendingTrayTokens } from '@ld/pixel-pitch-core'
 import { art } from '../lib/art'
 import { leagueName } from '../lib/club'
+import { useGameConfig } from '../queries/use-game'
 import { Icon } from './sprites'
 
 /** What happened while the player was away. Shown once per sync that had news. */
-export function WelcomeBack({ events, onClose }: { events: WelcomeBackEvent[], onClose: () => void }) {
+export function WelcomeBack({ game, events, onClose }: { game: GameResponse, events: WelcomeBackEvent[], onClose: () => void }) {
+  const config = useGameConfig()
+  const { idle } = game.club.state
+  const stadium = pendingStadiumCoins(idle, config, game.now)
+  const trays = pendingTrayTokens(idle, config, 'kick', game.now) + pendingTrayTokens(idle, config, 'keepy', game.now)
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-label="Welcome back">
       <div className="flex w-full max-w-sm flex-col items-center gap-4 border-2 border-primary bg-base-100 p-5">
         <img src={art('text/banner_welcome_back.png')} alt="Welcome back" className="pixel h-auto w-48" />
         <ul className="flex w-full flex-col gap-2 text-lg">
+          {stadium > 0
+            ? (
+                <li>
+                  <Icon path="icons/currency_coin.png" />
+                  {` ${stadium.toLocaleString('en-GB')} coins waiting in the stadium`}
+                </li>
+              )
+            : null}
+          {trays > 0
+            ? (
+                <li>
+                  <Icon path="icons/currency_token.png" />
+                  {` ${trays} tokens waiting in the arcade trays`}
+                </li>
+              )
+            : null}
           {events.map((event) => {
             if (event.type === 'matches') {
               return (

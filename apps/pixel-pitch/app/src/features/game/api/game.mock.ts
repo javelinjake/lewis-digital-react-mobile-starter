@@ -1,6 +1,6 @@
 import type { ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player, PoolPlayer } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
-import { arcadePack, autoPick, buyPack, decidePack, DEFAULT_CONFIG, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, newClubState, openPack, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, toFielded, trainInClub, upgradeState } from '@ld/pixel-pitch-core'
+import { arcadePack, autoPick, buyPack, collectStadium, collectTray, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, newClubState, openPack, playDebut, rollStarterSquad, sellCard, setLineup, startPlay, startWarmup, syncClub, toFielded, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
 import { useAuthStore } from '@/stores/auth.store'
 
 // The game rules running in the browser instead of on the server: development, Playwright and Lighthouse use it.
@@ -71,7 +71,7 @@ function assignIds(mock: MockClub, state: ClubState, cards: OwnedCard[]) {
   return { cards: next, state: { ...state, lineup: state.lineup.map(id => (id ? ids.get(id) ?? id : null)) } }
 }
 
-async function respond(run: (mock: MockClub, at: number, ctx: FlowContext) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[] }): Promise<GameResponse> {
+async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowContext) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[], extra?: T }): Promise<GameResponse & T> {
   const mock = load()
   if (!mock)
     throw new MockRuleError('Create your club first.', 404)
@@ -90,7 +90,7 @@ async function respond(run: (mock: MockClub, at: number, ctx: FlowContext) => { 
   save(next)
   // A little latency, so pending states show in development as they would on a phone.
   await new Promise(resolve => setTimeout(resolve, 120))
-  return { club: next.club, cards: next.cards, fixtures, events: synced.events, now: at, configVersion: config.version }
+  return { club: next.club, cards: next.cards, fixtures, events: synced.events, now: at, configVersion: config.version, ...(result.extra ?? {} as T) }
 }
 
 function wrap<T>(run: () => T): T {
@@ -140,6 +140,13 @@ export const gameApi: GameApi = {
   buyPack: () => respond((_mock, _at, ctx) => wrap(() => buyPack(ctx))),
   arcadePack: position => respond((_mock, _at, ctx) => wrap(() => arcadePack(ctx, position))),
   decidePack: decisions => respond((_mock, _at, ctx) => wrap(() => decidePack(ctx, decisions))),
+  collectStadium: () => respond((_mock, _at, ctx) => wrap(() => collectStadium(ctx))),
+  upgradeStadium: () => respond((_mock, _at, ctx) => wrap(() => upgradeStadium(ctx))),
+  collectTray: cabinet => respond((_mock, _at, ctx) => wrap(() => collectTray(ctx, cabinet))),
+  startPlay: (cabinet, paid) => respond((_mock, _at, ctx) => wrap(() => startPlay(ctx, cabinet, paid))),
+  finishPlay: (cabinet, taps) => respond((_mock, _at, ctx) => wrap(() => finishPlay(ctx, cabinet, taps))),
+  startWarmup: () => respond((_mock, _at, ctx) => wrap(() => startWarmup(ctx))),
+  finishWarmup: tapMs => respond((_mock, _at, ctx) => wrap(() => finishWarmup(ctx, tapMs))),
   readCatalogue: async () => catalogue,
   readConfig: async () => config,
   async readFixtures(limit) {

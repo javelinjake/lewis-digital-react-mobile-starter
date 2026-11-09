@@ -1,10 +1,11 @@
 import { ActionSheet, ListGroup, ListItem } from '@ld/mobile-ui'
-import { getPlatform } from '@ld/native'
+import { getPlatform, isNativePlatform } from '@ld/native'
 import { usePushNotifications } from '@ld/native/react'
 import { ConfirmDialog, useToast } from '@ld/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { clearUserData } from '@/app/session-data'
+import { NOTIFICATION_TYPES, useNotificationSettings } from '@/hooks/use-notification-settings'
 import { useReplayMode } from '@/hooks/use-replay-mode'
 import { authApi } from '@/lib/auth/auth-api'
 import { useAuthStore } from '@/stores/auth.store'
@@ -18,6 +19,7 @@ export function SettingsOverview() {
   const navigate = useNavigate()
   const toast = useToast()
   const [replayMode, setReplayMode] = useReplayMode()
+  const [alerts, setAlert] = useNotificationSettings()
   const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -31,6 +33,20 @@ export function SettingsOverview() {
           onClick={() => setReplayMode(replayMode === 'text' ? 'pitch' : 'text')}
         />
         <ListItem title="Platform" subtitle={getPlatform()} />
+        {NOTIFICATION_TYPES.map(entry => (
+          <ListItem
+            key={entry.type}
+            title={`Alert: ${entry.label}`}
+            subtitle={alerts.includes(entry.type) ? 'On' : 'Off'}
+            onClick={() => {
+              const on = !alerts.includes(entry.type)
+              setAlert(entry.type, on)
+              // The first time one is turned on, ask the phone for permission to show alerts.
+              if (on && isNativePlatform())
+                void import('@ld/native/notifications').then(({ requestNotificationPermission }) => requestNotificationPermission())
+            }}
+          />
+        ))}
         <ListItem
           title="Notifications"
           subtitle={push.permission}

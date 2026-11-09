@@ -6,7 +6,7 @@ import { gameKeys } from '../queries/game.keys'
  * Runs one game action. The server's answer is the new club, so it replaces the cached one; matches it played
  * refresh the results list. `optimistic` shows a change (a lineup edit) before the server confirms it.
  */
-export function useGameAction<Input>(run: (input: Input) => Promise<GameResponse>, optimistic?: (current: GameResponse, input: Input) => GameResponse) {
+export function useGameAction<Input, Output extends GameResponse = GameResponse>(run: (input: Input) => Promise<Output>, optimistic?: (current: GameResponse, input: Input) => GameResponse) {
   const client = useQueryClient()
   return useMutation({
     mutationFn: run,

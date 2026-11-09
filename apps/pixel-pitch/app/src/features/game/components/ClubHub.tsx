@@ -2,12 +2,13 @@ import type { GameResponse } from '@ld/pixel-pitch-core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { art } from '../lib/art'
 import { kitOf, leagueName, nextRival, serverOffset } from '../lib/club'
 import { gameKeys } from '../queries/game.keys'
 import { useFixtures, useGameConfig } from '../queries/use-game'
 import { Countdown } from './Countdown'
 import { Crest, Icon } from './sprites'
+import { StadiumCard } from './StadiumCard'
+import { WarmupCard } from './WarmupCard'
 import { WelcomeBack } from './WelcomeBack'
 
 const SEEN_KEY = 'pp-welcome-seen'
@@ -65,8 +66,7 @@ export function ClubHub({ game }: { game: GameResponse }) {
         </span>
       </section>
 
-      <section className="flex flex-col items-center gap-2 border-2 border-slate bg-base-100 p-4">
-        <img src={art('club/stadium_lv1.png')} alt="" width={48 * 4} height={28 * 4} className="pixel" />
+      <section className="flex flex-col items-center gap-2 border-2 border-slate bg-base-100 p-4" aria-label="Next match">
         <span className="text-muted">Next match</span>
         <span className="text-xl">{`v ${rival.name}`}</span>
         <span className="font-display text-sm text-primary">
@@ -74,6 +74,17 @@ export function ClubHub({ game }: { game: GameResponse }) {
         </span>
         <Link to="/squad" className="btn btn-primary min-h-11 w-full font-display text-xs">Set the lineup</Link>
       </section>
+
+      <WarmupCard game={game} />
+      <StadiumCard game={game} />
+
+      <Link to="/arcade" className="flex items-center justify-between border-2 border-slate bg-base-100 p-3">
+        <span className="flex flex-col">
+          <span className="text-xl">Arcade</span>
+          <span className="text-muted">Kick Timer and Keepy-Uppy. Earn tokens.</span>
+        </span>
+        <Icon path="icons/currency_token.png" scale={3} />
+      </Link>
 
       {last
         ? (
@@ -92,6 +103,7 @@ export function ClubHub({ game }: { game: GameResponse }) {
       {showWelcome
         ? (
             <WelcomeBack
+              game={game}
               events={news}
               onClose={() => {
                 sessionStorage.setItem(SEEN_KEY, String(game.now))

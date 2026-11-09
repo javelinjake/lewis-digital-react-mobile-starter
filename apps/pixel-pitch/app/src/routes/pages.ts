@@ -9,6 +9,8 @@ export const pages = {
   resetPassword: () => import('@/pages/ResetPasswordPage').then(m => ({ Component: m.ResetPasswordPage })),
   onboarding: () => import('@/pages/OnboardingPage').then(m => ({ Component: m.OnboardingPage })),
   club: () => import('@/pages/ClubPage').then(m => ({ Component: m.ClubPage })),
+  arcade: () => import('@/pages/ArcadePage').then(m => ({ Component: m.ArcadePage })),
+  arcadePlay: () => import('@/pages/ArcadePlayPage').then(m => ({ Component: m.ArcadePlayPage })),
   packs: () => import('@/pages/PacksPage').then(m => ({ Component: m.PacksPage })),
   squad: () => import('@/pages/SquadPage').then(m => ({ Component: m.SquadPage })),
   league: () => import('@/pages/LeaguePage').then(m => ({ Component: m.LeaguePage })),

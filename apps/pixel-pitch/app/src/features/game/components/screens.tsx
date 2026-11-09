@@ -5,6 +5,8 @@ import { EmptyState, LoadingState } from '@ld/ui'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useReplayMode } from '@/hooks/use-replay-mode'
 import { useClub, useFixtures } from '../queries/use-game'
+import { ArcadePlay } from './ArcadePlay'
+import { ArcadeScreen } from './ArcadeScreen'
 import { ClubHub } from './ClubHub'
 import { LeagueScreen } from './LeagueScreen'
 import { MatchReplay } from './MatchReplay'
@@ -20,6 +22,15 @@ function WithClub({ children }: { children: (game: GameResponse) => ReactNode })
 
 export function ClubTab() {
   return <WithClub>{game => <ClubHub game={game} />}</WithClub>
+}
+
+export function ArcadeTab() {
+  return <WithClub>{game => <ArcadeScreen game={game} />}</WithClub>
+}
+
+export function ArcadeCabinetView() {
+  const { cabinet } = useParams()
+  return <WithClub>{game => (cabinet === 'kick' || cabinet === 'keepy' ? <ArcadePlay game={game} cabinet={cabinet} /> : <EmptyState title="No such cabinet" />)}</WithClub>
 }
 
 export function PacksTab() {

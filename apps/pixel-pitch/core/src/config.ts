@@ -343,7 +343,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     minTapGapMs: 120,
     clockSlack: 0.85,
     kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2 },
-    keepy: { gravity: 140, ramp: 0.03, minPeak: 26, maxPeak: 36, reach: 22, stumbleSteps: 30, maxKicks: 50 },
+    keepy: { gravity: 110, ramp: 0.04, minPeak: 40, maxPeak: 54, reach: 32, stumbleSteps: 30, maxKicks: 50 },
     warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
   },
   daily: {

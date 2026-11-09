@@ -3,6 +3,7 @@ import process from 'node:process'
 import { createAppBackend } from '@ld/backend'
 import { buildConfig } from 'payload'
 import { appMeta } from '../app/app.meta'
+import { arcadeActions } from './cms/actions/arcade'
 import { duplicateNoteAction } from './cms/actions/duplicate-note'
 import { gameActions } from './cms/actions/game'
 import { packActions } from './cms/actions/packs'
@@ -25,6 +26,6 @@ export default buildConfig(createAppBackend({
   auth: { ...appMeta.auth, requireEmailVerification: true },
   collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, notesCollection],
   globals: [gameConfigGlobal],
-  endpoints: [...gameActions, ...packActions, duplicateNoteAction],
+  endpoints: [...gameActions, ...packActions, ...arcadeActions, duplicateNoteAction],
   adminMeta: { titleSuffix: `· ${appMeta.name} admin` },
 }))

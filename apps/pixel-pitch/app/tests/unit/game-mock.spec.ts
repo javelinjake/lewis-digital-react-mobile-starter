@@ -86,3 +86,28 @@ describe('the written match report', () => {
     expect(times.at(-1)!).toBeGreaterThanOrEqual(DURATION_MS - 1)
   })
 })
+
+describe('local notifications', () => {
+  it('plans a shelf alert, a full-time alert after the next kick-off and a trays alert, and drops the shelf one when it is full', async () => {
+    const { buildNotificationPlans } = await import('@/features/game/lib/notification-plans')
+    const { planNotifications } = await import('@ld/native/notification-plan')
+    useAuthStore.setState({ userId: `user-${Math.random()}` })
+    sessionStorage.clear()
+    const created = await gameApi.createClub(newClub)
+    const plans = buildNotificationPlans(created, DEFAULT_CONFIG)
+
+    const byType = Object.fromEntries(plans.map(plan => [plan.type, plan]))
+    expect(Object.keys(byType).sort()).toEqual(['full-time', 'shelf-full', 'trays-full'])
+    expect(byType['full-time'].at).toBe(created.club.state.league.nextKickoffAt + 60_000)
+    // Ten packs at 45 minutes each from the start, and 8 hours of trays.
+    expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + 10 * 45 * 60_000)
+    expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt.kick + 8 * HOUR)
+
+    const full = { ...created, club: { ...created.club, state: { ...created.club.state, idle: { ...created.club.state.idle, shelfPacks: 10 } } } }
+    expect(buildNotificationPlans(full, DEFAULT_CONFIG).some(plan => plan.type === 'shelf-full')).toBe(false)
+
+    // The shared planner keeps alerts out of quiet hours and drops the types the player switched off.
+    const allowed = planNotifications(plans, { enabledTypes: ['full-time'], now: created.now })
+    expect(allowed.map(plan => plan.type)).toEqual(['full-time'])
+  })
+})

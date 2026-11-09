@@ -1,4 +1,4 @@
-import type { FixtureResult, FormationId, GameConfig, GameResponse, NewClub, Player, Position } from '@ld/pixel-pitch-core'
+import type { Cabinet, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, Player, PlayResult, Position, WarmupZone } from '@ld/pixel-pitch-core'
 
 /** Everything the game screens ask the server for. `game.live.ts` calls the api; `game.mock.ts` runs the rules here. */
 export interface GameApi {
@@ -14,6 +14,15 @@ export interface GameApi {
   buyPack: () => Promise<GameResponse>
   arcadePack: (position: Position) => Promise<GameResponse>
   decidePack: (decisions: Array<'sign' | 'sell'>) => Promise<GameResponse>
+  collectStadium: () => Promise<GameResponse & { coins: number }>
+  upgradeStadium: () => Promise<GameResponse & { level: number, cost: number }>
+  collectTray: (cabinet: Cabinet) => Promise<GameResponse & { tokens: number }>
+  /** Starts a play: the ticket (with the game's seed) is in the answer's club state. `paid` spends gems for an extra play. */
+  startPlay: (cabinet: Cabinet, paid: boolean) => Promise<GameResponse>
+  /** Sends the taps the game recorded; the server replays them and answers with the score and pay. */
+  finishPlay: (cabinet: Cabinet, taps: number[]) => Promise<GameResponse & PlayResult>
+  startWarmup: () => Promise<GameResponse>
+  finishWarmup: (tapMs: number) => Promise<GameResponse & { zone: WarmupZone, bonus: number }>
   readCatalogue: () => Promise<Player[]>
   readConfig: () => Promise<GameConfig>
   /** The club's most recent matches, newest first. */

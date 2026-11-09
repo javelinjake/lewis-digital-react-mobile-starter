@@ -19,8 +19,8 @@ interface PlayerDoc {
 type FixtureDoc = FixtureResult & { id: number }
 
 /** Every tap gets its own key, so a retried request is applied once. */
-function act(path: string, body: Record<string, unknown> = {}) {
-  return getApi().action<GameResponse>(path, body, newIdempotencyKey())
+function act<T = object>(path: string, body: Record<string, unknown> = {}) {
+  return getApi().action<GameResponse & T>(path, body, newIdempotencyKey())
 }
 
 export const gameApi: GameApi = {
@@ -43,6 +43,13 @@ export const gameApi: GameApi = {
   buyPack: () => act('/game/packs/buy'),
   arcadePack: position => act('/game/packs/arcade', { position }),
   decidePack: decisions => act('/game/packs/decide', { decisions }),
+  collectStadium: () => act('/game/stadium/collect'),
+  upgradeStadium: () => act('/game/stadium/upgrade'),
+  collectTray: cabinet => act('/game/arcade/collect', { cabinet }),
+  startPlay: (cabinet, paid) => act('/game/arcade/start', { cabinet, paid }),
+  finishPlay: (cabinet, taps) => act('/game/arcade/finish', { cabinet, taps }),
+  startWarmup: () => act('/game/warmup/start'),
+  finishWarmup: tapMs => act('/game/warmup/finish', { tapMs }),
   async readCatalogue() {
     const result = await getApi().collection<PlayerDoc>('players').find({ limit: 1000, depth: 0 })
     return result.docs.map(doc => ({

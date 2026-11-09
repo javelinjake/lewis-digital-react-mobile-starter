@@ -219,6 +219,111 @@ test.describe('Packs @game', () => {
   })
 })
 
+test.describe('Stadium, warm-up and arcade @game', () => {
+  test('the stadium piles up coins while away and pays them when collected', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 3 * HOUR + 60_000)
+    await page.goto('/club')
+    await page.getByRole('button', { name: 'Let\'s go' }).click()
+    const stadium = page.getByRole('region', { name: 'Stadium' })
+    await expect(stadium.getByText(/Level 1/)).toBeVisible()
+    const collect = stadium.getByRole('button', { name: /^Collect 1[89]\d$/ })
+    await expect(collect).toBeEnabled()
+    await collect.click()
+    await expect(stadium.getByRole('button', { name: /^Collect 0$/ })).toBeDisabled()
+  })
+
+  test('the stadium can be upgraded once the club can pay', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 4 * 24 * HOUR)
+    await page.goto('/club')
+    await page.getByRole('button', { name: 'Let\'s go' }).click()
+    const stadium = page.getByRole('region', { name: 'Stadium' })
+    const upgrade = stadium.getByRole('button', { name: /^Upgrade/ })
+    await expect(upgrade).toBeEnabled()
+    await upgrade.click()
+    await expect(stadium.getByText(/Level 2/)).toBeVisible()
+  })
+
+  test('the warm-up kick can be tried once for a match, and the result is kept', async ({ page }) => {
+    await foundClub(page)
+    await page.goto('/club')
+    const warmup = page.getByRole('region', { name: 'Warm-up kick' })
+    await warmup.getByRole('button', { name: 'Warm up' }).click()
+    await page.waitForTimeout(400)
+    await warmup.getByRole('button', { name: 'KICK!' }).click()
+    await expect(warmup.getByText(/^(Perfect!|Good|Missed)$/)).toBeVisible()
+    await expect(warmup.getByText(/attack in your next match|warmed up for this match/)).toBeVisible()
+    await expect(warmup.getByRole('button', { name: 'Warm up' })).toHaveCount(0)
+  })
+
+  test('Kick Timer: five kicks, scored by the server, paying tokens', async ({ page }) => {
+    test.setTimeout(60_000)
+    await foundClub(page)
+    await page.goto('/arcade')
+    await expect(page.getByRole('region', { name: 'Kick Timer' }).getByText(/Tray: 0 tokens/)).toBeVisible()
+    await page.getByRole('region', { name: 'Kick Timer' }).getByRole('link', { name: /Play · 3 free plays left/ }).click()
+    await page.getByRole('button', { name: 'Start' }).click()
+    for (let kick = 1; kick <= 5; kick++) {
+      await expect(page.getByText(`Kick ${kick} of 5`)).toBeVisible()
+      await page.waitForTimeout(300)
+      await page.getByRole('button', { name: 'KICK!' }).click()
+      await expect(page.getByText(/^(Miss|Close|Good|Perfect!)$/)).toBeVisible()
+    }
+    const result = page.getByLabel('Result')
+    await expect(result).toBeVisible({ timeout: 10_000 })
+    await expect(result.getByText(/^\d+ \/ 15$/)).toBeVisible()
+    await result.getByRole('link', { name: 'Back to the arcade' }).click()
+    await expect(page.getByRole('region', { name: 'Kick Timer' }).getByRole('link', { name: /Play · 2 free plays left/ })).toBeVisible()
+  })
+
+  test('Keepy-Uppy: the ball drops with no taps, and the server scores the play', async ({ page }) => {
+    test.setTimeout(60_000)
+    await foundClub(page)
+    await page.goto('/arcade/keepy')
+    await page.getByRole('button', { name: 'Start' }).click()
+    await expect(page.getByLabel('Keepy-Uppy game')).toBeVisible()
+    const result = page.getByLabel('Result')
+    await expect(result).toBeVisible({ timeout: 20_000 })
+    await expect(result.getByText('0 / 50')).toBeVisible()
+    await expect(result.getByText(/Nothing this time/)).toBeVisible()
+  })
+
+  test('the arcade trays fill while away and are collected into tokens', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 5 * HOUR)
+    await page.goto('/arcade')
+    const tray = page.getByRole('region', { name: 'Kick Timer' })
+    await expect(tray.getByText(/Tray: 6\d tokens/)).toBeVisible()
+    await tray.getByRole('button', { name: 'Collect' }).click()
+    await expect(tray.getByText(/Tray: 0 tokens/)).toBeVisible()
+    await expect(page.getByText(/^6\d$/).first()).toBeVisible()
+  })
+
+  test('free plays run out after three, then an extra play costs gems', async ({ page }) => {
+    test.setTimeout(60_000)
+    await foundClub(page)
+    for (let play = 0; play < 3; play++) {
+      await page.goto('/arcade/keepy')
+      await page.getByRole('button', { name: 'Start' }).click()
+      await expect(page.getByLabel('Result')).toBeVisible({ timeout: 20_000 })
+    }
+    await page.goto('/arcade')
+    const keepy = page.getByRole('region', { name: 'Keepy-Uppy' })
+    await expect(keepy.getByText('No free plays left today.')).toBeVisible()
+    await expect(keepy.getByRole('link', { name: /Extra play · 20 gems/ })).toBeVisible()
+  })
+
+  test('the welcome-back summary mentions the stadium and the trays', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 6 * HOUR)
+    await page.goto('/club')
+    const welcome = page.getByRole('dialog', { name: 'Welcome back' })
+    await expect(welcome.getByText(/coins waiting in the stadium/)).toBeVisible()
+    await expect(welcome.getByText(/tokens waiting in the arcade trays/)).toBeVisible()
+  })
+})
+
 test.describe('Time away @game', () => {
   test('a day away plays eight matches and shows them in the table and the summary', async ({ page }) => {
     await foundClub(page)

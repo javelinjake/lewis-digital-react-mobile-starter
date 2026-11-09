@@ -49,7 +49,11 @@ export const router = createBrowserRouter([
               },
               {
                 Component: StackLayout,
-                children: [{ path: '/match/:no', lazy: pages.match, handle: { title: 'Match' } }],
+                children: [
+                  { path: '/match/:no', lazy: pages.match, handle: { title: 'Match' } },
+                  { path: '/arcade', lazy: pages.arcade, handle: { title: 'Arcade' } },
+                  { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade' } },
+                ],
               },
             ],
           },
