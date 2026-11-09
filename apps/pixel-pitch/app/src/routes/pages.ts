@@ -9,6 +9,7 @@ export const pages = {
   resetPassword: () => import('@/pages/ResetPasswordPage').then(m => ({ Component: m.ResetPasswordPage })),
   onboarding: () => import('@/pages/OnboardingPage').then(m => ({ Component: m.OnboardingPage })),
   club: () => import('@/pages/ClubPage').then(m => ({ Component: m.ClubPage })),
+  packs: () => import('@/pages/PacksPage').then(m => ({ Component: m.PacksPage })),
   squad: () => import('@/pages/SquadPage').then(m => ({ Component: m.SquadPage })),
   league: () => import('@/pages/LeaguePage').then(m => ({ Component: m.LeaguePage })),
   match: () => import('@/pages/MatchPage').then(m => ({ Component: m.MatchPage })),
@@ -19,6 +20,7 @@ export const pages = {
 export function preloadTabScreens() {
   const load = () => {
     void pages.club()
+    void pages.packs()
     void pages.squad()
     void pages.league()
     void pages.settings()

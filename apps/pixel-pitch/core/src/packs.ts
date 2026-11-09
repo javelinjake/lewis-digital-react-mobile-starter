@@ -34,6 +34,8 @@ export interface RollPackInput {
   config: GameConfig
   /** An Arcade pack lets the player choose a position. Players in it are `config.packs.positionBoost` times as likely. */
   position?: Position
+  /** A Star pack: one player, picked at random from the pack's slots, is Star or better. */
+  guaranteeStar?: boolean
 }
 
 function rollRarity(rng: Rng, odds: readonly number[], onlyStarUp: boolean): Rarity {
@@ -52,13 +54,14 @@ export function rollPack(input: RollPackInput): PackRoll {
   const rng = createRng(seed)
   const odds = oddsForTier(tier, config)
   let pity = input.pity
+  const starSlot = input.guaranteeStar ? rng.int(0, config.shelf.playersPerPack - 1) : -1
 
   const byRarity = new Map<Rarity, Player[]>(RARITIES.map(rarity => [rarity, catalogue.filter(player => player.rarity === rarity)]))
   const players: Player[] = []
   const guaranteed: boolean[] = []
 
   for (let slot = 0; slot < config.shelf.playersPerPack; slot++) {
-    const forced = pity >= config.packs.pityPlayers - 1
+    const forced = slot === starSlot || pity >= config.packs.pityPlayers - 1
     const rarity = rollRarity(rng, odds, forced)
     const pool = byRarity.get(rarity) ?? []
     if (pool.length === 0)

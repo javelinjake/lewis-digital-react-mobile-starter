@@ -37,8 +37,11 @@ export function chemistryBonus(topNationCount: number): number {
 
 export const SLOT_COUNT = 5
 
-/** Scores a lineup: `players[i]` plays slot `i` of the formation, `null` leaves it empty. */
-export function scoreLineup(formation: FormationId, players: ReadonlyArray<Fielded | null>): LineupScore {
+/**
+ * Scores a lineup: `players[i]` plays slot `i` of the formation, `null` leaves it empty. `bonus` is extra team power
+ * from outside the lineup, such as finished album sets (0.03 is +3%), applied to the score, ATT and DEF.
+ */
+export function scoreLineup(formation: FormationId, players: ReadonlyArray<Fielded | null>, bonus = 0): LineupScore {
   const roles = FORMATIONS[formation].roles
   const nations: number[] = []
   let sum = 0
@@ -61,7 +64,7 @@ export function scoreLineup(formation: FormationId, players: ReadonlyArray<Field
 
   const chemistry = chemistryBonus(Math.max(0, ...nations.filter(Boolean)))
   const average = sum / SLOT_COUNT
-  const exact = average * (1 + chemistry)
+  const exact = average * (1 + chemistry) * (1 + bonus)
 
   return {
     slots,
@@ -72,8 +75,8 @@ export function scoreLineup(formation: FormationId, players: ReadonlyArray<Field
     // Every role's weights add up to 1, so attSum + defSum is the sum of the slot scores. Halving the five slots for
     // each side makes ATT + DEF exactly twice the score: a formation moves strength between attack and defence and
     // never adds any. (The spec divided ATT by 2 and DEF by 3, which made Blitz best against everything.)
-    att: (attSum / (SLOT_COUNT / 2)) * (1 + chemistry),
-    def: (defSum / (SLOT_COUNT / 2)) * (1 + chemistry),
+    att: (attSum / (SLOT_COUNT / 2)) * (1 + chemistry) * (1 + bonus),
+    def: (defSum / (SLOT_COUNT / 2)) * (1 + chemistry) * (1 + bonus),
   }
 }
 

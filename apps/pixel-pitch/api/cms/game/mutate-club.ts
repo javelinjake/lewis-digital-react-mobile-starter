@@ -1,10 +1,10 @@
 import type { ActionContext } from '@ld/backend'
-import type { ClubState, ClubView, FixtureResult, GameResponse, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
+import type { ClubState, ClubView, FixtureResult, FlowContext, FlowResult, GameConfig, GameResponse, LedgerEntry, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
 import type { PayloadRequest } from 'payload'
 import type { Card, Club, Fixture } from '../../payload-types'
 import type { LoadedGame } from './load'
 import { lockRows } from '@ld/backend'
-import { isGameRuleError, NEW_CARD_PREFIX, syncClub } from '@ld/pixel-pitch-core'
+import { isGameRuleError, NEW_CARD_PREFIX, syncClub, upgradeState } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { serverNow } from './clock'
 import { loadGame } from './load'
@@ -12,22 +12,8 @@ import { loadGame } from './load'
 type Currency = 'coins' | 'gems' | 'tokens'
 type CardSource = Card['source']
 
-export interface LedgerEntry {
-  currency: Currency
-  amount: number
-  reason: string
-  ref?: string
-}
-
-/** What a game action decided. Everything is written in the action's transaction. */
-export interface Outcome<T> {
-  state: ClubState
-  /** The squad after the action, if it changed. Ids starting with `NEW_CARD_PREFIX` are created. */
-  cards?: OwnedCard[]
-  /** Where new cards came from. */
-  source?: CardSource
-  ledger?: LedgerEntry[]
-  /** Matches the action played on top of the catch-up (the debut). */
+/** What a game action decided (the rules' `FlowResult`), plus matches an action played itself (the debut). */
+export interface Outcome<T> extends Omit<FlowResult<T>, 'extra'> {
   fixtures?: FixtureResult[]
   /** Extra fields for the response. */
   extra?: T
@@ -143,7 +129,13 @@ function fixtureData(ownerId: number | string, fixture: FixtureResult, configVer
 
 /** Payload's JSON field type has an index signature; the club state is a plain object, so it fits, but TS needs telling. */
 export const stateJson = (state: ClubState) => state as unknown as Record<string, unknown>
-export const readState = (club: Club) => club.state as unknown as ClubState
+/** The club's state, with any field added since it was saved filled in. */
+export const readState = (club: Club, config: GameConfig) => upgradeState(club.state as unknown as ClubState, config)
+
+/** What the rules need to run an action for this club, at the server's now. */
+export function flowContext(input: GameInput): FlowContext {
+  return { state: input.state, cards: input.cards, catalogue: input.game.catalogue, players: input.game.players, config: input.game.config, clubId: input.club.id, now: input.now }
+}
 
 const balanceOf = (state: ClubState, currency: Currency) => (currency === 'coins' ? state.coins : currency === 'gems' ? state.idle.gems : state.tokens)
 
@@ -224,7 +216,7 @@ export async function mutateClub<T = object>(ctx: ActionContext, apply: (input: 
     throw new APIError('Create your club first.', 404, { code: 'no-club' }, true)
   const cards = await findCards(ctx)
 
-  const synced = syncClub({ state: readState(club), cards, players: game.players, clubId: club.id, config: game.config, now })
+  const synced = syncClub({ state: readState(club, game.config), cards, players: game.players, clubId: club.id, config: game.config, now })
   const input = { game, club, state: synced.state, cards, now }
   let outcome: Outcome<T>
   try {

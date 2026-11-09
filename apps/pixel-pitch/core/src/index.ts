@@ -4,13 +4,18 @@
  */
 export const GAME_ID = 'pixel-pitch'
 
+export { type AlbumSet, albumPower, albumSets, isSetComplete, recordCollected } from './album'
+export { type Cabinet, type DailyGoal, type DayCounter, type PackSource, type PendingPack, type Ticket, upgradeState } from './club-state'
+export { type CardSource, type FlowContext, type FlowResult, type LedgerEntry } from './flow'
+export { arcadePack, buyPack, type DecideResult, decidePack, NEW_CARD_PREFIX, openPack, usedToday } from './flow-packs'
+export { addXp, describeReward, grantReward, maxXp, passTiers, pickGoals, recordProgress, rollDaily, rollSeason, seasonOf, tierReached } from './progress'
 export { type CommentaryInput, type CommentaryKind, type CommentaryLine, commentate } from './commentary'
 export { type ClubView, CREST_BASES, CREST_COUNT, CREST_EMBLEMS, crestParts, type GameResponse, type NewClub } from './api-types'
 export { advance, type AdvanceResult, dayIndex, notificationTimes, pendingStadiumCoins, pendingTrayTokens, shelfCapacity } from './advance'
-export { DEFAULT_CONFIG, type GameConfig, gameConfigSchema, parseConfig } from './config'
+export { DEFAULT_CONFIG, GOAL_KINDS, type GameConfig, gameConfigSchema, type GoalKind, type GoalDef, parseConfig, type Reward, rewardSchema } from './config'
 export { type IdleState, newIdleState, type WelcomeBackEvent } from './state'
 
-export { type CardChange, type ClubState, clubNotificationTimes, lineupForMatch, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, type PlayerLookup, sellCard, setLineup, syncClub, type SyncResult, trainInClub } from './club'
+export { type CardChange, type ClubState, clubNotificationTimes, lineupForMatch, mergeInClub, newClubState, playDebut, type PlayerLookup, sellCard, setLineup, syncClub, type SyncResult, trainInClub } from './club'
 export { GameRuleError, isGameRuleError } from './errors'
 export { cardRating, benchCount, benchHasRoom, MAX_RATING, mergeable, mergeCards, type OwnedCard, sellValue, toFielded, train, trainingCost } from './cards'
 export { generateCatalogue, inventName, HAIR_COLOURS, HAIR_STYLES, NATIONS, type Player, SKIN_TONES, type SpriteParts } from './catalogue'

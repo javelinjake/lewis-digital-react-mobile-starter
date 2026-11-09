@@ -9,6 +9,7 @@ import { ClubHub } from './ClubHub'
 import { LeagueScreen } from './LeagueScreen'
 import { MatchReplay } from './MatchReplay'
 import { MatchTextReplay } from './MatchTextReplay'
+import { PacksScreen } from './PacksScreen'
 import { SquadScreen } from './SquadScreen'
 
 /** The game screens run inside `ClubGate`, so the club is there (from the cache at least). */
@@ -19,6 +20,10 @@ function WithClub({ children }: { children: (game: GameResponse) => ReactNode })
 
 export function ClubTab() {
   return <WithClub>{game => <ClubHub game={game} />}</WithClub>
+}
+
+export function PacksTab() {
+  return <WithClub>{game => <PacksScreen game={game} />}</WithClub>
 }
 
 export function SquadTab() {

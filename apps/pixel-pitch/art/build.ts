@@ -22,6 +22,7 @@ const FOLDERS = [
   'sprites/icons',
   'sprites/badges',
   'sprites/cards',
+  'sprites/packs',
   'sprites/text',
   'sprites/ui',
   'sprites/club',

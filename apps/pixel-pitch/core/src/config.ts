@@ -11,6 +11,27 @@ const positive = z.number().positive()
 const count = z.number().int().nonnegative()
 const formationId = z.enum(['2-2', '1-2-1', '2-1-1', '3-1', '1-1-2'])
 
+/** Something a goal, the calendar, the pass or an album set can pay out. `packs` go on the shelf, `starPacks` are guaranteed a Star or better. */
+export const rewardSchema = z.object({
+  kind: z.enum(['coins', 'gems', 'tokens', 'packs', 'starPacks']),
+  amount: z.number().int().positive(),
+})
+export type Reward = z.infer<typeof rewardSchema>
+
+export const GOAL_KINDS = ['openPacks', 'winMatches', 'playCabinets', 'trainPlayers', 'signPlayers', 'collectStadium'] as const
+export type GoalKind = (typeof GOAL_KINDS)[number]
+
+const goalSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum(GOAL_KINDS),
+  /** How many times it has to happen in one day. */
+  target: z.number().int().positive(),
+  reward: rewardSchema,
+  /** The text shown: {n} becomes the target. */
+  label: z.string(),
+})
+export type GoalDef = z.infer<typeof goalSchema>
+
 export const gameConfigSchema = z.object({
   /** Bumped on every change. Stamped on results so a result can be traced to the rules that produced it. */
   version: z.number().int().positive(),
@@ -46,6 +67,51 @@ export const gameConfigSchema = z.object({
     freePlaysPerDay: count,
     freePlaysPerDayWithPass: count,
     arcadePackTokens: count,
+    /** Most tokens one play can pay, at a perfect score. PLACEHOLDER. */
+    playMaxTokens: count,
+    /** Gems for an extra play once the free ones are used. It pays coins and Pass XP, never tokens (tokens buy random packs). */
+    gemPlayCost: count,
+    gemPlayCoins: count,
+  }),
+
+  /** Tuning of the arcade games and the warm-up kick. PLACEHOLDERS: balance in the first playtest. */
+  minigames: z.object({
+    /** A tap sooner than this after the last one is not a person. */
+    minTapGapMs: positive,
+    /** The server's clock must have run at least this fraction of the play's own length (leaves room for latency). */
+    clockSlack: z.number().min(0.5).max(1),
+    kick: z.object({
+      rounds: z.number().int().positive(),
+      /** Bar crossings a second, per round: between these two. */
+      minSpeed: positive,
+      maxSpeed: positive,
+      /** Half-widths of the scoring zones, as a fraction of the bar: 3, 2 and 1 point. */
+      perfect: positive,
+      good: positive,
+      ok: positive,
+    }),
+    keepy: z.object({
+      /** Gravity at the start, in pitch units a second squared; the ball is 100 units from the ground up to the top. */
+      gravity: positive,
+      /** How much harder it gets with each kick: gravity grows by this fraction. */
+      ramp: z.number().nonnegative(),
+      /** A kick lands the ball between these heights. */
+      minPeak: positive,
+      maxPeak: positive,
+      /** The foot reaches the ball when it is this low and falling. */
+      reach: positive,
+      /** After a badly timed tap the player cannot kick for this many 60 Hz steps. */
+      stumbleSteps: z.number().int().nonnegative(),
+      /** The game ends at this many kicks. */
+      maxKicks: z.number().int().positive(),
+    }),
+    warmup: z.object({
+      minSpeed: positive,
+      maxSpeed: positive,
+      /** Widths of the gold and green zones, as a fraction of the bar. */
+      goldWidth: positive,
+      greenWidth: positive,
+    }),
   }),
 
   league: z.object({
@@ -133,13 +199,63 @@ export const gameConfigSchema = z.object({
     gemsWithPass: count,
     /** Minutes after UTC midnight that a new day starts. 240 is 04:00 UTC. */
     dayStartOffsetMinutes: z.number().int().min(0).max(1439),
+    /** How many goals a day, drawn from `goals` (no two of one kind). */
+    goalsPerDay: z.number().int().positive(),
+    goals: z.array(goalSchema).min(1),
+    /** Packs the Daily Free Pack puts on the shelf. */
+    freePackCount: z.number().int().positive(),
+  }),
+
+  /** The 7-day login calendar. Claim a day, every day, for the next reward; missing a day starts again. Ends in a Star pack. */
+  calendar: z.object({
+    rewards: z.array(rewardSchema).length(7),
+  }),
+
+  pass: z.object({
+    seasonDays: z.number().int().positive(),
+    xpPerTier: positive,
+    /** Pass XP from each thing. A win pays `match` + `win`. */
+    xp: z.object({ match: count, win: count, pack: count, cabinet: count, goal: count }),
+    /** One entry per tier: the free reward (or null) and the premium reward. 30 tiers. */
+    free: z.array(rewardSchema.nullable()),
+    premium: z.array(rewardSchema),
+  }),
+
+  album: z.object({
+    /** Players in a set. Sets are every nation and position's players, best first, in groups of this many. */
+    setSize: z.number().int().min(2),
+    /** Team power for each finished set, as a fraction (0.01 is +1%). */
+    bonusPerSet: z.number().nonnegative(),
+    reward: rewardSchema,
   }),
 })
 
 export type GameConfig = z.infer<typeof gameConfigSchema>
 
+/** 30 tiers. The free track pays every second tier (15 rewards) and ends in a Star pack; the premium track pays every tier, with Star packs at 15 and 30. PLACEHOLDER values. */
+function passTiers() {
+  const tiers = 30
+  const free = Array.from({ length: tiers }, (_, index) => {
+    const tier = index + 1
+    if (tier === tiers)
+      return { kind: 'starPacks', amount: 1 }
+    if (tier % 2 === 1)
+      return null
+    const cycle = (tier / 2) % 3
+    return cycle === 1 ? { kind: 'coins', amount: 400 + tier * 20 } : cycle === 2 ? { kind: 'tokens', amount: 60 } : { kind: 'packs', amount: 1 }
+  })
+  const premium = Array.from({ length: tiers }, (_, index) => {
+    const tier = index + 1
+    if (tier === 15 || tier === tiers)
+      return { kind: 'starPacks', amount: 1 }
+    const cycle = tier % 3
+    return cycle === 1 ? { kind: 'packs', amount: 1 } : cycle === 2 ? { kind: 'gems', amount: 30 } : { kind: 'coins', amount: 800 + tier * 20 }
+  })
+  return { free, premium }
+}
+
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 2,
+  version: 3,
   shelf: {
     intervalMinutes: 45,
     capacity: 10,
@@ -164,6 +280,9 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     freePlaysPerDay: 3,
     freePlaysPerDayWithPass: 4,
     arcadePackTokens: 300,
+    playMaxTokens: 60,
+    gemPlayCost: 20,
+    gemPlayCoins: 300,
   },
   league: {
     matchIntervalHours: 3,
@@ -220,7 +339,46 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     positionBoost: 2,
   },
   onboarding: { starterPositions: ['FWD', 'FWD', 'DEF', 'DEF', 'GK'], starterPros: 1 },
-  daily: { gems: 15, gemsWithPass: 35, dayStartOffsetMinutes: 0 },
+  minigames: {
+    minTapGapMs: 120,
+    clockSlack: 0.85,
+    kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2 },
+    keepy: { gravity: 140, ramp: 0.03, minPeak: 26, maxPeak: 36, reach: 22, stumbleSteps: 30, maxKicks: 50 },
+    warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
+  },
+  daily: {
+    gems: 15,
+    gemsWithPass: 35,
+    dayStartOffsetMinutes: 0,
+    goalsPerDay: 3,
+    freePackCount: 1,
+    goals: [
+      { id: 'rip', kind: 'openPacks', target: 3, reward: { kind: 'coins', amount: 600 }, label: 'Open {n} packs' },
+      { id: 'win', kind: 'winMatches', target: 1, reward: { kind: 'gems', amount: 10 }, label: 'Win {n} match' },
+      { id: 'arcade', kind: 'playCabinets', target: 2, reward: { kind: 'tokens', amount: 60 }, label: 'Play {n} arcade games' },
+      { id: 'train', kind: 'trainPlayers', target: 1, reward: { kind: 'coins', amount: 400 }, label: 'Train {n} player' },
+      { id: 'sign', kind: 'signPlayers', target: 3, reward: { kind: 'coins', amount: 500 }, label: 'Sign {n} players' },
+      { id: 'stadium', kind: 'collectStadium', target: 1, reward: { kind: 'coins', amount: 300 }, label: 'Collect the stadium coins' },
+    ],
+  },
+  calendar: {
+    rewards: [
+      { kind: 'coins', amount: 500 },
+      { kind: 'gems', amount: 10 },
+      { kind: 'packs', amount: 1 },
+      { kind: 'coins', amount: 1500 },
+      { kind: 'tokens', amount: 100 },
+      { kind: 'gems', amount: 25 },
+      { kind: 'starPacks', amount: 1 },
+    ],
+  },
+  pass: {
+    seasonDays: 28,
+    xpPerTier: 100,
+    xp: { match: 8, win: 4, pack: 5, cabinet: 8, goal: 25 },
+    ...passTiers(),
+  },
+  album: { setSize: 6, bonusPerSet: 0.01, reward: { kind: 'packs', amount: 1 } },
 })
 
 /** Throws a readable error if a config from the admin is unusable (for example, upgrade costs for the wrong number of levels). */
@@ -239,6 +397,16 @@ export function parseConfig(raw: unknown): GameConfig {
     if (low > high)
       throw new Error(`cards.ratingBands.${rarity} has its low end above its high end.`)
   }
+  const tiers = config.pass.premium.length
+  if (config.pass.free.length !== tiers)
+    throw new Error('pass.free and pass.premium need one entry per tier.')
+  if (new Set(config.daily.goals.map(goal => goal.id)).size !== config.daily.goals.length)
+    throw new Error('daily.goals has two goals with the same id.')
+  if (new Set(config.daily.goals.map(goal => goal.kind)).size < config.daily.goalsPerDay)
+    throw new Error('daily.goals needs at least as many different kinds as goalsPerDay.')
+  const { kick, keepy, warmup } = config.minigames
+  if (kick.minSpeed > kick.maxSpeed || warmup.minSpeed > warmup.maxSpeed || keepy.minPeak > keepy.maxPeak)
+    throw new Error('A minigames range has its low end above its high end.')
   const pairs = new Set<string>()
   for (const edge of config.formations.edges) {
     if (edge.formation === edge.over)

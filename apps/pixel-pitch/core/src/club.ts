@@ -1,56 +1,41 @@
 import type { OwnedCard } from './cards'
 import type { Player } from './catalogue'
 import type { GameConfig } from './config'
-import type { FixtureResult, LeagueState, LineupForMatch } from './league'
-import type { FormationId } from './positions'
-import type { IdleState, WelcomeBackEvent } from './state'
+import type { FixtureResult, LineupForMatch } from './league'
+import type { WelcomeBackEvent } from './state'
 import { hashSeed } from '@ld/utils/random/rng'
-import { advance, notificationTimes } from './advance'
+import { advance, dayIndex, notificationTimes } from './advance'
+import { albumPower } from './album'
+import { addXp, recordProgress, rollDaily, rollSeason } from './progress'
 import { mergeCards, sellValue, toFielded, train, trainingCost } from './cards'
 import { GameRuleError } from './errors'
-import { generateRivals, newLeagueState, playDueFixtures } from './league'
+import { NEW_CARD_PREFIX } from './flow-packs'
+import { generateRivals, playDueFixtures } from './league'
 import { scoreLineup, SLOT_COUNT } from './lineup'
+import type { ClubState } from './club-state'
 import { playMatch } from './match'
 import { FORMATIONS, isFormationId } from './positions'
-import { newIdleState } from './state'
 
-/** Everything about a club that changes with time or with the player's choices, apart from the cards themselves. */
-export interface ClubState {
-  idle: IdleState
-  league: LeagueState
-  formation: FormationId
-  /** Card id in each of the five slots, `null` for an empty slot. */
-  lineup: Array<string | null>
-  /** Players opened since the last Star or better, for the pack guarantee. */
-  pity: number
-  coins: number
-  tokens: number
-}
-
-export function newClubState(now: number, config: GameConfig): ClubState {
-  return {
-    idle: newIdleState(now),
-    league: newLeagueState(now, config),
-    formation: '2-2',
-    lineup: Array.from({ length: SLOT_COUNT }, () => null),
-    pity: 0,
-    coins: 0,
-    tokens: 0,
-  }
-}
+export type { Cabinet, ClubState, DailyGoal, DayCounter, PackSource, PendingPack, Ticket } from './club-state'
+export { newClubState, upgradeState } from './club-state'
 
 /** Looks up a catalogue player by id. The api passes the `players` collection, the app its cached copy. */
 export type PlayerLookup = (playerId: string) => Player | undefined
 
 /** The lineup as the match engine sees it. A slot whose card is gone (sold, merged) plays empty. */
-export function lineupForMatch(state: Pick<ClubState, 'formation' | 'lineup'>, cards: readonly OwnedCard[], players: PlayerLookup, config: GameConfig): LineupForMatch {
+export function lineupForMatch(state: Pick<ClubState, 'formation' | 'lineup' | 'album'>, cards: readonly OwnedCard[], players: PlayerLookup, config: GameConfig): LineupForMatch {
   const byId = new Map(cards.map(card => [card.id, card]))
   const slots = state.lineup.map((cardId) => {
     const card = cardId ? byId.get(cardId) : undefined
     const player = card ? players(card.playerId) : undefined
     return card && player ? { fielded: toFielded(card, player, config), name: player.name } : null
   })
-  return { formation: state.formation, players: slots.map(slot => slot?.fielded ?? null), names: slots.map(slot => slot?.name ?? null) }
+  return {
+    formation: state.formation,
+    players: slots.map(slot => slot?.fielded ?? null),
+    names: slots.map(slot => slot?.name ?? null),
+    bonus: albumPower(state, config),
+  }
 }
 
 export interface SyncResult {
@@ -67,9 +52,19 @@ export interface SyncResult {
  * which the tests check. Every api call runs this first, so every action sees an up-to-date club.
  */
 export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[], players: PlayerLookup, clubId: string | number, config: GameConfig, now: number }): SyncResult {
-  const { state, cards, players, clubId, config, now } = input
-  const idle = advance(state.idle, config, now)
+  const { cards, players, clubId, config, now } = input
+  const idle = advance(input.state.idle, config, now)
+  // A new day brings new goals; a new season clears the Pass. Both before matches, so a match counts for today.
+  let state = rollSeason(rollDaily({ ...input.state, idle: idle.state }, now, clubId, config), now, config)
   const league = playDueFixtures({ league: state.league, lineup: lineupForMatch(state, cards, players, config), clubId, config, now })
+
+  const today = dayIndex(now, config)
+  for (const match of league.results) {
+    state = addXp(state, config.pass.xp.match + (match.result === 'win' ? config.pass.xp.win : 0), config)
+    // Only a win on today's date counts for today's goal: a match played last Tuesday does not help on Friday.
+    if (match.result === 'win' && dayIndex(match.kickoffAt, config) === today)
+      state = recordProgress(state, 'winMatches')
+  }
 
   const events = [...idle.events]
   if (league.results.length > 0 || league.skipped > 0) {
@@ -88,7 +83,7 @@ export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[],
   }
 
   return {
-    state: { ...state, idle: idle.state, league: league.league, coins: state.coins + league.coins },
+    state: { ...state, league: league.league, coins: state.coins + league.coins },
     events,
     fixtures: league.results,
   }
@@ -118,7 +113,6 @@ export function clubNotificationTimes(state: ClubState, config: GameConfig, now:
 }
 
 /** A card the rules have just made. The api replaces `id` with the database id once it is stored. */
-export const NEW_CARD_PREFIX = 'new:'
 
 export interface CardChange {
   state: ClubState

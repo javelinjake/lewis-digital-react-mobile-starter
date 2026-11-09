@@ -92,6 +92,8 @@ export interface LineupForMatch {
   players: ReadonlyArray<Fielded | null>
   /** Who is in each slot, for the match report. A missing name is shown as "A trialist". */
   names?: ReadonlyArray<string | null>
+  /** Extra team power from finished album sets, as a fraction. */
+  bonus?: number
 }
 
 /** The two squads' names in slot order, kept with the fixture so a match report reads the same later. */
@@ -151,7 +153,7 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
     league = { ...league, fixtureNo: league.fixtureNo + skipped, nextKickoffAt: league.nextKickoffAt + skipped * interval }
   }
 
-  const score = scoreLineup(lineup.formation, lineup.players)
+  const score = scoreLineup(lineup.formation, lineup.players, lineup.bonus ?? 0)
   let rivals = generateRivals(league.tier, config)
 
   for (let played = 0; played < toPlay; played++) {

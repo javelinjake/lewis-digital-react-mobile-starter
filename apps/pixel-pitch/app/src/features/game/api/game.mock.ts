@@ -1,6 +1,6 @@
-import type { ClubState, FixtureResult, GameConfig, GameResponse, OwnedCard, Player, PoolPlayer } from '@ld/pixel-pitch-core'
+import type { ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player, PoolPlayer } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
-import { autoPick, DEFAULT_CONFIG, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, toFielded, trainInClub } from '@ld/pixel-pitch-core'
+import { arcadePack, autoPick, buyPack, decidePack, DEFAULT_CONFIG, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, newClubState, openPack, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, toFielded, trainInClub, upgradeState } from '@ld/pixel-pitch-core'
 import { useAuthStore } from '@/stores/auth.store'
 
 // The game rules running in the browser instead of on the server: development, Playwright and Lighthouse use it.
@@ -47,7 +47,11 @@ function storageKey() {
 
 function load(): MockClub | null {
   const raw = sessionStorage.getItem(storageKey())
-  return raw ? JSON.parse(raw) as MockClub : null
+  if (!raw)
+    return null
+  const saved = JSON.parse(raw) as MockClub
+  // A club saved before newer features existed gets their starting values, as the api does.
+  return { ...saved, club: { ...saved.club, state: upgradeState(saved.club.state, config) } }
 }
 
 function save(club: MockClub) {
@@ -67,13 +71,14 @@ function assignIds(mock: MockClub, state: ClubState, cards: OwnedCard[]) {
   return { cards: next, state: { ...state, lineup: state.lineup.map(id => (id ? ids.get(id) ?? id : null)) } }
 }
 
-async function respond(run: (mock: MockClub, at: number) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[] }): Promise<GameResponse> {
+async function respond(run: (mock: MockClub, at: number, ctx: FlowContext) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[] }): Promise<GameResponse> {
   const mock = load()
   if (!mock)
     throw new MockRuleError('Create your club first.', 404)
   const at = now()
   const synced = syncClub({ state: mock.club.state, cards: mock.cards, players, clubId: mock.club.id, config, now: at })
-  const result = run({ ...mock, club: { ...mock.club, state: synced.state } }, at)
+  const ctx: FlowContext = { state: synced.state, cards: mock.cards, catalogue, players, config, clubId: mock.club.id, now: at }
+  const result = run({ ...mock, club: { ...mock.club, state: synced.state } }, at, ctx)
   const assigned = assignIds(mock, result.state, result.cards ?? mock.cards)
   const fixtures = [...synced.fixtures, ...(result.fixtures ?? [])]
   const next: MockClub = {
@@ -131,6 +136,10 @@ export const gameApi: GameApi = {
   sell: cardId => respond(mock => wrap(() => sellCard(mock.club.state, mock.cards, cardId, players, config))),
   merge: cardIds => respond(mock => wrap(() => mergeInClub(mock.club.state, mock.cards, cardIds, config))),
   train: cardId => respond(mock => wrap(() => trainInClub(mock.club.state, mock.cards, cardId, players, config))),
+  openPack: source => respond((_mock, _at, ctx) => wrap(() => openPack(ctx, source))),
+  buyPack: () => respond((_mock, _at, ctx) => wrap(() => buyPack(ctx))),
+  arcadePack: position => respond((_mock, _at, ctx) => wrap(() => arcadePack(ctx, position))),
+  decidePack: decisions => respond((_mock, _at, ctx) => wrap(() => decidePack(ctx, decisions))),
   readCatalogue: async () => catalogue,
   readConfig: async () => config,
   async readFixtures(limit) {

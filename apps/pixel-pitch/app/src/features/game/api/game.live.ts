@@ -39,6 +39,10 @@ export const gameApi: GameApi = {
   sell: cardId => act('/game/sell', { cardId }),
   merge: cardIds => act('/game/merge', { cardIds }),
   train: cardId => act('/game/train', { cardId }),
+  openPack: source => act('/game/packs/open', { source }),
+  buyPack: () => act('/game/packs/buy'),
+  arcadePack: position => act('/game/packs/arcade', { position }),
+  decidePack: decisions => act('/game/packs/decide', { decisions }),
   async readCatalogue() {
     const result = await getApi().collection<PlayerDoc>('players').find({ limit: 1000, depth: 0 })
     return result.docs.map(doc => ({

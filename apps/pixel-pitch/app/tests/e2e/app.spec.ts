@@ -148,6 +148,77 @@ test.describe('First session @game', () => {
   })
 })
 
+test.describe('Packs @game', () => {
+  /** Founds a club and lets three hours pass, so four packs are on the shelf. */
+  async function withPacks(page: Page) {
+    await foundClub(page)
+    await advanceClock(page, 3 * HOUR + 60_000)
+    await page.goto('/packs')
+    await expect(page.getByLabel('4 of 10 packs')).toBeVisible()
+  }
+
+  async function flipAll(page: Page) {
+    await page.getByRole('button', { name: 'Tear open the pack' }).click()
+    for (let card = 0; card < 3; card++) {
+      await page.getByRole('button', { name: 'Turn the card over' }).click()
+      await expect(page.getByRole('button', { name: 'Next player' })).toBeVisible()
+      await (card < 2 ? page.getByRole('button', { name: 'Next', exact: true }) : page.getByRole('button', { name: 'Sign or sell' })).click()
+    }
+  }
+
+  test('open a pack from the shelf, turn each card over, sign two and sell one', async ({ page }) => {
+    await withPacks(page)
+    await page.getByRole('button', { name: 'Open a pack' }).click()
+    await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeVisible()
+    await flipAll(page)
+
+    await expect(page.getByRole('heading', { name: 'Sign or sell' })).toBeVisible()
+    const groups = page.getByRole('radiogroup', { name: /: sign or sell$/ })
+    await expect(groups).toHaveCount(3)
+    await groups.first().getByRole('radio', { name: /^Sell/ }).click()
+    await expect(page.getByText(/Bench after signing: 2\/20/)).toBeVisible()
+    await page.getByRole('button', { name: 'Done' }).click()
+
+    await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
+    await expect(page.getByLabel('3 of 10 packs')).toBeVisible()
+    await tab(page, 'Squad').click()
+    await expect(page.getByRole('heading', { name: 'Squad (7)' })).toBeVisible()
+  })
+
+  test('a pack left half-opened is still waiting afterwards', async ({ page }) => {
+    await withPacks(page)
+    await page.getByRole('button', { name: 'Open a pack' }).click()
+    await page.getByRole('button', { name: 'Later' }).click()
+    await expect(page.getByText('A pack is waiting for you')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Open a pack' })).toBeDisabled()
+    await page.reload()
+    await page.getByRole('button', { name: 'Open it' }).click()
+    await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeVisible()
+  })
+
+  test('shows the odds before every rip, and the Star guarantee', async ({ page }) => {
+    await withPacks(page)
+    const odds = page.getByRole('region', { name: 'Pack odds' })
+    await expect(odds.getByText('Grassroots')).toBeVisible()
+    await expect(odds.getByText('Legend')).toBeVisible()
+    await expect(odds.getByText(/guaranteed within 40 players/)).toBeVisible()
+  })
+
+  test('extra packs cost coins, are limited to three a day, and arcade packs need tokens', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 2 * 24 * HOUR)
+    await page.goto('/packs')
+    const buy = page.getByRole('button', { name: /^Buy a pack/ })
+    await expect(buy).toBeEnabled()
+    await expect(page.getByText(/3 left today/)).toBeVisible()
+    await buy.click()
+    await flipAll(page)
+    await page.getByRole('button', { name: 'Done' }).click()
+    await expect(page.getByText(/2 left today/)).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Arcade pack/ })).toBeDisabled()
+  })
+})
+
 test.describe('Time away @game', () => {
   test('a day away plays eight matches and shows them in the table and the summary', async ({ page }) => {
     await foundClub(page)

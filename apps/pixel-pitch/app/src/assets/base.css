@@ -101,3 +101,51 @@
   font-weight: 600;
   opacity: 0.6;
 }
+
+/* Pack opening. The rip tears the top off a pack; a card flips about its vertical axis. */
+@keyframes pp-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg) translateY(-2px); }
+  75% { transform: rotate(3deg) translateY(-2px); }
+}
+
+@keyframes pp-tear-top {
+  to { transform: translate(70px, -90px) rotate(28deg); opacity: 0; }
+}
+
+@keyframes pp-tear-bottom {
+  to { transform: translateY(40px); opacity: 0; }
+}
+
+@keyframes pp-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.pp-flip {
+  perspective: 800px;
+}
+
+.pp-flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 450ms steps(6, end);
+}
+
+.pp-flip-inner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+
+.pp-flip-face {
+  backface-visibility: hidden;
+}
+
+.pp-flip-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-flip-inner { transition: none; }
+}

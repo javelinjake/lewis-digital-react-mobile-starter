@@ -41,6 +41,7 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/', Component: HomeRedirect },
                   { path: '/club', lazy: pages.club, handle: { title: 'Club' } },
+                  { path: '/packs', lazy: pages.packs, handle: { title: 'Packs' } },
                   { path: '/squad', lazy: pages.squad, handle: { title: 'Squad' } },
                   { path: '/league', lazy: pages.league, handle: { title: 'League' } },
                   { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
