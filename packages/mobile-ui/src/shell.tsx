@@ -9,12 +9,25 @@ export interface TabBarItem {
 /**
  * A screen with a fixed height: the header and footer (the tab bar) stay put and only `ScreenContent` scrolls. With
  * a minimum height instead, a long screen grew the page and pushed the tab bar off the bottom.
+ *
+ * `column`: on a tablet or desktop browser the screen stays a phone-width column in the middle (header, content and
+ * tab bar together) instead of stretching edge to edge. For apps designed portrait-first, such as games.
  */
-export function MobileShell({ children, footer }: { children: ReactNode, footer?: ReactNode }) {
+export function MobileShell({ children, footer, column = false }: { children: ReactNode, footer?: ReactNode, column?: boolean }) {
+  if (!column) {
+    return (
+      <div className="flex h-dvh flex-col bg-base-200">
+        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        {footer}
+      </div>
+    )
+  }
   return (
-    <div className="flex h-dvh flex-col bg-base-200">
-      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-      {footer}
+    <div className="h-dvh bg-base-300">
+      <div className="mx-auto flex h-full w-full max-w-xl flex-col bg-base-200 sm:border-x sm:border-base-content/10">
+        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        {footer}
+      </div>
     </div>
   )
 }

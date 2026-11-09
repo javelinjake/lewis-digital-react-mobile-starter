@@ -6,7 +6,11 @@ export interface NativeIdentity {
   hostname?: string
   /** Locks the app. Omit for `any`. */
   orientation?: 'portrait' | 'landscape' | 'any'
-  /** False: iPad is portrait-only too, matching a phone-only app. Default true. */
+  /**
+   * False: an iPhone-only app (iPad runs it in iPhone size, portrait). True (the default): a real iPad app. A portrait
+   * app then rotates freely on iPad, since iPadOS expects apps to fit any window shape (portrait-only needed
+   * `UIRequiresFullScreen`, deprecated in iPadOS 26); the layout keeps a phone-width column centred.
+   */
   tablet?: boolean
   /** iOS usage strings shown in permission prompts; required for App Store review. */
   usage: {
@@ -32,7 +36,7 @@ const IOS_ALL = ['UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortra
 
 function iosOrientations(orientation: NativeIdentity['orientation'], tablet: boolean) {
   const phone = orientation === 'portrait' ? IOS_PORTRAIT : orientation === 'landscape' ? IOS_LANDSCAPE : ['UIInterfaceOrientationPortrait', ...IOS_LANDSCAPE]
-  const ipad = !tablet ? phone : orientation === 'portrait' ? IOS_PORTRAIT : orientation === 'landscape' ? IOS_LANDSCAPE : IOS_ALL
+  const ipad = !tablet ? phone : orientation === 'landscape' ? IOS_LANDSCAPE : IOS_ALL
   return { phone, ipad }
 }
 
@@ -71,9 +75,9 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
     ],
   }
 
-  // A phone-only app is an iPhone app: on an iPad it runs in iPhone size rather than stretched.
-  if (identity.tablet === false)
-    iosTarget.buildSettings = { TARGETED_DEVICE_FAMILY: '1' }
+  // A phone-only app is an iPhone app: on an iPad it runs in iPhone size rather than stretched. Set both ways, so
+  // switching `tablet` back on also undoes an earlier iPhone-only run.
+  iosTarget.buildSettings = { TARGETED_DEVICE_FAMILY: identity.tablet === false ? '1' : '1,2' }
 
   if (hostname) {
     iosTarget.entitlements = [

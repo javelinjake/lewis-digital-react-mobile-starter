@@ -1,9 +1,10 @@
 import type { BetterAuthOptions } from 'better-auth'
 import type { Payload } from 'payload'
 import type { BackendEnv } from '../env'
+import type { GuestLinkPolicy } from './link'
 import process from 'node:process'
 import { anonymous, bearer } from 'better-auth/plugins'
-import { reassignOwner } from './link'
+import { linkGuest } from './link'
 
 export interface AuthMethods {
   emailPassword?: boolean
@@ -21,6 +22,8 @@ export interface AuthSetup {
   methods: AuthMethods
   /** Origins allowed to call the API: the web app and the native WebViews. */
   trustedOrigins: string[]
+  /** What a guest's data does when they sign in to an account. Default: it moves to the account. */
+  guestLink?: GuestLinkPolicy
 }
 
 /**
@@ -126,7 +129,7 @@ export function buildAuthOptions(setup: AuthSetup, payload?: () => Payload | und
             onLinkAccount: async ({ anonymousUser, newUser }) => {
               const instance = payload?.()
               if (instance)
-                await reassignOwner(instance, anonymousUser.user.id, newUser.user.id)
+                await linkGuest(instance, anonymousUser.user.id, newUser.user.id, setup.guestLink)
             },
           })]
         : []),

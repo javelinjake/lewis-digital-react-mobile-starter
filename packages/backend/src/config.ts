@@ -1,4 +1,5 @@
 import type { CollectionConfig, Config, Endpoint, GlobalConfig, Payload, Plugin } from 'payload'
+import type { GuestLinkPolicy } from './auth/link'
 import type { AuthMethods } from './auth/options'
 import type { CronOptions } from './endpoints/cron'
 import type { PurchaseOptions } from './endpoints/revenuecat'
@@ -34,6 +35,11 @@ export interface AppBackendOptions {
   importMapBaseDir: string
   /** Which sign-in methods this app offers. */
   auth: AuthMethods
+  /**
+   * What a guest's data does when they sign in to an existing account. Default: it all moves to the account. An app
+   * with one save per account returns `discard` when the account already has one, so signing in brings that save back.
+   */
+  guestLink?: GuestLinkPolicy
   /** The app's own collections. Declare any that hold user data with `ownedCollection`. */
   collections?: CollectionConfig[]
   globals?: GlobalConfig[]
@@ -66,6 +72,7 @@ export function createAppBackend(options: AppBackendOptions) {
     env,
     methods: options.auth,
     trustedOrigins: origins,
+    guestLink: options.guestLink,
   }, () => ready)
 
   assertNoShadowedEndpoints(options.endpoints ?? [], [

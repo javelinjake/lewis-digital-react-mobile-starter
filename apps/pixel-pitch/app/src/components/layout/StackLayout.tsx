@@ -9,7 +9,7 @@ export function StackLayout() {
   const { offline } = useConnectivity()
 
   return (
-    <MobileShell footer={<OfflineBanner offline={offline} pendingCount={0} />}>
+    <MobileShell column footer={<OfflineBanner offline={offline} pendingCount={0} />}>
       <AppBar title={title} onBack={() => navigate(-1)} />
       <Outlet />
     </MobileShell>

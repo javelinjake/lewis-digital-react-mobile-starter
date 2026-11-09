@@ -22,7 +22,7 @@ export function RegisterPage() {
           {' '}
           <strong>{sentTo}</strong>
           . Open it to confirm your address, then sign in.
-          {linking ? ' Everything you made as a guest comes with you.' : ''}
+          {linking ? ' Your club on this device is saved to the account when you do.' : ''}
         </p>
         <Link className="btn btn-primary" to="/login">Go to sign in</Link>
       </div>
@@ -31,8 +31,8 @@ export function RegisterPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-semibold">{linking ? 'Keep your progress' : 'Create an account'}</h1>
-      {linking ? <p className="mb-3 text-sm opacity-70">Create an account and what you made as a guest stays with you, on every device.</p> : null}
+      <h1 className="mb-4 text-2xl font-semibold">{linking ? 'Save to the cloud' : 'Create an account'}</h1>
+      {linking ? <p className="mb-3 text-sm opacity-70">Create an account to keep your club safe and play it on any device: phone, tablet or the web.</p> : null}
       <LdForm
         schema={registerSchema}
         defaultValues={{ name: '', email: '', password: '' }}

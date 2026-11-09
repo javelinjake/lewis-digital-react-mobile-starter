@@ -7,9 +7,9 @@ import { expect, test } from '@playwright/test'
 test.skip(!process.env.E2E_LIVE, 'Needs the api app. Set E2E_LIVE=1 to run.')
 
 test.describe('live backend @live', () => {
-  test('a guest founds a club that the server keeps, privately, once', async ({ page }) => {
-    await page.goto('/login')
-    await page.getByRole('button', { name: 'Continue as guest' }).click()
+  test('a player with no sign-in founds a club that the server keeps, privately, once', async ({ page }) => {
+    // No sign-in: the first launch makes this device's account on the server.
+    await page.goto('/')
     await expect(page).toHaveURL(/\/onboarding/)
     await page.getByLabel('Club name').fill('Live Rovers')
     await page.getByRole('button', { name: 'Found the club' }).click()
@@ -30,8 +30,7 @@ test.describe('live backend @live', () => {
 
   test('packs, goals and the arcade work against the real api: free pack, open, sign, then a Keepy-Uppy play', async ({ page }) => {
     test.setTimeout(90_000)
-    await page.goto('/login')
-    await page.getByRole('button', { name: 'Continue as guest' }).click()
+    await page.goto('/')
     await page.getByLabel('Club name').fill('Live Packs')
     await page.getByRole('button', { name: 'Found the club' }).click()
     await page.getByRole('button', { name: 'Skip' }).click()

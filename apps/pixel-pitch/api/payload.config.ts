@@ -14,6 +14,7 @@ import { fixturesCollection } from './cms/collections/fixtures'
 import { ledgerCollection } from './cms/collections/ledger'
 import { notesCollection } from './cms/collections/notes'
 import { playersCollection } from './cms/collections/players'
+import { keepAccountClub } from './cms/game/guest-link'
 import { gameConfigGlobal } from './cms/globals/game-config'
 
 const root = path.dirname(new URL(import.meta.url).pathname)
@@ -25,6 +26,7 @@ export default buildConfig(createAppBackend({
   typesOutputFile: path.resolve(root, 'payload-types.ts'),
   importMapBaseDir: root,
   auth: { ...appMeta.auth, requireEmailVerification: true },
+  guestLink: keepAccountClub,
   collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, notesCollection],
   globals: [gameConfigGlobal],
   endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, duplicateNoteAction],

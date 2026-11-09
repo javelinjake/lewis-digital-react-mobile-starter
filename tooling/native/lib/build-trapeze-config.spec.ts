@@ -63,12 +63,22 @@ describe('deriveBuildNumber', () => {
     assert.equal(manifest[0].attrs?.['android:screenOrientation'], 'portrait')
   })
 
+  it('keeps a portrait app portrait on the phone but lets it rotate on iPad', () => {
+    const config = buildTrapezeConfig({ ...identity, orientation: 'portrait', tablet: true })
+    const ios = (config.platforms.ios.targets as { App: { plist: Array<{ entries: Array<Record<string, unknown>> }>, buildSettings?: unknown } }).App
+    const entries = ios.plist.find(entry => 'UISupportedInterfaceOrientations' in entry.entries[0])!.entries[0]
+
+    assert.deepEqual(ios.buildSettings, { TARGETED_DEVICE_FAMILY: '1,2' })
+    assert.deepEqual(entries.UISupportedInterfaceOrientations, ['UIInterfaceOrientationPortrait'])
+    assert.equal((entries['UISupportedInterfaceOrientations~ipad'] as string[]).length, 4)
+  })
+
   it('lets a tablet app rotate fully on iPad while the phone follows the lock', () => {
     const config = buildTrapezeConfig({ ...identity, orientation: 'any', tablet: true })
     const ios = (config.platforms.ios.targets as { App: { plist: Array<{ entries: Array<Record<string, unknown>> }>, buildSettings?: unknown } }).App
     const entries = ios.plist.find(entry => 'UISupportedInterfaceOrientations' in entry.entries[0])!.entries[0]
 
-    assert.equal(ios.buildSettings, undefined)
+    assert.deepEqual(ios.buildSettings, { TARGETED_DEVICE_FAMILY: '1,2' })
 
     assert.equal((entries['UISupportedInterfaceOrientations~ipad'] as string[]).length, 4)
     assert.equal(config.platforms.android.manifest, undefined)

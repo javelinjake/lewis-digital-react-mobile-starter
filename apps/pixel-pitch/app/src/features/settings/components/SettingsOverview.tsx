@@ -57,30 +57,38 @@ export function SettingsOverview() {
           }}
         />
         {user?.isAnonymous
-          ? <ListItem title="Create an account" subtitle="Keep your progress on every device" onClick={() => navigate('/register?link=1')} />
-          : null}
-        <ListItem title="Account" subtitle={user?.isAnonymous ? 'Guest' : (user?.email ?? 'Sign out, export or delete')} onClick={() => setSheetOpen(true)} />
+          ? null
+          : <ListItem title="Account" subtitle={user?.email ?? 'Sign out, export or delete'} onClick={() => setSheetOpen(true)} />}
       </ListGroup>
+      {user?.isAnonymous
+        ? (
+            <ListGroup label="Cloud save">
+              <ListItem title="Save to the cloud" subtitle="Keep your club safe and play on any device" onClick={() => navigate('/register?link=1')} />
+              <ListItem title="Sign in to the cloud" subtitle="Already have a cloud club? Play it here" onClick={() => navigate('/login?redirect=/club')} />
+              <ListItem title="This device" subtitle="Export or delete" onClick={() => setSheetOpen(true)} />
+            </ListGroup>
+          )
+        : null}
       <ActionSheet
         open={sheetOpen}
-        title="Account"
+        title={user?.isAnonymous ? 'This device' : 'Account'}
         onClose={() => setSheetOpen(false)}
         actions={[
-          { label: 'Sign out', onSelect: () => { void logout() } },
+          ...(user?.isAnonymous ? [] : [{ label: 'Sign out', onSelect: () => { void logout() } }]),
           {
             label: 'Export my data',
             onSelect: () => {
               void authApi.exportAccount().then(data => saveJson('my-data.json', data)).catch(reason => toast.push(formatError(reason), 'error'))
             },
           },
-          { label: 'Delete my account', destructive: true, onSelect: () => setDeleteOpen(true) },
+          { label: user?.isAnonymous ? 'Delete my club' : 'Delete my account', destructive: true, onSelect: () => setDeleteOpen(true) },
         ]}
       />
       <ConfirmDialog
         open={deleteOpen}
-        title="Delete your account?"
-        body="Your account and everything in it is deleted from our servers and from this device. This cannot be undone."
-        confirmLabel="Delete account"
+        title={user?.isAnonymous ? 'Delete your club?' : 'Delete your account?'}
+        body={user?.isAnonymous ? 'Your club is deleted from this device and our servers. This cannot be undone.' : 'Your account and everything in it is deleted from our servers and from this device. This cannot be undone.'}
+        confirmLabel={user?.isAnonymous ? 'Delete club' : 'Delete account'}
         onCancel={() => setDeleteOpen(false)}
         onConfirm={() => {
           const userId = user?.id
@@ -89,7 +97,7 @@ export function SettingsOverview() {
               if (userId)
                 await clearUserData(userId)
               setDeleteOpen(false)
-              navigate('/login')
+              navigate('/')
             })
             .catch((reason) => {
               toast.push(formatError(reason), 'error')

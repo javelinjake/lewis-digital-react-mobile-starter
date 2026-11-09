@@ -12,7 +12,7 @@ Better Auth stores its data in Payload collections. Sign-in methods are chosen p
 
 - **Web**: an httpOnly session cookie. The client calls `/api` on its own origin; Vercel forwards it (see deployment), so the cookie is first party.
 - **Native**: the session token is sent as `Authorization: Bearer`, kept in Keychain or Keystore. The backend exposes it to the WebView through `Access-Control-Expose-Headers: set-auth-token`.
-- **Guests** can later create an account. They sign in to it from the same device and the backend moves their data across.
+- **Guests** can later create an account. They sign in to it from the same device and the backend moves their data across. An app where an account holds one save (a game club) passes `guestLink` to `createAppBackend`: return `discard` when the account already has one, and signing in brings back the account's save while the guest's is deleted (Pixel Pitch: `cms/game/guest-link.ts`). Without it, a second save would be merged into the first.
 - **Admins** are a `role` on the same user. Members cannot reach `/admin`, change their role, or set `role` at sign-up. Create the first admin with `cms:bootstrap-admin` before exposing the API: the first account on an empty database becomes admin.
 - Ask "who am I" with `getSession()`, never `/api/users/me` (it fails for bearer tokens). Better Auth ids are strings, Payload ids are numbers.
 

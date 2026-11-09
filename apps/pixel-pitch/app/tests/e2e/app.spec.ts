@@ -1,39 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
-const HOUR = 60 * 60 * 1000
-
-async function signIn(page: Page, email: string) {
-  await page.goto('/login')
-  await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password').fill('secret')
-  await page.getByRole('button', { name: 'Sign in' }).click()
-}
-
-async function guest(page: Page) {
-  await page.goto('/login')
-  await page.getByRole('button', { name: 'Continue as guest' }).click()
-  await expect(page).toHaveURL(/\/onboarding/)
-}
-
-/** Founds a club, watches nothing of the debut (skips it) and lands on the squad, as a new player would. */
-async function foundClub(page: Page, name = 'Harbour Town') {
-  await guest(page)
-  await page.getByLabel('Club name').fill(name)
-  await page.getByRole('button', { name: 'Blue and white' }).click()
-  await page.getByRole('button', { name: 'Found the club' }).click()
-  await expect(page).toHaveURL(/\/match\/-1/)
-  await page.getByRole('button', { name: 'Skip' }).click()
-  await page.getByRole('button', { name: 'Continue' }).click()
-  await expect(page).toHaveURL(/\/squad/)
-}
-
-/** The mock game runs on a clock Playwright can move. */
-async function advanceClock(page: Page, ms: number) {
-  await page.evaluate(by => window.__pixelPitchClock!.advance(by), ms)
-}
-
-const tab = (page: Page, name: string) => page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name })
+import { advanceClock, foundClub, guest, HOUR, tab } from './helpers'
 
 test.describe('App smoke @smoke', () => {
   test('login screen renders', async ({ page }) => {
@@ -47,9 +15,10 @@ test.describe('App smoke @smoke', () => {
     expect(viewport).toContain('viewport-fit=cover')
   })
 
-  test('the club is protected', async ({ page }) => {
+  test('a first launch needs no sign-in: it goes straight to founding a club', async ({ page }) => {
     await page.goto('/club')
-    await expect(page).toHaveURL(/\/login/)
+    await expect(page).toHaveURL(/\/onboarding/)
+    await expect(page.getByRole('link', { name: 'Sign in to the cloud' })).toBeVisible()
   })
 })
 
@@ -415,52 +384,5 @@ test.describe('Time away @game', () => {
     await advanceClock(page, 7 * 24 * HOUR)
     await page.goto('/club')
     await expect(page.getByRole('dialog', { name: 'Welcome back' }).getByText(/Promoted to League [1-4]!/)).toBeVisible()
-  })
-})
-
-test.describe('Accounts @auth', () => {
-  test('a guest is offered an account in settings', async ({ page }) => {
-    await foundClub(page)
-    await tab(page, 'Settings').click()
-    await page.getByRole('button', { name: /Create an account/ }).click()
-    await expect(page).toHaveURL(/\/register/)
-    await expect(page.getByRole('heading', { name: 'Keep your progress' })).toBeVisible()
-  })
-
-  test('a guest can still reach sign in, to keep what they made', async ({ page }) => {
-    await guest(page)
-    await page.goto('/login')
-    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
-    await expect(page.getByText('what you made as a guest comes with you')).toBeVisible()
-  })
-
-  test('creating an account asks the person to check their email', async ({ page }) => {
-    await page.goto('/register')
-    await page.getByLabel('Name').fill('Ada')
-    await page.getByLabel('Email').fill('ada@example.com')
-    await page.getByLabel('Password').fill('a-long-enough-password')
-    await page.getByRole('button', { name: 'Create account' }).click()
-    await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible()
-  })
-
-  test('refuses a short password before sending anything', async ({ page }) => {
-    await page.goto('/register')
-    await page.getByLabel('Name').fill('Ada')
-    await page.getByLabel('Email').fill('ada@example.com')
-    await page.getByLabel('Password').fill('short')
-    await page.getByRole('button', { name: 'Create account' }).click()
-    await expect(page.getByText('Use at least 10 characters')).toBeVisible()
-  })
-
-  test('the reset link needs a token', async ({ page }) => {
-    await page.goto('/reset-password')
-    await expect(page.getByRole('heading', { name: 'Link expired' })).toBeVisible()
-    await page.goto('/reset-password?token=abc')
-    await expect(page.getByRole('heading', { name: 'Choose a new password' })).toBeVisible()
-  })
-
-  test('a signed-in player without a club starts at onboarding', async ({ page }) => {
-    await signIn(page, 'user-a@example.com')
-    await expect(page).toHaveURL(/\/onboarding/)
   })
 })

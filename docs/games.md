@@ -38,6 +38,14 @@ Everything below is a pure function in `apps/pixel-pitch/core`, run by the api (
 
 A club's state (`ClubState`) is JSON in the `clubs` collection. A saved club from an earlier version gains any new field through `upgradeState`, so adding to the state never needs a data migration.
 
+### Accounts and devices
+
+There is no sign-in screen. A first launch makes this device its own account (a Better Auth guest, kept in the Keychain or Keystore on native, a cookie on the web) and goes straight to founding a club. The club lives on the server like any other. Settings offers **Save to the cloud** (create an email account; the club moves to it) and **Sign in to the cloud** (play an existing account's club here; the device's club is deleted, because an account has one club). A device-only player cannot sign out, which would lose the club. Signing out of a cloud account starts a fresh device club, with a sign-in link on the New club screen.
+
+### Screen sizes
+
+Phones are portrait. On tablets and desktop browsers the whole screen (header, content, tab bar) is a centred column (`MobileShell column`, `max-w-xl`), and on iPad the app rotates, since iPadOS no longer supports portrait-only apps. Android tablets keep the portrait lock below Android 16, which ignores it on large screens; the column handles either.
+
 ### Numbers that are placeholders
 
 Every number is in the game config (an admin-editable global), so these can be tuned after a playtest without an app release. The ones that are guesses and not in the MVP spec: stadium curve and upgrade costs; token tray rate (12 an hour) and tokens a play (up to 60); gems for an extra play (20) and what it pays (300 coins); the Kick Timer and Keepy-Uppy tuning (speeds, zone widths, gravity, ramp, reach); the warm-up zone widths; the goal pool and its rewards; the calendar and Pass rewards; XP for each source (match 8, win +4, pack 5, arcade 8, goal 25); the tactical-edge table; rival strength; training caps and costs; win and draw coins; the middle rows of the pack odds table.

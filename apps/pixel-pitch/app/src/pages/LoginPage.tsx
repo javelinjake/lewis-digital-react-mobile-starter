@@ -1,6 +1,7 @@
 import { EmailInput, FormActions, LdForm, PasswordInput, SubmitButton } from '@ld/forms'
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
+import { clearUserData } from '@/app/session-data'
 import { appConfig } from '@/config/app.config'
 import { authMethods } from '@/config/auth.config'
 import { loginSchema } from '@/features/auth/forms/login.schema'
@@ -21,7 +22,14 @@ export function LoginPage() {
     <div>
       <h1 className="mb-4 text-2xl font-semibold">Sign in</h1>
       {params.get('verified') ? <p role="status" className="mb-3 text-sm text-success">Email confirmed. Sign in to continue.</p> : null}
-      {user?.isAnonymous ? <p className="mb-3 text-sm opacity-70">Sign in and what you made as a guest comes with you.</p> : null}
+      {user?.isAnonymous
+        ? (
+            <p className="mb-3 text-sm opacity-70">
+              Sign in to play your cloud club here. If your account has no club yet, the one on this device is saved to it.
+              If it already has one, you get that club and the one on this device is deleted.
+            </p>
+          )
+        : null}
       {authMethods.emailPassword
         ? (
             <LdForm
@@ -30,7 +38,11 @@ export function LoginPage() {
               onSubmit={async (values) => {
                 setError(null)
                 try {
+                  const deviceOnly = user?.isAnonymous ? user.id : null
                   await login(values.email, values.password)
+                  // The server has moved or deleted this device's account; its cached screens go too.
+                  if (deviceOnly)
+                    await clearUserData(deviceOnly)
                   navigate(destination)
                 }
                 catch (reason) {
@@ -81,7 +93,7 @@ export function LoginPage() {
                   }
                 }}
               >
-                Continue as guest
+                Play on this device
               </button>
             )
           : null}

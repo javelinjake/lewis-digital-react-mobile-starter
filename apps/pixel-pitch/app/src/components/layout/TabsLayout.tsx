@@ -15,6 +15,7 @@ export function TabsLayout() {
 
   return (
     <MobileShell
+      column
       footer={(
         <>
           <OfflineBanner offline={offline} pendingCount={0} />

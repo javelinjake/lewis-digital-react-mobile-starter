@@ -51,6 +51,21 @@ function storageKey() {
   return `pp-mock-club:${useAuthStore.getState().userId ?? 'anonymous'}`
 }
 
+/**
+ * The server's rule for a player on this device signing in to the cloud: an account with a club keeps it and the
+ * device's club is deleted; an account with none takes the device's club. Copied here so the mock behaves the same.
+ */
+useAuthStore.subscribe((next, previous) => {
+  if (!previous.user?.isAnonymous || !next.userId || next.userId === previous.userId)
+    return
+  const from = `pp-mock-club:${previous.userId}`
+  const to = `pp-mock-club:${next.userId}`
+  const device = sessionStorage.getItem(from)
+  sessionStorage.removeItem(from)
+  if (device && !sessionStorage.getItem(to))
+    sessionStorage.setItem(to, device)
+})
+
 function load(): MockClub | null {
   const raw = sessionStorage.getItem(storageKey())
   if (!raw)

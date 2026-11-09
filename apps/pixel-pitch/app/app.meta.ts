@@ -11,7 +11,8 @@ export const appMeta = {
   /** Production web origin, used for Universal Links / App Links. Fill in once the domain is known. */
   hostname: '',
   orientation: 'portrait',
-  tablet: false,
+  /** iPad and Android tablets too: the game stays a phone-width column in the middle, and rotates on iPad. */
+  tablet: true,
   /** One entry per build environment (APP_ENV). Fill in each api address once it exists. */
   environments: {
     dev: { apiUrl: 'http://localhost:3001' },
