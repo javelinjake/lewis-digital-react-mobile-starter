@@ -25,6 +25,7 @@ declare global {
     __pixelPitchClock?: {
       advance: (ms: number) => void
       offset: () => number
+      setPass: (on: boolean) => void
     }
   }
 }

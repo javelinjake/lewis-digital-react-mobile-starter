@@ -324,6 +324,75 @@ test.describe('Stadium, warm-up and arcade @game', () => {
   })
 })
 
+test.describe('Goals, Pass and album @game', () => {
+  test('the hub shows what is waiting to be claimed', async ({ page }) => {
+    await foundClub(page)
+    await page.goto('/club')
+    // A new club can take its free pack and its first calendar day.
+    await expect(page.getByRole('link', { name: /^Goals/ }).getByLabel(/to claim$/)).toHaveText('2')
+  })
+
+  test('three goals a day, a free pack, and a login calendar that moves on each day', async ({ page }) => {
+    await foundClub(page)
+    await page.goto('/goals')
+    const goals = page.getByRole('region', { name: 'Daily goals' })
+    await expect(goals.getByRole('listitem')).toHaveCount(3)
+    await expect(goals.getByRole('button', { name: 'Claim' }).first()).toBeDisabled()
+
+    await page.getByRole('button', { name: /^Take 1 free pack/ }).click()
+    await expect(page.getByRole('button', { name: /Taken today/ })).toBeDisabled()
+    await page.getByRole('button', { name: 'Claim day 1' }).click()
+    await expect(page.getByRole('button', { name: /Claimed today/ })).toBeDisabled()
+    await expect(page.getByLabel('Day 1, claimed')).toBeVisible()
+
+    await page.goto('/packs')
+    await expect(page.getByLabel('1 of 10 packs')).toBeVisible()
+
+    await advanceClock(page, 24 * HOUR + 60_000)
+    await page.goto('/goals')
+    await expect(page.getByRole('button', { name: 'Claim day 2' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: /^Take 1 free pack/ })).toBeEnabled()
+    await page.getByRole('button', { name: 'Claim day 2' }).click()
+    await expect(page.getByLabel('Day 2, claimed')).toBeVisible()
+  })
+
+  test('a missed day starts the calendar again', async ({ page }) => {
+    await foundClub(page)
+    await page.goto('/goals')
+    await page.getByRole('button', { name: 'Claim day 1' }).click()
+    await advanceClock(page, 3 * 24 * HOUR)
+    await page.goto('/goals')
+    await expect(page.getByRole('button', { name: 'Claim day 1' })).toBeEnabled()
+  })
+
+  test('the League Pass fills with XP from matches, and its premium track needs the Pass', async ({ page }) => {
+    await foundClub(page)
+    await advanceClock(page, 2 * 24 * HOUR)
+    await page.goto('/pass')
+    await expect(page.getByText(/^Tier [1-9]\d? \/ 30$/)).toBeVisible()
+    await expect(page.getByRole('list', { name: 'Tiers' }).getByRole('listitem')).toHaveCount(30)
+    await expect(page.getByLabel('Tier 1 premium reward').getByText('Needs the Pass')).toBeVisible()
+
+    await page.evaluate(() => window.__pixelPitchClock!.setPass(true))
+    await page.reload()
+    await page.getByRole('button', { name: 'Claim premium tier 1' }).click()
+    await expect(page.getByLabel('Tier 1 premium reward').getByText('Claimed')).toBeVisible()
+    await expect(page.getByText(/League Pass active/)).toBeVisible()
+  })
+
+  test('the album lists sets of six, with the starter players already collected', async ({ page }) => {
+    await foundClub(page)
+    await page.goto('/album')
+    await expect(page.getByText(/^0 \/ \d+ sets$/)).toBeVisible()
+    await expect(page.getByText('Team power +0%')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Northvale' })).toBeVisible()
+    // The starter players are collected. A few of the weakest players are in no set, so up to five slots are filled in.
+    await expect(page.locator('[aria-label="Not collected yet"]').first()).toBeVisible()
+    const collected = await page.locator('li[aria-label]:not([aria-label="Not collected yet"])').evaluateAll(items => items.filter(item => item.closest('ul')?.className.includes('grid-cols-6')).length)
+    expect(collected).toBeLessThanOrEqual(5)
+  })
+})
+
 test.describe('Time away @game', () => {
   test('a day away plays eight matches and shows them in the table and the summary', async ({ page }) => {
     await foundClub(page)

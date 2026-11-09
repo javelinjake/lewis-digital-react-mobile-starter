@@ -1,7 +1,6 @@
 import type { ActionContext } from '@ld/backend'
-import type { PoolPlayer } from '@ld/pixel-pitch-core'
 import { defineAction } from '@ld/backend'
-import { autoPick, CREST_COUNT, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, toFielded, trainInClub } from '@ld/pixel-pitch-core'
+import { CREST_COUNT, foundClub, mergeInClub, newClubState, sellCard, setLineup, trainInClub } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { serverNow } from '../game/clock'
 import { loadGame } from '../game/load'
@@ -47,31 +46,23 @@ export const createClubAction = defineAction({
 
     const now = serverNow(req)
     const game = await loadGame(payload)
-    const state = newClubState(now, game.config)
+    // The club is created empty first, to have the id that seeds its starter squad and its first match.
     const club = await payload.create({
       collection: 'clubs',
-      data: { owner: Number(user.id), name, crest, kitPrimary, kitSecondary, state: stateJson(state), version: 0, tier: 1, points: 0, coins: 0 },
+      data: { owner: Number(user.id), name, crest, kitPrimary, kitSecondary, state: stateJson(newClubState(now, game.config)), version: 0, tier: 1, points: 0, coins: 0 },
       depth: 0,
       overrideAccess: true,
       req,
     })
 
-    const starters = rule(() => rollStarterSquad({ catalogue: game.catalogue, seed: `starter:${club.id}`, config: game.config }))
-    const cards = starters.map((player, index) => ({ id: `${NEW_CARD_PREFIX}${index}`, playerId: player.id, stars: 1, trained: 0 }))
-    const pool: PoolPlayer[] = cards.map((card, index) => ({ id: card.id, ...toFielded(card, starters[index], game.config) }))
-    const lineup = autoPick(state.formation, pool).ids
-    const fielded = rule(() => setLineup(state, state.formation, lineup, cards))
-    const debut = rule(() => playDebut({ state: fielded, cards, players: game.players, clubId: club.id, config: game.config, now }))
-    // Catch up at once, which grants today's gems. No league match is due yet.
-    const caughtUp = syncClub({ state: debut.state, cards, players: game.players, clubId: club.id, config: game.config, now })
-
-    const response = await saveClub(ctx, { game, club, state: fielded, cards: [], now }, {
-      state: caughtUp.state,
-      cards,
+    const founded = rule(() => foundClub({ clubId: club.id, now, config: game.config, catalogue: game.catalogue, players: game.players }))
+    const response = await saveClub(ctx, { game, club, state: founded.state, cards: [], now }, {
+      state: founded.state,
+      cards: founded.cards,
       source: 'starter',
-      fixtures: [debut.fixture],
-      ledger: [{ currency: 'coins', amount: debut.fixture.coins, reason: 'debut' }],
-    }, { fixtures: [], events: caughtUp.events })
+      fixtures: [founded.debut],
+      ledger: [{ currency: 'coins', amount: founded.debut.coins, reason: 'debut' }],
+    }, { fixtures: [], events: founded.events })
     return { status: 201, body: response }
   },
 })

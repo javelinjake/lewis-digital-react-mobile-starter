@@ -50,6 +50,11 @@ export const gameApi: GameApi = {
   finishPlay: (cabinet, taps) => act('/game/arcade/finish', { cabinet, taps }),
   startWarmup: () => act('/game/warmup/start'),
   finishWarmup: tapMs => act('/game/warmup/finish', { tapMs }),
+  claimGoal: goalId => act('/game/goals/claim', { goalId }),
+  claimFreePack: () => act('/game/goals/free-pack'),
+  claimCalendar: () => act('/game/calendar/claim'),
+  claimPassTier: (track, tier) => act('/game/pass/claim', { track, tier }),
+  claimAlbumSet: setId => act('/game/album/claim', { setId }),
   async readCatalogue() {
     const result = await getApi().collection<PlayerDoc>('players').find({ limit: 1000, depth: 0 })
     return result.docs.map(doc => ({

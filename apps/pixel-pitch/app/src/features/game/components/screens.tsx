@@ -5,13 +5,16 @@ import { EmptyState, LoadingState } from '@ld/ui'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useReplayMode } from '@/hooks/use-replay-mode'
 import { useClub, useFixtures } from '../queries/use-game'
+import { AlbumScreen } from './AlbumScreen'
 import { ArcadePlay } from './ArcadePlay'
 import { ArcadeScreen } from './ArcadeScreen'
 import { ClubHub } from './ClubHub'
+import { GoalsScreen } from './GoalsScreen'
 import { LeagueScreen } from './LeagueScreen'
 import { MatchReplay } from './MatchReplay'
 import { MatchTextReplay } from './MatchTextReplay'
 import { PacksScreen } from './PacksScreen'
+import { PassScreen } from './PassScreen'
 import { SquadScreen } from './SquadScreen'
 
 /** The game screens run inside `ClubGate`, so the club is there (from the cache at least). */
@@ -22,6 +25,18 @@ function WithClub({ children }: { children: (game: GameResponse) => ReactNode })
 
 export function ClubTab() {
   return <WithClub>{game => <ClubHub game={game} />}</WithClub>
+}
+
+export function GoalsTab() {
+  return <WithClub>{game => <GoalsScreen game={game} />}</WithClub>
+}
+
+export function PassTab() {
+  return <WithClub>{game => <PassScreen game={game} />}</WithClub>
+}
+
+export function AlbumTab() {
+  return <WithClub>{game => <AlbumScreen game={game} />}</WithClub>
 }
 
 export function ArcadeTab() {

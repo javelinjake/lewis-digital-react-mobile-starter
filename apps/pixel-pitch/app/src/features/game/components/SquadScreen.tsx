@@ -1,7 +1,7 @@
 import type { FormationId, GameResponse, Position } from '@ld/pixel-pitch-core'
 import type { SquadCard } from '../lib/club'
 import { BottomSheet } from '@ld/mobile-ui'
-import { autoPick, bestFormation, FORMATION_IDS, FORMATIONS, matchOdds, mergeable, positionFit, scoreLineup, sellValue, trainingCost } from '@ld/pixel-pitch-core'
+import { albumPower, autoPick, bestFormation, FORMATION_IDS, FORMATIONS, matchOdds, mergeable, positionFit, scoreLineup, sellValue, trainingCost } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useMemo, useState } from 'react'
 import { formatError } from '@/utils/format-error'
@@ -55,7 +55,8 @@ export function SquadScreen({ game }: { game: GameResponse }) {
   const score = currentScore(game, lookup, config)
   const rival = nextRival(game, config)
   const odds = matchOdds({ formation: state.formation, att: score.att, def: score.def }, rivalSide(rival), config)
-  const options = useMemo(() => bestFormation(pool, rivalSide(rival), config), [pool, rival, config])
+  const bonus = albumPower(state, config)
+  const options = useMemo(() => bestFormation(pool, rivalSide(rival), config, bonus), [pool, rival, config, bonus])
   const best = options[0]
   const currentOption = options.find(option => option.formation === state.formation)
   const positions = slotPositions(state.formation)
@@ -158,6 +159,7 @@ export function SquadScreen({ game }: { game: GameResponse }) {
           <span className="font-display text-lg text-primary tabular-nums">{score.overall}</span>
         </div>
         {score.chemistry > 0 ? <span className="text-success">{`Chemistry +${Math.round(score.chemistry * 100)}%`}</span> : null}
+        {bonus > 0 ? <span className="text-success">{`Album +${Math.round(bonus * 100)}% team power`}</span> : null}
         <Bar label="ATT" value={score.att} max={120} colour="#ff4f79" />
         <Bar label="DEF" value={score.def} max={120} colour="#5ec8ff" />
         <div className="flex flex-col gap-1 pt-1">

@@ -1,6 +1,6 @@
-import type { ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player, PoolPlayer } from '@ld/pixel-pitch-core'
+import type { ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
-import { arcadePack, autoPick, buyPack, collectStadium, collectTray, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, newClubState, openPack, playDebut, rollStarterSquad, sellCard, setLineup, startPlay, startWarmup, syncClub, toFielded, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
+import { arcadePack, buyPack, claimAlbumSet, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, sellCard, setLineup, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
 import { useAuthStore } from '@/stores/auth.store'
 
 // The game rules running in the browser instead of on the server: development, Playwright and Lighthouse use it.
@@ -38,6 +38,12 @@ if (typeof window !== 'undefined') {
   window.__pixelPitchClock = {
     advance: (ms: number) => sessionStorage.setItem(CLOCK_KEY, String(clockOffset() + ms)),
     offset: clockOffset,
+    // Tests only: the League Pass is bought in the shop (a later milestone), so this switches its premium track on.
+    setPass: (on: boolean) => {
+      const club = load()
+      if (club)
+        save({ ...club, club: { ...club.club, state: { ...club.club.state, idle: { ...club.club.state.idle, hasPass: on } } } })
+    },
   }
 }
 
@@ -121,16 +127,13 @@ export const gameApi: GameApi = {
       throw new MockRuleError('You already have a club.', 409)
     const at = now()
     const id = Math.floor(Math.random() * 1_000_000)
-    const state = newClubState(at, config)
-    const starters = rollStarterSquad({ catalogue, seed: `starter:${id}`, config })
-    const cards = starters.map((player, index) => ({ id: String(index + 1), playerId: player.id, stars: 1, trained: 0 }))
-    const pool: PoolPlayer[] = cards.map((card, index) => ({ id: card.id, ...toFielded(card, starters[index], config) }))
-    const fielded = setLineup(state, state.formation, autoPick(state.formation, pool).ids, cards)
-    const debut = playDebut({ state: fielded, cards, players, clubId: id, config, now: at })
-    const caughtUp = syncClub({ state: debut.state, cards, players, clubId: id, config, now: at })
-    const club = { id, ...input, state: caughtUp.state, version: 1 }
-    save({ club, cards, fixtures: [debut.fixture], nextCardId: cards.length + 1 })
-    return { club, cards, fixtures: [debut.fixture], events: caughtUp.events, now: at, configVersion: config.version }
+    const founded = foundClub({ clubId: id, now: at, config, catalogue, players })
+    // Real ids for the starter cards, as the database gives them.
+    const cards = founded.cards.map((card, index) => ({ ...card, id: String(index + 1) }))
+    const lineup = founded.state.lineup.map(cardId => (cardId ? String(Number(cardId.slice(NEW_CARD_PREFIX.length)) + 1) : null))
+    const club = { id, ...input, state: { ...founded.state, lineup }, version: 1 }
+    save({ club, cards, fixtures: [founded.debut], nextCardId: cards.length + 1 })
+    return { club, cards, fixtures: [founded.debut], events: founded.events, now: at, configVersion: config.version }
   },
   setLineup: (formation, lineup) => respond(mock => wrap(() => ({ state: setLineup(mock.club.state, formation, lineup, mock.cards) }))),
   sell: cardId => respond(mock => wrap(() => sellCard(mock.club.state, mock.cards, cardId, players, config))),
@@ -147,6 +150,11 @@ export const gameApi: GameApi = {
   finishPlay: (cabinet, taps) => respond((_mock, _at, ctx) => wrap(() => finishPlay(ctx, cabinet, taps))),
   startWarmup: () => respond((_mock, _at, ctx) => wrap(() => startWarmup(ctx))),
   finishWarmup: tapMs => respond((_mock, _at, ctx) => wrap(() => finishWarmup(ctx, tapMs))),
+  claimGoal: goalId => respond((_mock, _at, ctx) => wrap(() => claimGoal(ctx, goalId))),
+  claimFreePack: () => respond((_mock, _at, ctx) => wrap(() => claimFreePack(ctx))),
+  claimCalendar: () => respond((_mock, _at, ctx) => wrap(() => claimCalendar(ctx))),
+  claimPassTier: (track, tier) => respond((_mock, _at, ctx) => wrap(() => claimPassTier(ctx, track, tier))),
+  claimAlbumSet: setId => respond((_mock, _at, ctx) => wrap(() => claimAlbumSet(ctx, setId))),
   readCatalogue: async () => catalogue,
   readConfig: async () => config,
   async readFixtures(limit) {

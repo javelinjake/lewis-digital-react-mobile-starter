@@ -7,6 +7,7 @@ import { arcadeActions } from './cms/actions/arcade'
 import { duplicateNoteAction } from './cms/actions/duplicate-note'
 import { gameActions } from './cms/actions/game'
 import { packActions } from './cms/actions/packs'
+import { rewardActions } from './cms/actions/rewards'
 import { cardsCollection } from './cms/collections/cards'
 import { clubsCollection } from './cms/collections/clubs'
 import { fixturesCollection } from './cms/collections/fixtures'
@@ -26,6 +27,6 @@ export default buildConfig(createAppBackend({
   auth: { ...appMeta.auth, requireEmailVerification: true },
   collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, notesCollection],
   globals: [gameConfigGlobal],
-  endpoints: [...gameActions, ...packActions, ...arcadeActions, duplicateNoteAction],
+  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, duplicateNoteAction],
   adminMeta: { titleSuffix: `· ${appMeta.name} admin` },
 }))

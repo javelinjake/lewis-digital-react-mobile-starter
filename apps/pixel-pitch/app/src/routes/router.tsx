@@ -51,6 +51,9 @@ export const router = createBrowserRouter([
                 Component: StackLayout,
                 children: [
                   { path: '/match/:no', lazy: pages.match, handle: { title: 'Match' } },
+                  { path: '/goals', lazy: pages.goals, handle: { title: 'Goals' } },
+                  { path: '/pass', lazy: pages.pass, handle: { title: 'League Pass' } },
+                  { path: '/album', lazy: pages.album, handle: { title: 'Album' } },
                   { path: '/arcade', lazy: pages.arcade, handle: { title: 'Arcade' } },
                   { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade' } },
                 ],

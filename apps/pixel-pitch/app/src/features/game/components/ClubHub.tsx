@@ -1,10 +1,12 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
+import { albumSets } from '@ld/pixel-pitch-core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import { claimable } from '../lib/claimable'
 import { kitOf, leagueName, nextRival, serverOffset } from '../lib/club'
 import { gameKeys } from '../queries/game.keys'
-import { useFixtures, useGameConfig } from '../queries/use-game'
+import { useCatalogue, useFixtures, useGameConfig } from '../queries/use-game'
 import { Countdown } from './Countdown'
 import { Crest, Icon } from './sprites'
 import { StadiumCard } from './StadiumCard'
@@ -28,6 +30,8 @@ export function ClubHub({ game }: { game: GameResponse }) {
   // Captured when this answer arrived, so the countdown follows the server's clock.
   const offset = useMemo(() => serverOffset(game, Date.now()), [game])
   const last = fixtures.data?.[0]
+  const { data: catalogue } = useCatalogue()
+  const waiting = claimable(game, config, albumSets(catalogue ?? [], config))
 
   const [seen, setSeen] = useState(() => Number(sessionStorage.getItem(SEEN_KEY) ?? 0))
   const news = newsOf(game)
@@ -78,13 +82,21 @@ export function ClubHub({ game }: { game: GameResponse }) {
       <WarmupCard game={game} />
       <StadiumCard game={game} />
 
-      <Link to="/arcade" className="flex items-center justify-between border-2 border-slate bg-base-100 p-3">
-        <span className="flex flex-col">
-          <span className="text-xl">Arcade</span>
-          <span className="text-muted">Kick Timer and Keepy-Uppy. Earn tokens.</span>
-        </span>
-        <Icon path="icons/currency_token.png" scale={3} />
-      </Link>
+      <nav className="grid grid-cols-2 gap-2" aria-label="More to do">
+        {[
+          { to: '/arcade', label: 'Arcade', note: 'Earn tokens', icon: 'icons/currency_token.png', count: 0 },
+          { to: '/goals', label: 'Goals', note: 'Daily and calendar', icon: 'icons/ui_check.png', count: waiting.goals },
+          { to: '/pass', label: 'League Pass', note: 'Season rewards', icon: 'icons/currency_trophy.png', count: waiting.pass },
+          { to: '/album', label: 'Album', note: 'Collect sets', icon: 'icons/currency_star.png', count: waiting.album },
+        ].map(tile => (
+          <Link key={tile.to} to={tile.to} className="relative flex flex-col gap-1 border-2 border-slate bg-base-100 p-3">
+            <Icon path={tile.icon} scale={2} />
+            <span className="text-xl">{tile.label}</span>
+            <span className="text-muted">{tile.note}</span>
+            {tile.count > 0 ? <span className="absolute right-2 top-2 min-w-6 bg-secondary px-1 text-center text-secondary-content" aria-label={`${tile.count} to claim`}>{tile.count}</span> : null}
+          </Link>
+        ))}
+      </nav>
 
       {last
         ? (

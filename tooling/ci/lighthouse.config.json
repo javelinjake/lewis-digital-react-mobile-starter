@@ -16,8 +16,13 @@
       "/login",
       "/onboarding?mock-user=ada",
       "/club?mock-user=ada&mock-club=1",
+      "/packs?mock-user=ada&mock-club=1",
       "/squad?mock-user=ada&mock-club=1",
-      "/league?mock-user=ada&mock-club=1"
+      "/league?mock-user=ada&mock-club=1",
+      "/arcade?mock-user=ada&mock-club=1",
+      "/goals?mock-user=ada&mock-club=1",
+      "/pass?mock-user=ada&mock-club=1",
+      "/album?mock-user=ada&mock-club=1"
     ]
   }
 }

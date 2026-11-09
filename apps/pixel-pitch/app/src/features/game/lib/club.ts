@@ -20,7 +20,7 @@ export function squadPool(cards: readonly OwnedCard[], players: PlayerLookup, co
 
 export function currentScore(game: GameResponse, players: PlayerLookup, config: GameConfig) {
   const lineup = lineupForMatch(game.club.state, game.cards, players, config)
-  return scoreLineup(lineup.formation, lineup.players)
+  return scoreLineup(lineup.formation, lineup.players, lineup.bonus)
 }
 
 /** The rival in the next match: the league plays the five rivals in turn. */

@@ -22,6 +22,28 @@ Tests and playtesters can skip time with the `X-Debug-Now` header, honoured only
 
 A reward endpoint is a `defineAction`. The client sends what it did; the server recomputes the outcome from the seed and clamps the reward to what was possible. A mini-game gets a single-use ticket with a seed and a maximum payout; `finish` checks elapsed time and score against it.
 
+## Pixel Pitch's systems
+
+Everything below is a pure function in `apps/pixel-pitch/core`, run by the api (the real outcome) and by the app's mock mode (development, Playwright, Lighthouse), so the two cannot disagree.
+
+| System | Where | How it is kept honest |
+| --- | --- | --- |
+| Packs | `flow-packs.ts` | A roll is seeded by the club and how many packs it has opened, never by the client. A Star or better is guaranteed within 40 players. The bench holds 20, coin packs are 3 a day. A pack is held as `pendingPack` until each player is signed or sold. |
+| Stadium, trays | `flow-stadium.ts`, `flow-arcade.ts` | A pile is derived from a timestamp (`stadiumCollectedAt`), never stored as a counter; collecting moves the timestamp. |
+| Arcade games, warm-up | `minigames.ts`, `flow-arcade.ts` | The server issues a ticket with a seed and the time. The phone sends only its taps; the server replays them with that seed (the game is a pure function of both) and checks its own clock ran at least as long as the taps say. Tickets are single use. Taps closer than 120 ms are refused, and Keepy-Uppy locks the player out for half a second after a mistimed tap, so mashing does not work. |
+| Goals, calendar | `flow-rewards.ts`, `progress.ts` | The day's goals are drawn from the club id and the date. Progress is counted as things happen (a win only counts on the day it was played). A claim is checked against the state, never against what the phone says. |
+| League Pass | `flow-rewards.ts` | 28-day seasons from a fixed date (so every player is in the same season). XP from matches, packs, arcade plays and goals. A late Pass unlocks every tier already reached. |
+| Album | `album.ts` | Sets are dealt from the catalogue (each nation's players of each position, best first, dealt like cards into sets of six, so every set mixes top and bottom). Each finished set is +1% team power, applied in `scoreLineup`, so it is in the preview and the match alike. |
+| Match report | `commentary.ts` | Only colour is invented. The goals, saves and misses are the match's own events, so the report always agrees with the score. |
+
+A club's state (`ClubState`) is JSON in the `clubs` collection. A saved club from an earlier version gains any new field through `upgradeState`, so adding to the state never needs a data migration.
+
+### Numbers that are placeholders
+
+Every number is in the game config (an admin-editable global), so these can be tuned after a playtest without an app release. The ones that are guesses and not in the MVP spec: stadium curve and upgrade costs; token tray rate (12 an hour) and tokens a play (up to 60); gems for an extra play (20) and what it pays (300 coins); the Kick Timer and Keepy-Uppy tuning (speeds, zone widths, gravity, ramp, reach); the warm-up zone widths; the goal pool and its rewards; the calendar and Pass rewards; XP for each source (match 8, win +4, pack 5, arcade 8, goal 25); the tactical-edge table; rival strength; training caps and costs; win and draw coins; the middle rows of the pack odds table.
+
+Two to look at first in a playtest: Keepy-Uppy is a steep skill curve (a player who reacts to the zone opening, rather than anticipating the ball, gets almost no kicks), and the Pass pays more XP than a casual player earns (a week of matches alone is about 700 XP of the 3,000).
+
 ## Game kit (`@ld/game`)
 
 - Atlas loader for TexturePacker "hash" JSON, `Sprite` and `AnimatedSprite` (whole-number scaling, `image-rendering: pixelated`).
