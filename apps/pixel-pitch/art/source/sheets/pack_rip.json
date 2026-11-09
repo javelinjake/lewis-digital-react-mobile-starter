@@ -1,0 +1,61 @@
+{
+ "frames": {
+  "rip_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 72
+   }
+  },
+  "rip_1": {
+   "frame": {
+    "x": 61,
+    "y": 0,
+    "w": 60,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 72
+   }
+  },
+  "rip_2": {
+   "frame": {
+    "x": 122,
+    "y": 0,
+    "w": 60,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 72
+   }
+  },
+  "rip_3": {
+   "frame": {
+    "x": 183,
+    "y": 0,
+    "w": 60,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 72
+   }
+  }
+ },
+ "meta": {
+  "image": "pack_rip.png",
+  "size": {
+   "w": 244,
+   "h": 73
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

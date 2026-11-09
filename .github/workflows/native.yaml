@@ -1,0 +1,111 @@
+# Proves the iOS and Android projects still build. Unsigned, so it needs no secrets and runs on every change to a
+# native project or the shared native code. Signing and store upload are in release-native.yaml.
+name: Native builds
+
+on:
+  pull_request:
+    paths:
+      - 'apps/*/app/ios/**'
+      - 'apps/*/app/android/**'
+      - 'apps/*/app/capacitor.config.ts'
+      - 'apps/*/app/app.meta.ts'
+      - 'packages/native/**'
+      - 'packages/config-capacitor/**'
+      - 'tooling/native/**'
+      - '.github/workflows/native.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/*/app/ios/**'
+      - 'apps/*/app/android/**'
+  workflow_dispatch:
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pick:
+    name: Find apps with native projects
+    runs-on: ubuntu-latest
+    outputs:
+      native: ${{ steps.pick.outputs.native }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: pick
+        run: node tooling/ci/affected.mjs --all --kind native
+
+  android:
+    name: ${{ matrix.app.slug }} (Android debug)
+    needs: pick
+    if: ${{ needs.pick.outputs.native != '[]' && needs.pick.outputs.native != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.pick.outputs.native) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: pnpm install --frozen-lockfile
+      - name: Build the web bundle for the native shell
+        run: pnpm --filter ${{ matrix.app.name }} build:native
+        env:
+          VITE_DATA_MODE: live
+          VITE_API_URL: https://api.example.com
+      - name: Sync Capacitor
+        run: pnpm --filter ${{ matrix.app.name }} exec cap sync android
+      - name: Assemble debug
+        working-directory: ${{ matrix.app.path }}/android
+        run: ./gradlew assembleDebug
+
+  ios:
+    name: ${{ matrix.app.slug }} (iOS simulator)
+    needs: pick
+    if: ${{ needs.pick.outputs.native != '[]' && needs.pick.outputs.native != '' }}
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.pick.outputs.native) }}
+    steps:
+      # Capacitor 8 needs Xcode 26, and App Store uploads need the iOS 26 SDK. Pinned so a new runner default
+      # does not change the build under us; matches the Xcode used locally.
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.4.app
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the web bundle for the native shell
+        run: pnpm --filter ${{ matrix.app.name }} build:native
+        env:
+          VITE_DATA_MODE: live
+          VITE_API_URL: https://api.example.com
+      - name: Sync Capacitor
+        run: pnpm --filter ${{ matrix.app.name }} exec cap sync ios
+      - name: Build for the simulator (unsigned)
+        working-directory: ${{ matrix.app.path }}/ios/App
+        run: >-
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug
+          -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build

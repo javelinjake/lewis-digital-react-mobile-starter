@@ -1,0 +1,27 @@
+GIMP Palette
+Name: Pixel Pitch
+Columns: 8
+#
+ 16  18  42	ink
+ 27  31  59	navy
+ 38  43  82	navy2
+ 20  23  51	navy3
+ 58  63 114	slate
+154 163 214	grey
+244 244 244	white
+255 210  63	yellow
+199 138   0	ydark
+255  79 121	pink
+184  38  79	pdark
+ 94 200 255	blue
+ 47 127 176	bdark
+182 255  59	lime
+111 174  29	ldark
+255 159  67	orange
+ 63 163  77	grass
+ 55 148  69	grass2
+154 163 181	r0
+ 63 163  77	r1
+ 63 127 214	r2
+242 163  58	r3
+226  72  61	r4

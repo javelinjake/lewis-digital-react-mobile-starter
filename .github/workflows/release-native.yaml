@@ -1,0 +1,155 @@
+# Builds a SIGNED app and uploads it: TestFlight for iOS, the Play internal track for Android. Run it by hand.
+#
+# This workflow has not been run yet: it needs the secrets below, which only you can create. The first run will fail
+# at the first missing one, and the error names it. See docs/native-release.md for how to make each.
+#
+# Repository secrets
+#   Both:     (none)
+#   iOS:      APPLE_CERT_P12_BASE64        distribution certificate (.p12), base64
+#             APPLE_CERT_PASSWORD          its password
+#             APPLE_PROFILE_BASE64         App Store provisioning profile for the bundle id, base64
+#             APPLE_TEAM_ID
+#             APP_STORE_KEY_ID, APP_STORE_ISSUER_ID, APP_STORE_KEY_P8   App Store Connect API key
+#   Android:  ANDROID_KEYSTORE_BASE64      upload keystore, base64
+#             ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#             PLAY_SERVICE_ACCOUNT_JSON    Google Play service account with release access
+#
+# Environment values (set per app under Settings > Environments, one environment per APP_ENV)
+#   VITE_API_URL, and the public SDK keys the app reads (RevenueCat, PostHog, Sentry DSN)
+name: Release native
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Package name of the client app, for example @ld/app-pixel-pitch
+        required: true
+        type: string
+      path:
+        description: Folder of the app, for example apps/pixel-pitch/app
+        required: true
+        type: string
+      app_env:
+        description: Which build
+        required: true
+        default: staging
+        type: choice
+        options: [staging, prod]
+      platform:
+        description: Which store
+        required: true
+        default: both
+        type: choice
+        options: [both, ios, android]
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    if: ${{ inputs.platform != 'ios' }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.app_env }}
+    env:
+      APP_ENV: ${{ inputs.app_env }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: pnpm install --frozen-lockfile
+      - name: Build the web bundle
+        run: pnpm --filter ${{ inputs.app }} build:native
+        env:
+          VITE_DATA_MODE: live
+      - name: Apply the app identity for this environment
+        run: pnpm --filter ${{ inputs.app }} native:configure
+      - run: pnpm --filter ${{ inputs.app }} exec cap sync android
+      - name: Write the upload keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > "${{ inputs.path }}/android/upload.keystore"
+      - name: Build the release bundle
+        working-directory: ${{ inputs.path }}/android
+        run: >-
+          ./gradlew bundleRelease
+          -Pandroid.injected.signing.store.file=$PWD/upload.keystore
+          -Pandroid.injected.signing.store.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }}
+          -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Upload to the Play internal track
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ vars.ANDROID_PACKAGE_NAME }}
+          releaseFiles: ${{ inputs.path }}/android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: draft
+
+  ios:
+    if: ${{ inputs.platform != 'android' }}
+    runs-on: macos-26
+    environment: ${{ inputs.app_env }}
+    env:
+      APP_ENV: ${{ inputs.app_env }}
+    steps:
+      # Capacitor 8 needs Xcode 26, and App Store uploads need the iOS 26 SDK. Pinned so a new runner default
+      # does not change the build under us; matches the Xcode used locally.
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.4.app
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the web bundle
+        run: pnpm --filter ${{ inputs.app }} build:native
+        env:
+          VITE_DATA_MODE: live
+      - name: Apply the app identity for this environment
+        run: pnpm --filter ${{ inputs.app }} native:configure
+      - run: pnpm --filter ${{ inputs.app }} exec cap sync ios
+      - name: Install the signing certificate and profile
+        env:
+          CERT_P12: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          PROFILE: ${{ secrets.APPLE_PROFILE_BASE64 }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          security create-keychain -p "" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "" "$KEYCHAIN"
+          echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/app.mobileprovision
+      - name: Archive and export
+        working-directory: ${{ inputs.path }}/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} archive
+          cat > "$RUNNER_TEMP/export.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>${{ secrets.APPLE_TEAM_ID }}</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/export.plist" -exportPath "$RUNNER_TEMP/export"
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: ${{ runner.temp }}/export/App.ipa
+          issuer-id: ${{ secrets.APP_STORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_KEY_P8 }}

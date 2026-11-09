@@ -33,6 +33,6 @@ Pending rows are rebuilt from the outbox after restore. The query cache does not
 
 `pages` and `routes` may import features. Features may not import each other. Shared folders may not import features or pages. `src/app` may register outbox handlers.
 
-`@ld/offline` does not import React, Directus, or Capacitor. The TanStack adapter is `@ld/react-utils/query`.
+`@ld/offline` does not import React, the api client, or Capacitor. The TanStack adapter is `@ld/react-utils/query`.
 
 Pages should stay small. The architecture check enforces 500 lines, not the 50-line page guide.

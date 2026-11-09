@@ -4,13 +4,21 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./identity": "./src/identity.ts"
   },
   "dependencies": {
     "@capacitor/cli": "catalog:"
   },
   "scripts": {
     "build": "node -e \"process.exit(0)\"",
-    "ts": "node -e \"process.exit(0)\""
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "catalog:",
+    "@ld/config-typescript": "workspace:*",
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
   }
 }

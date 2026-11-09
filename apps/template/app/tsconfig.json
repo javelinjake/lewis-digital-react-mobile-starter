@@ -1,0 +1,23 @@
+{
+  "extends": "../../../packages/config-typescript/react-app.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "types": [
+      "vite/client"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "../../../packages/pwa/src/virtual-pwa.d.ts",
+    "tests/unit/**/*.ts",
+    "tests/unit/**/*.tsx"
+  ],
+  "exclude": [
+    "tests/e2e"
+  ]
+}

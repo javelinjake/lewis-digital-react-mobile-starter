@@ -4,6 +4,8 @@ import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/te
 export interface CreatePlaywrightConfigOptions {
   testDir?: string
   previewPort?: number
+  /** False for a phone-only app: the tablet project is left out. */
+  tablet?: boolean
 }
 
 /**
@@ -11,7 +13,7 @@ export interface CreatePlaywrightConfigOptions {
  * Offline flows toggle `context.setOffline(true)` inside the test after the first load.
  */
 export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = {}): PlaywrightTestConfig {
-  const { testDir = './tests/e2e', previewPort = 4173 } = options
+  const { testDir = './tests/e2e', previewPort = 4173, tablet = true } = options
 
   return defineConfig({
     testDir,
@@ -19,7 +21,8 @@ export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = 
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
-    reporter: 'list',
+    // The JSON report feeds the job summary in CI (tooling/ci/test-summary.mjs).
+    reporter: process.env.CI ? [['list'], ['json', { outputFile: 'test-results/playwright.json' }]] : 'list',
     use: {
       baseURL: `http://localhost:${previewPort}`,
       trace: 'on-first-retry',
@@ -33,10 +36,7 @@ export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = 
         name: 'phone-ios',
         use: { ...devices['iPhone 15'] },
       },
-      {
-        name: 'tablet',
-        use: { ...devices['iPad Pro 11'] },
-      },
+      ...(tablet ? [{ name: 'tablet', use: { ...devices['iPad Pro 11'] } }] : []),
     ],
     webServer: {
       command: `pnpm dev --port ${previewPort} --strictPort`,
@@ -46,7 +46,8 @@ export function createPlaywrightConfig(options: CreatePlaywrightConfigOptions = 
       env: {
         ...process.env,
         VITE_BUILD_TARGET: 'web',
-        VITE_DIRECTUS_URL: process.env.VITE_DIRECTUS_URL ?? 'http://localhost:8055',
+        VITE_DATA_MODE: process.env.VITE_DATA_MODE ?? 'mock',
+        VITE_API_URL: process.env.VITE_API_URL ?? 'http://localhost:3001',
         VITE_FRONTEND_URL: process.env.VITE_FRONTEND_URL ?? `http://localhost:${previewPort}`,
       },
     },

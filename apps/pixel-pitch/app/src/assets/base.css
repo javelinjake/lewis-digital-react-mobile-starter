@@ -1,0 +1,151 @@
+@import "tailwindcss" source("..");
+@import "@ld/ui/motion.css";
+@import "@ld/mobile-ui/native-feel.css";
+/* Bundled, never loaded from a CDN. Latin only: the game's text is English. Both are SIL Open Font License. */
+@import "@fontsource/press-start-2p/latin-400.css";
+@import "@fontsource/vt323/latin-400.css";
+
+@source "../../../../../packages/ui/src";
+@source "../../../../../packages/forms/src";
+@source "../../../../../packages/mobile-ui/src";
+@source "../../../../../packages/pwa/src";
+
+@plugin "daisyui" {
+  themes: false;
+}
+
+/* One theme, from the asset pack's palette.json. Pixel art has one palette, so there is no light/dark switch. */
+@plugin "daisyui/theme" {
+  name: "pixel";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: #1b1f3b;
+  --color-base-200: #141733;
+  --color-base-300: #10122a;
+  --color-base-content: #f4f4f4;
+  --color-primary: #ffd23f;
+  --color-primary-content: #10122a;
+  --color-secondary: #ff4f79;
+  --color-secondary-content: #10122a;
+  --color-accent: #5ec8ff;
+  --color-accent-content: #10122a;
+  --color-neutral: #262b52;
+  --color-neutral-content: #f4f4f4;
+  --color-info: #5ec8ff;
+  --color-info-content: #10122a;
+  --color-success: #b6ff3b;
+  --color-success-content: #10122a;
+  --color-warning: #ff9f43;
+  --color-warning-content: #10122a;
+  --color-error: #ff4f79;
+  --color-error-content: #10122a;
+  --radius-selector: 0rem;
+  --radius-field: 0rem;
+  --radius-box: 0rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: "VT323", ui-monospace, monospace;
+  --font-display: "Press Start 2P", ui-monospace, monospace;
+  --color-pitch: #3fa34d;
+  --color-pitch-dark: #379445;
+  --color-slate: #3a3f72;
+  --color-muted: #9aa3d6;
+  --color-rarity-grassroots: #9aa3b5;
+  --color-rarity-semipro: #3fa34d;
+  --color-rarity-pro: #3f7fd6;
+  --color-rarity-star: #f2a33a;
+  --color-rarity-legend: #e2483d;
+}
+
+@layer base {
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    /* VT323 is small for its size: 20px reads like 16px of a normal font. */
+    font-size: 20px;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+    line-height: 1.4;
+  }
+
+  h1 { font-size: 0.8rem; }
+  h2 { font-size: 0.7rem; }
+  h3 { font-size: 0.6rem; }
+
+  img.pixel, canvas.pixel, .pixel {
+    image-rendering: pixelated;
+  }
+}
+
+/* Painted from index.html before any JavaScript runs. React replaces it on mount. */
+.app-shell {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+/* Pack opening. The rip tears the top off a pack; a card flips about its vertical axis. */
+@keyframes pp-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg) translateY(-2px); }
+  75% { transform: rotate(3deg) translateY(-2px); }
+}
+
+@keyframes pp-tear-top {
+  to { transform: translate(70px, -90px) rotate(28deg); opacity: 0; }
+}
+
+@keyframes pp-tear-bottom {
+  to { transform: translateY(40px); opacity: 0; }
+}
+
+@keyframes pp-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.pp-flip {
+  perspective: 800px;
+}
+
+.pp-flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 450ms steps(6, end);
+}
+
+.pp-flip-inner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+
+.pp-flip-face {
+  backface-visibility: hidden;
+}
+
+.pp-flip-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-flip-inner { transition: none; }
+}

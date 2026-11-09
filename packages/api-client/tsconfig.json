@@ -1,0 +1,5 @@
+{
+  "extends": "@ld/config-typescript/base.json",
+  "compilerOptions": { "types": [] },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+}

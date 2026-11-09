@@ -1,0 +1,24 @@
+{
+  "name": "@ld/api-client",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "lint": "eslint .",
+    "architecture:check": "bash ../../tooling/architecture-check/architecture-check.sh ."
+  },
+  "devDependencies": {
+    "@ld/config-eslint": "workspace:*",
+    "@ld/config-typescript": "workspace:*",
+    "@ld/config-vitest": "workspace:*",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

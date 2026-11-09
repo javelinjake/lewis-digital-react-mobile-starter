@@ -1,46 +1,51 @@
 # Lewis React Mobile Platform
 
-pnpm + Turborepo monorepo for **mobile and tablet** apps. Touch-first React/Directus apps run in the browser as installable PWAs and ship to the App Store and Google Play through Capacitor.
+pnpm + Turborepo monorepo for **mobile** apps and games. Each product is a React client that runs in the browser as an installable PWA and ships to the App Store and Google Play through Capacitor, plus its own Payload + Better Auth backend deployed to Vercel. Branding differs per app; everything else is shared.
 
 ## Structure
 
 ```txt
-apps/           Product apps (template, then apps)
-packages/       Shared @ld/* packages
-tooling/        Generators, native scripts, architecture checks
-cms/            Directus project markers
-docs/           Monorepo documentation
+apps/<slug>/
+  app/     React + Capacitor client      (@ld/app-<slug>)
+  api/     Payload + Better Auth backend (@ld/api-<slug>), one database per app
+  core/    games only: pure, deterministic rules shared by app and api
+  art/     games only: source art, sheets and audio
+packages/  Shared @ld/* packages (backend, api-client, native, ui, mobile-ui, game, telemetry, ...)
+tooling/   Generators, CI scripts, native scripts, architecture check, local database
+docs/      Documentation
 ```
 
 ## Quick start
 
 ```bash
 pnpm install
-cp apps/template/.env.local.example apps/template/.env.local
-pnpm --filter @ld/app-template dev
+pnpm db:dev                                   # local Postgres (or: pnpm db:up for Docker). Leave it running
+pnpm --filter @ld/api-template cms:migrate
+pnpm --filter @ld/api-template dev            # the backend on :3001
+pnpm --filter @ld/app-template dev             # the app on :5173 (mock data until VITE_DATA_MODE=live)
 ```
 
 ## Commands
 
-| Command                                          | Purpose                                                           |
-| ------------------------------------------------ | ----------------------------------------------------------------- |
-| `pnpm dev`                                       | Run app dev servers                                               |
-| `pnpm --filter @ld/app-template dev`             | Template app in the browser                                       |
-| `pnpm --filter @ld/app-template build`           | Web PWA build (`VITE_BUILD_TARGET=web`)                           |
-| `pnpm --filter @ld/app-template build:native`    | Capacitor bundle with no service worker                           |
-| `pnpm --filter @ld/app-template cap:dev:ios`     | Live reload on an iOS simulator                                   |
-| `pnpm --filter @ld/app-template cap:dev:android` | Live reload on Android                                            |
-| `pnpm review`                                    | lint + types + unit tests + architecture check                    |
-| `pnpm test:e2e`                                  | Playwright on phone and tablet profiles                           |
-| `pnpm create:app`                                | Scaffold an app from the template                                 |
-| `pnpm create:project`                            | Same scaffold, with a Directus project marker (`platform: react`) |
+| Command | Purpose |
+| --- | --- |
+| `pnpm review` | lint + types + unit tests + architecture check |
+| `pnpm test:tooling` | tests for the scaffolder, Vercel config and native config |
+| `pnpm --filter <api> test:integration` | access-control, auth and purchase tests against real Postgres |
+| `pnpm --filter <app> test:e2e` | Playwright on phone, iPhone and (if enabled) tablet |
+| `pnpm create:app -- --name "My App" [--kind game]` | Scaffold a new app. Dry run until you add `--write` |
+| `pnpm db:dev` / `db:up` / `db:down` | Local Postgres without Docker / with Docker / stop Docker |
+| `pnpm --filter <app> build:native`, `cap:dev:ios`, `cap:dev:android` | Native bundle and live reload |
 
-Push to `main` and pull requests run lint, types, unit tests, the architecture check, the web build, and native tooling tests. A weekly audit reports dependency vulnerabilities. Deploy is manual and does not publish anything yet. Every workflow is `contents: read` and does not use secrets.
+## CI
+
+Pull requests run, for what they affect: lint, types, architecture and unit tests; for each client app a production build, bundle budget, mobile Lighthouse (PWA apps) and Playwright; for each api a real Postgres with migrations, integration tests and a production build. Native builds run for apps that have iOS or Android projects. Signed releases are a manual workflow. Vercel deploys.
 
 ## Documentation
 
-- [Monorepo](docs/monorepo.md)
-- [Architecture](docs/architecture.md)
-- [Shared packages](docs/shared-packages.md)
-- [Native apps](docs/native.md)
-- [PWA and offline](docs/pwa-offline.md)
+- [New app playbook](docs/new-app-playbook.md): start here for a new app or game
+- [Backend](docs/backend.md): accounts, privacy model, actions, purchases
+- [Deployment](docs/deployment.md): Vercel projects and environment variables
+- [Native release](docs/native-release.md): environments, signing, store checklist
+- [Games](docs/games.md): the rules package, server-owned time, the game kit
+- [Monorepo](docs/monorepo.md), [Architecture](docs/architecture.md), [Shared packages](docs/shared-packages.md), [Native apps](docs/native.md), [PWA and offline](docs/pwa-offline.md)

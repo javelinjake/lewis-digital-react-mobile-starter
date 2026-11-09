@@ -1,0 +1,51 @@
+/*
+ * What makes a web view feel like an app instead of a page: no rubber-band scroll, no text selection or long-press
+ * menu on controls, no image dragging, no 300ms tap delay, and no zoom-on-focus. Text inputs stay fully selectable.
+ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    min-height: 100dvh;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"],
+  .selectable {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  img,
+  svg,
+  canvas {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  /* iOS zooms the page when a field under 16px takes focus. */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<resources>
+    <string name="app_name">Pixel Pitch Dev</string>
+    <string name="title_activity_main">Pixel Pitch</string>
+    <string name="package_name">uk.co.lewisdigital.pixelpitch.dev</string>
+    <string name="custom_url_scheme">uk.co.lewisdigital.pixelpitch.dev</string>
+</resources>
