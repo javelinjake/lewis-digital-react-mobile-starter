@@ -375,7 +375,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   pass: {
     seasonDays: 28,
     xpPerTier: 100,
-    xp: { match: 8, win: 4, pack: 5, cabinet: 8, goal: 25 },
+    xp: { match: 2, win: 1, pack: 2, cabinet: 3, goal: 15 },
     ...passTiers(),
   },
   album: { setSize: 6, bonusPerSet: 0.01, reward: { kind: 'packs', amount: 1 } },

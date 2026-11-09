@@ -367,7 +367,8 @@ test.describe('Goals, Pass and album @game', () => {
 
   test('the League Pass fills with XP from matches, and its premium track needs the Pass', async ({ page }) => {
     await foundClub(page)
-    await advanceClock(page, 2 * 24 * HOUR)
+    // 56 matches (the most one catch-up plays) at 2 XP, and a bit more for each win, is over a tier.
+    await advanceClock(page, 7 * 24 * HOUR)
     await page.goto('/pass')
     await expect(page.getByText(/^Tier [1-9]\d? \/ 30$/)).toBeVisible()
     await expect(page.getByRole('list', { name: 'Tiers' }).getByRole('listitem')).toHaveCount(30)

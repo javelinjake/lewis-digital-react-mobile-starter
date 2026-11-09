@@ -42,7 +42,7 @@ A club's state (`ClubState`) is JSON in the `clubs` collection. A saved club fro
 
 Every number is in the game config (an admin-editable global), so these can be tuned after a playtest without an app release. The ones that are guesses and not in the MVP spec: stadium curve and upgrade costs; token tray rate (12 an hour) and tokens a play (up to 60); gems for an extra play (20) and what it pays (300 coins); the Kick Timer and Keepy-Uppy tuning (speeds, zone widths, gravity, ramp, reach); the warm-up zone widths; the goal pool and its rewards; the calendar and Pass rewards; XP for each source (match 8, win +4, pack 5, arcade 8, goal 25); the tactical-edge table; rival strength; training caps and costs; win and draw coins; the middle rows of the pack odds table.
 
-Two to look at first in a playtest: Keepy-Uppy is a steep skill curve (a player who reacts to the zone opening, rather than anticipating the ball, gets almost no kicks), and the Pass pays more XP than a casual player earns (a week of matches alone is about 700 XP of the 3,000).
+Two to look at first in a playtest: Keepy-Uppy is a steep skill curve (a player who reacts to the zone opening, rather than anticipating the ball, gets almost no kicks), and the Pass pacing. XP is set so a player who does everything every day (8 matches, 9 packs, 6 arcade plays, 3 goals: about 100 XP a day) just fills the 3,000-XP track in a 28-day season, and a casual player reaches about tier 16. Change `pass.xp` or `pass.xpPerTier` if playtesters finish early or never get past the first week.
 
 ## Game kit (`@ld/game`)
 
