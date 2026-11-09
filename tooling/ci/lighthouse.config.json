@@ -11,6 +11,13 @@
       "/login",
       "/home?mock-user=ada",
       "/notes?mock-user=ada"
+    ],
+    "@ld/app-pixel-pitch": [
+      "/login",
+      "/onboarding?mock-user=ada",
+      "/club?mock-user=ada&mock-club=1",
+      "/squad?mock-user=ada&mock-club=1",
+      "/league?mock-user=ada&mock-club=1"
     ]
   }
 }

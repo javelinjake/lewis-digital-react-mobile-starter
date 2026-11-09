@@ -1,4 +1,5 @@
 import type { PluginOption } from 'vite'
+import type { ManifestOptions } from 'vite-plugin-pwa'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export interface PwaConfigOptions {
@@ -11,6 +12,11 @@ export interface PwaConfigOptions {
   /** `any` omits the lock so the manifest follows the device. */
   orientation?: 'portrait' | 'landscape' | 'any'
   iconSource?: string | false
+  /**
+   * The app's own icons, already in `public/`, for apps whose art must not be resampled (pixel art). Use with
+   * `iconSource: false`. Listed in the manifest and precached with the shell.
+   */
+  icons?: ManifestOptions['icons']
 }
 
 /**
@@ -28,12 +34,13 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
     devEnabled = false,
     orientation = 'portrait',
     iconSource = 'public/pwa-icon.svg',
+    icons,
   } = options
 
   return VitePWA({
     injectRegister: false,
     registerType: 'prompt',
-    includeAssets: ['favicon.svg'],
+    includeAssets: ['favicon.svg', ...(icons ?? []).map(icon => icon.src.replace(/^\//, ''))],
     manifest: {
       name,
       short_name: shortName,
@@ -44,6 +51,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
       ...(orientation === 'any' ? {} : { orientation }),
       start_url: '/',
       scope: '/',
+      ...(icons ? { icons } : {}),
     },
     pwaAssets: iconSource === false
       ? { disabled: true }

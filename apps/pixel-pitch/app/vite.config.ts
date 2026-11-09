@@ -20,7 +20,13 @@ export default createViteConfig({
         backgroundColor: appMeta.backgroundColor,
         devEnabled: process.env.VITE_PWA_DEV === 'true',
         orientation: appMeta.orientation,
+        // Pixel art, so the icons are made by art:build (nearest-neighbour), not resampled by the PWA generator.
         iconSource: false,
+        icons: [
+          { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
       }
     : undefined,
 })

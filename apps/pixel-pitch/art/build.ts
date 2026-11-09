@@ -99,3 +99,21 @@ if (existsSync(android)) {
   }
   console.log('Wrote the Android launcher icons and splash.')
 }
+
+// Web: favicon, Apple touch icon and the PWA's install icons. The pack's icon is 32×32 pixel art drawn at 32×, so
+// 192 and 512 are whole multiples of its pixels. The maskable icon is the icon at 75% (inside the 80% safe zone),
+// widened by repeating its edge pixels (sky above, grass below), so any launcher mask shows a whole scene.
+{
+  const sharp = createRequire(path.resolve(here, '../app/package.json'))('sharp') as typeof import('sharp')
+  const publicDir = path.resolve(here, '../app/public')
+  const icon = path.join(source, 'app/icon_1024.png')
+  const nearest = { kernel: 'nearest' } as const
+  const flat = (size: number, file: string) => sharp(icon).resize(size, size, nearest).png().toFile(path.join(publicDir, file))
+  await flat(32, 'favicon.png')
+  await flat(180, 'apple-touch-icon.png')
+  await flat(192, 'pwa-192x192.png')
+  await flat(512, 'pwa-512x512.png')
+  const inner = await sharp(icon).resize(384, 384, nearest).png().toBuffer()
+  await sharp(inner).extend({ top: 64, bottom: 64, left: 64, right: 64, extendWith: 'copy' }).png().toFile(path.join(publicDir, 'maskable-icon-512x512.png'))
+  console.log('Wrote the web favicon, touch icon and PWA icons.')
+}

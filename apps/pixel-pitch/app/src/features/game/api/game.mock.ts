@@ -97,10 +97,18 @@ function wrap<T>(run: () => T): T {
   }
 }
 
+/** `?mock-club=1` (with `?mock-user=`) opens the game screens with a club already founded, for Lighthouse. */
+function seedRequested() {
+  return typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mock-club') === '1'
+}
+
 export const gameApi: GameApi = {
   async sync() {
-    if (!load())
-      return null
+    if (!load()) {
+      if (!seedRequested())
+        return null
+      await gameApi.createClub({ name: 'Harbour Town', crest: 0, kitPrimary: '#3f7fd6', kitSecondary: '#f4f4f4' })
+    }
     return respond(mock => ({ state: mock.club.state }))
   },
   async createClub(input) {
