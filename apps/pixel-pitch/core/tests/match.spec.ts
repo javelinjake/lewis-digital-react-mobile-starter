@@ -186,7 +186,7 @@ describe('playMatch', () => {
       expect(goals.filter(event => event.side === 'against')).toHaveLength(match.goalsAgainst)
       for (const event of match.events) {
         expect(event.minute).toBeGreaterThanOrEqual(1)
-        expect(event.minute).toBeLessThanOrEqual(90)
+        expect(event.minute).toBeLessThanOrEqual(config.match.minutes)
         expect(event.slot).toBeGreaterThanOrEqual(0)
         expect(event.slot).toBeLessThan(5)
       }

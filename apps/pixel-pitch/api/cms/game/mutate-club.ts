@@ -123,6 +123,8 @@ function fixtureData(ownerId: number | string, fixture: FixtureResult, configVer
   return {
     owner: Number(ownerId),
     no: fixture.no,
+    formation: fixture.formation,
+    squads: { ...fixture.squads },
     kind: fixture.no < 0 ? 'debut' : 'league',
     tier: fixture.tier,
     kickoffAt: fixture.kickoffAt,

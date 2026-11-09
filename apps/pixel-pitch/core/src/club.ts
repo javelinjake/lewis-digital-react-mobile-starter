@@ -2,7 +2,6 @@ import type { OwnedCard } from './cards'
 import type { Player } from './catalogue'
 import type { GameConfig } from './config'
 import type { FixtureResult, LeagueState, LineupForMatch } from './league'
-import type { Fielded } from './lineup'
 import type { FormationId } from './positions'
 import type { IdleState, WelcomeBackEvent } from './state'
 import { hashSeed } from '@ld/utils/random/rng'
@@ -12,7 +11,7 @@ import { GameRuleError } from './errors'
 import { generateRivals, newLeagueState, playDueFixtures } from './league'
 import { scoreLineup, SLOT_COUNT } from './lineup'
 import { playMatch } from './match'
-import { isFormationId } from './positions'
+import { FORMATIONS, isFormationId } from './positions'
 import { newIdleState } from './state'
 
 /** Everything about a club that changes with time or with the player's choices, apart from the cards themselves. */
@@ -46,12 +45,12 @@ export type PlayerLookup = (playerId: string) => Player | undefined
 /** The lineup as the match engine sees it. A slot whose card is gone (sold, merged) plays empty. */
 export function lineupForMatch(state: Pick<ClubState, 'formation' | 'lineup'>, cards: readonly OwnedCard[], players: PlayerLookup, config: GameConfig): LineupForMatch {
   const byId = new Map(cards.map(card => [card.id, card]))
-  const fielded = state.lineup.map((cardId): Fielded | null => {
+  const slots = state.lineup.map((cardId) => {
     const card = cardId ? byId.get(cardId) : undefined
     const player = card ? players(card.playerId) : undefined
-    return card && player ? toFielded(card, player, config) : null
+    return card && player ? { fielded: toFielded(card, player, config), name: player.name } : null
   })
-  return { formation: state.formation, players: fielded }
+  return { formation: state.formation, players: slots.map(slot => slot?.fielded ?? null), names: slots.map(slot => slot?.name ?? null) }
 }
 
 export interface SyncResult {
@@ -204,6 +203,8 @@ export function playDebut(input: { state: ClubState, cards: readonly OwnedCard[]
       state: { ...state, coins: state.coins + coins },
       fixture: {
         no: -1,
+        formation: lineup.formation,
+        squads: { ours: FORMATIONS[lineup.formation].roles.map((_, slot) => lineup.names?.[slot] ?? 'A trialist'), theirs: rival.names },
         tier: 1,
         kickoffAt: now,
         rival: { index: rival.index, name: rival.name, formation: rival.formation, rating: rival.rating, att: rival.att, def: rival.def },

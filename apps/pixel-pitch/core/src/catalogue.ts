@@ -48,6 +48,12 @@ const NAMES: ReadonlyArray<{ first: readonly string[], last: readonly string[] }
   },
 ]
 
+/** An invented name from a nation's pools. Used for squads that are not in the catalogue (the league's rivals). */
+export function inventName(rng: Rng, nation: number): string {
+  const pool = NAMES[nation % NAMES.length]
+  return `${rng.pick(pool.first)} ${rng.pick(pool.last)}`
+}
+
 /** Share of players in each position. Goalkeepers are rarer, as in a real squad. */
 const POSITION_SHARE: Record<Position, number> = { GK: 0.14, DEF: 0.3, MID: 0.3, FWD: 0.26 }
 

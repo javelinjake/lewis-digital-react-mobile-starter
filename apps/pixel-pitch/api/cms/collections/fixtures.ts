@@ -10,6 +10,9 @@ export const fixturesCollection = ownedCollection({
   defaultSort: '-no',
   fields: [
     { name: 'no', type: 'number', required: true },
+    // Our formation and both squads' names, so the match report reads the same later. Optional: older rows have none.
+    { name: 'formation', type: 'text' },
+    { name: 'squads', type: 'json' },
     { name: 'kind', type: 'select', required: true, options: ['league', 'debut'] },
     { name: 'tier', type: 'number', required: true },
     { name: 'kickoffAt', type: 'number', required: true },

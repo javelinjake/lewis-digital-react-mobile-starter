@@ -78,6 +78,8 @@ export const gameConfigSchema = z.object({
     baseXg: positive,
     doublingGap: positive,
     maxXg: positive,
+    /** Match length in minutes: two 20-minute halves, as in 5-a-side. Events and the replay clock run to this. */
+    minutes: z.number().int().min(10),
     /** Pre-match kick: how much of the team's ATT the next match gets. */
     warmupGold: z.number().min(0).max(0.5),
     warmupGreen: z.number().min(0).max(0.5),
@@ -178,7 +180,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     rivalSpread: 4,
     maxCatchUpMatches: 56,
   },
-  match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
+  match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.
     edges: [

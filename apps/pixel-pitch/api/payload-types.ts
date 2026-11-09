@@ -401,6 +401,16 @@ export interface Fixture {
    */
   clientMutationId?: string | null;
   no: number;
+  formation?: string | null;
+  squads?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   kind: 'league' | 'debut';
   tier: number;
   kickoffAt: number;
@@ -860,6 +870,8 @@ export interface FixturesSelect<T extends boolean = true> {
   owner?: T;
   clientMutationId?: T;
   no?: T;
+  formation?: T;
+  squads?: T;
   kind?: T;
   tier?: T;
   kickoffAt?: T;

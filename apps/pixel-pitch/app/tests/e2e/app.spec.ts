@@ -60,7 +60,8 @@ test.describe('First session @game', () => {
     await page.getByRole('button', { name: 'Found the club' }).click()
 
     await expect(page).toHaveURL(/\/match\/-1\?debut=1/)
-    await expect(page.getByRole('img', { name: 'Match replay' }).or(page.getByLabel('Match replay'))).toBeVisible()
+    // The written report is the default view.
+    await expect(page.getByRole('list', { name: 'Match report' })).toBeVisible()
     await page.getByRole('button', { name: 'Skip' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue' }).click()
@@ -74,7 +75,8 @@ test.describe('First session @game', () => {
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
   })
 
-  test('the replay plays the match on a canvas and counts the minutes', async ({ page }) => {
+  test('the pitch view plays the match on a canvas and counts the minutes', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('pp-replay-mode', 'pitch'))
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
     const minute = page.locator('main span.text-center')
@@ -85,6 +87,43 @@ test.describe('First session @game', () => {
       return pixels.some((value, index) => index % 4 === 3 && value > 0)
     })
     expect(drawn).toBe(true)
+  })
+
+  test('the written report fills in line by line, ends on the final score, and can be switched to the pitch', async ({ page }) => {
+    test.setTimeout(60_000)
+    await guest(page)
+    await page.getByRole('button', { name: 'Found the club' }).click()
+    const report = page.getByRole('list', { name: 'Match report' })
+    const lines = report.getByRole('listitem')
+
+    // It starts with the kick-off and grows as the match goes on.
+    await expect(lines.first()).toContainText(/underway|whistle|kick-off|v .*five|Here we go|no room to hide|tempo/i)
+    await expect.poll(() => lines.count()).toBeGreaterThan(2)
+
+    // The same match on the pitch, and back again.
+    await page.getByRole('tab', { name: 'Pitch' }).click()
+    await expect(page.getByLabel('Match replay')).toBeVisible()
+    await page.getByRole('tab', { name: 'Match report' }).click()
+    await expect(report).toBeVisible()
+
+    // Left to run, a whole match takes under half a minute.
+    await expect(page.getByText('Full time', { exact: true })).toBeVisible({ timeout: 35_000 })
+    const header = await page.locator('main [aria-live="polite"]').textContent() ?? ''
+    const score = /(\d+)–(\d+)/.exec(header)!
+    await expect(lines.first()).toContainText(`${score[1]}–${score[2]}`)
+    await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
+  })
+
+  test('the match view is a setting that is remembered', async ({ page }) => {
+    await foundClub(page)
+    await tab(page, 'Settings').click()
+    await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Written report')
+    await page.getByRole('button', { name: /Match view/ }).click()
+    await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Pixel pitch')
+
+    await page.goto('/match/-1')
+    await expect(page.getByRole('tab', { name: 'Pitch' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByLabel('Match replay')).toBeVisible()
   })
 
   test('the formation changes the lineup, the odds and the hint', async ({ page }) => {

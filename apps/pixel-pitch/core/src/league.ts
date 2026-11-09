@@ -3,7 +3,7 @@ import type { Fielded } from './lineup'
 import type { MatchEvent, MatchResult } from './match'
 import type { FormationId, Position } from './positions'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
-import { NATIONS } from './catalogue'
+import { inventName, NATIONS } from './catalogue'
 import { scoreLineup } from './lineup'
 import { matchOdds, playMatch } from './match'
 import { FORMATION_IDS, FORMATIONS } from './positions'
@@ -47,6 +47,8 @@ export interface Rival {
   att: number
   def: number
   roles: readonly Position[]
+  /** Invented names for the five players, in the order of `roles`. The same every time for a tier and rival. */
+  names: string[]
 }
 
 const CLUB_SUFFIXES = ['Rovers', 'Athletic', 'Town', 'Wanderers', 'Albion', 'Rangers', 'City', 'Dynamos', 'United', 'Harriers']
@@ -72,17 +74,37 @@ export function generateRivals(tier: number, config: GameConfig): Rival[] {
     const offset = count === 1 ? 0 : Math.round((index / (count - 1) - 0.5) * 2 * config.league.rivalSpread)
     const rating = base + offset
     const formation = rng.pick(FORMATION_IDS)
-    return { index, name, formation, rating, ...formationStrength(formation, rating), roles: FORMATIONS[formation].roles }
+    const squad = rng.fork(`squad-${index}`)
+    const used = new Set<string>()
+    const names = FORMATIONS[formation].roles.map(() => {
+      let player = ''
+      while (!player || used.has(player))
+        player = inventName(squad, squad.int(0, NATIONS.length - 1))
+      used.add(player)
+      return player
+    })
+    return { index, name, formation, rating, ...formationStrength(formation, rating), roles: FORMATIONS[formation].roles, names }
   })
 }
 
 export interface LineupForMatch {
   formation: FormationId
   players: ReadonlyArray<Fielded | null>
+  /** Who is in each slot, for the match report. A missing name is shown as "A trialist". */
+  names?: ReadonlyArray<string | null>
+}
+
+/** The two squads' names in slot order, kept with the fixture so a match report reads the same later. */
+export interface MatchSquads {
+  ours: string[]
+  theirs: string[]
 }
 
 export interface FixtureResult {
   no: number
+  /** Our formation in this match. */
+  formation: FormationId
+  squads: MatchSquads
   tier: number
   kickoffAt: number
   rival: Pick<Rival, 'index' | 'name' | 'formation' | 'rating' | 'att' | 'def'>
@@ -161,6 +183,8 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
 
     results.push({
       no: league.fixtureNo,
+      formation: lineup.formation,
+      squads: { ours: FORMATIONS[lineup.formation].roles.map((_, slot) => lineup.names?.[slot] ?? 'A trialist'), theirs: rival.names },
       tier,
       kickoffAt,
       rival: { index: rival.index, name: rival.name, formation: rival.formation, rating: rival.rating, att: rival.att, def: rival.def },

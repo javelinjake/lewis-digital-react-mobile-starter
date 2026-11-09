@@ -3,11 +3,12 @@ import { loadImage, useCanvasLoop } from '@ld/game'
 import { useReducedEffects } from '@ld/react-utils'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { art } from '../lib/art'
+import { useGameConfig } from '../queries/use-game'
+import { ResultPanel } from './ResultPanel'
 
 const WIDTH = 176
 const HEIGHT = 76
 const DURATION_MS = 24_000
-const MS_PER_MINUTE = DURATION_MS / 90
 /** The ball takes this long to reach the goal for a chance. */
 const RUN_MS = 900
 
@@ -37,10 +38,10 @@ function useImages() {
 }
 
 /** Where the ball is at a time: drifting around midfield, running at a goal before each chance, and back again. */
-function ballAt(events: FixtureResult['events'], ms: number) {
+function ballAt(events: FixtureResult['events'], ms: number, msPerMinute: number) {
   const centre = { x: WIDTH / 2 + Math.sin(ms / 700) * 18, y: HEIGHT / 2 + Math.cos(ms / 900) * 10 }
   for (const event of events) {
-    const at = event.minute * MS_PER_MINUTE
+    const at = event.minute * msPerMinute
     if (ms < at - RUN_MS || ms > at + RUN_MS)
       continue
     // Our side attacks to the right.
@@ -56,11 +57,13 @@ function ballAt(events: FixtureResult['events'], ms: number) {
 /** A 24-second pixel replay of a match from its events. Skippable; low-effects mode shows the goal ticker only. */
 export function MatchReplay({ fixture, clubName, onDone }: { fixture: FixtureResult, clubName: string, onDone: () => void }) {
   const reduced = useReducedEffects()
+  const { minutes } = useGameConfig().match
+  const msPerMinute = DURATION_MS / minutes
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const images = useImages()
   const elapsed = useRef(0)
   const [finished, setFinished] = useState(reduced)
-  const [clock, setClock] = useState(reduced ? 90 : 0)
+  const [clock, setClock] = useState(reduced ? minutes : 0)
   const goals = useMemo(() => fixture.events.filter(event => event.kind === 'goal'), [fixture.events])
 
   const scoreAt = (minute: number) => ({
@@ -76,7 +79,7 @@ export function MatchReplay({ fixture, clubName, onDone }: { fixture: FixtureRes
       elapsed.current += step
       if (elapsed.current >= DURATION_MS)
         setFinished(true)
-      const minute = Math.min(90, Math.floor(elapsed.current / MS_PER_MINUTE))
+      const minute = Math.min(minutes, Math.floor(elapsed.current / msPerMinute))
       setClock(current => (current === minute ? current : minute))
     },
     render: (context) => {
@@ -84,9 +87,9 @@ export function MatchReplay({ fixture, clubName, onDone }: { fixture: FixtureRes
         return
       const ms = elapsed.current
       context.drawImage(images.pitch, 0, 0)
-      const ball = ballAt(fixture.events, ms)
+      const ball = ballAt(fixture.events, ms, msPerMinute)
       context.drawImage(images.ball[Math.floor(ms / 60) % 4], Math.round(ball.x - 3), Math.round(ball.y - 3))
-      const recent = goals.find(goal => ms >= goal.minute * MS_PER_MINUTE + RUN_MS * 0.2 && ms < goal.minute * MS_PER_MINUTE + 1400)
+      const recent = goals.find(goal => ms >= goal.minute * msPerMinute + RUN_MS * 0.2 && ms < goal.minute * msPerMinute + 1400)
       if (recent)
         context.drawImage(images.goal, Math.round((WIDTH - images.goal.width) / 2), 4)
     },
@@ -116,16 +119,7 @@ export function MatchReplay({ fixture, clubName, onDone }: { fixture: FixtureRes
         ))}
       </ul>
 
-      {finished
-        ? (
-            <div className="flex flex-col items-center gap-2 border-2 border-primary bg-base-100 p-4">
-              <img src={art(`text/banner_${fixture.result}.png`)} alt={fixture.result} className="pixel h-auto w-40" />
-              <span className="text-xl">{`+${fixture.coins} coins${fixture.points ? ` · +${fixture.points} pts` : ''}`}</span>
-              {fixture.promotedTo ? <img src={art('text/banner_promoted.png')} alt="Promoted" className="pixel h-auto w-48" /> : null}
-              <button type="button" className="btn btn-primary min-h-11 w-full font-display text-xs" onClick={onDone}>Continue</button>
-            </div>
-          )
-        : null}
+      {finished ? <ResultPanel fixture={fixture} onDone={onDone} /> : null}
     </div>
   )
 }

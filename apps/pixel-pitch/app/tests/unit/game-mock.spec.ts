@@ -59,3 +59,30 @@ describe('sprites and labels', () => {
     expect([1, 5, 6].map(leagueName)).toEqual(['League 5', 'League 1', 'Prestige 1'])
   })
 })
+
+describe('the written match report', () => {
+  it('spreads the lines over about 18 seconds, never closer than half a second', async () => {
+    const { lineTimes, DURATION_MS } = await import('@/features/game/lib/line-times')
+    const { commentate, DEFAULT_CONFIG: config, FORMATIONS } = await import('@ld/pixel-pitch-core')
+    const fixture = {
+      no: 1,
+      kickoffAt: 0,
+      formation: '2-2' as const,
+      squads: { ours: ['A One', 'B Two', 'C Three', 'D Four', 'E Five'], theirs: ['F One', 'G Two', 'H Three', 'I Four', 'J Five'] },
+      rival: { index: 0, name: 'Rovers', formation: '1-2-1' as const, rating: 50, att: 50, def: 50 },
+      events: [{ minute: 12, side: 'for' as const, kind: 'goal' as const, slot: 0 }, { minute: 30, side: 'against' as const, kind: 'save' as const, slot: 1 }],
+      goalsFor: 1,
+      goalsAgainst: 0,
+      result: 'win' as const,
+    }
+    expect(FORMATIONS['2-2'].roles).toHaveLength(5)
+    const lines = commentate({ clubName: 'Us', fixture, config, seed: 'x' })
+    const times = lineTimes(lines, config.match.minutes)
+    expect(times).toHaveLength(lines.length)
+    expect(times[0]).toBe(0)
+    for (let i = 1; i < times.length; i++)
+      expect(times[i] - times[i - 1]).toBeGreaterThanOrEqual(450)
+    expect(times.at(-1)!).toBeLessThanOrEqual(DURATION_MS + 450 * lines.length)
+    expect(times.at(-1)!).toBeGreaterThanOrEqual(DURATION_MS - 1)
+  })
+})

@@ -116,6 +116,12 @@ describe('syncing', () => {
 
     const stored = await alice.get('/api/fixtures?limit=100&sort=no')
     expect(stored.json.docs.map((fixture: { no: number }) => fixture.no)).toEqual([-1, 0, 1, 2])
+    // Each match keeps both squads' names, so its written report reads the same whenever it is opened.
+    for (const [index, fixture] of stored.json.docs.entries()) {
+      expect(fixture.squads.ours).toHaveLength(5)
+      expect(fixture.squads.theirs).toHaveLength(5)
+      expect(fixture.formation).toBe(index === 0 ? aliceClub.fixtures[0].formation : expected.fixtures[index - 1].formation)
+    }
     aliceClub = synced
   })
 

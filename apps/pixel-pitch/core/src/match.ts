@@ -136,7 +136,7 @@ export function playMatch(input: MatchInput, config: GameConfig): MatchOutcome {
 
   const events: MatchEvent[] = []
   const add = (side: MatchSide, kind: MatchEventKind, weights: number[]) =>
-    events.push({ minute: clock.int(1, 90), side, kind, slot: pickScorer(scorers, weights) })
+    events.push({ minute: clock.int(1, config.match.minutes), side, kind, slot: pickScorer(scorers, weights) })
 
   for (let goal = 0; goal < goalsFor; goal++)
     add('for', 'goal', ourWeights)

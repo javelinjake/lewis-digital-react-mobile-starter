@@ -5,6 +5,7 @@ import { ConfirmDialog, useToast } from '@ld/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { clearUserData } from '@/app/session-data'
+import { useReplayMode } from '@/hooks/use-replay-mode'
 import { authApi } from '@/lib/auth/auth-api'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
@@ -16,6 +17,7 @@ export function SettingsOverview() {
   const user = useAuthStore(state => state.user)
   const navigate = useNavigate()
   const toast = useToast()
+  const [replayMode, setReplayMode] = useReplayMode()
   const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -23,6 +25,11 @@ export function SettingsOverview() {
   return (
     <div className="flex flex-col gap-4">
       <ListGroup label="Settings">
+        <ListItem
+          title="Match view"
+          subtitle={replayMode === 'text' ? 'Written report' : 'Pixel pitch'}
+          onClick={() => setReplayMode(replayMode === 'text' ? 'pitch' : 'text')}
+        />
         <ListItem title="Platform" subtitle={getPlatform()} />
         <ListItem
           title="Notifications"
