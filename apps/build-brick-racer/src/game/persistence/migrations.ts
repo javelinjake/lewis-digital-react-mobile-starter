@@ -2,8 +2,7 @@
  * Explicit save migrations. A car record from an older schema is migrated step by step; an untouched
  * backup of the original stays until the migrated car has been written successfully.
  */
-import type { PartInstance } from '../build/types'
-import type { CarDocument } from '../build/types'
+import type { CarDocument, PartInstance } from '../build/types'
 import { CAR_SCHEMA_VERSION } from '../build/types'
 import { normRot } from '../lattice'
 
