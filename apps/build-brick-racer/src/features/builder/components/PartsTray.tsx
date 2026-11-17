@@ -70,7 +70,7 @@ export function PartsTray({ layout, category, onCategory, partId, onPart }: Part
               data-testid={`part-${def.id}`}
               onClick={() => onPart(def.id === partId ? null : def.id)}
             >
-              <PartThumb def={def} size={layout === 'rail' ? 48 : 44} />
+              <PartThumb def={def} size={layout === 'rail' ? 48 : 38} />
               <span className="bd-card-label">{def.label}</span>
             </button>
           ))}

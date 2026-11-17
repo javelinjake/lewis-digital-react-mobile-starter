@@ -1,8 +1,8 @@
-import type { PlacementCandidate } from '@/game/build/candidates'
-import type { CarDocument, WheelGroup } from '@/game/build/types'
 import type { FreeTab } from '@/features/builder/components/FreePanels'
 import type { PadDirection } from '@/features/builder/logic/nudge'
 import type { PlacementView, ViewportHandle } from '@/features/builder/viewport/ViewportPane'
+import type { PlacementCandidate } from '@/game/build/candidates'
+import type { CarDocument, WheelGroup } from '@/game/build/types'
 import { impact, notification } from '@ld/native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -113,7 +113,7 @@ export function BuilderWorkspace({ doc, recovered, migrated }: { doc: CarDocumen
   }, [focusIds])
 
   const visibleIssues = issues === dismissedIssues ? [] : issues
-  const issueIds = useMemo(() => new Set([...visibleIssues.flatMap(i => i.instanceIds), ...focusIds]), [visibleIssues, focusIds]) // eslint-disable-line react-hooks/exhaustive-deps
+  const issueIds = useMemo(() => new Set([...visibleIssues.flatMap(i => i.instanceIds), ...focusIds]), [visibleIssues, focusIds])
   const selectionSet = useMemo(() => new Set(selection), [selection])
 
   // Paired wheel change.
@@ -262,6 +262,11 @@ export function BuilderWorkspace({ doc, recovered, migrated }: { doc: CarDocumen
     navigate('/')
   }
 
+  const selectLoose = () => {
+    editor().select([...loose])
+    setFocusIds([...loose])
+  }
+
   const warnings = assessment?.warnings ?? []
   const emptyCar = doc.instances.length === 0
   const saveNotice = saveState === 'error'
@@ -329,7 +334,7 @@ export function BuilderWorkspace({ doc, recovered, migrated }: { doc: CarDocumen
                 <span>Inspect</span>
               </button>
             )}
-            <LooseChip count={loose.size} onSelect={() => { editor().select([...loose]); setFocusIds([...loose]) }} />
+            <LooseChip count={loose.size} onSelect={selectLoose} />
             <HeadsUp warnings={warnings} onFocus={ids => setFocusIds(ids)} />
           </div>
         </div>

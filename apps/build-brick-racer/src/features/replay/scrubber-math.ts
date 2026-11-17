@@ -14,7 +14,7 @@ export const sliderToTime = (value: number, duration: number): number => fractio
 
 export const timeToSlider = (t: number, duration: number): number => Math.round(timeToFraction(t, duration) * SCRUB_STEPS)
 
-export const formatClock = (seconds: number): string => {
+export function formatClock(seconds: number): string {
   const s = Math.max(0, seconds)
   const m = Math.floor(s / 60)
   return `${String(m).padStart(2, '0')}:${(s - m * 60).toFixed(1).padStart(4, '0')}`

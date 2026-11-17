@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { Icon } from '@/components/ui/Icon'
 import { SceneBackdrop } from '@/components/ui/SceneBackdrop'
 import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { useCarDoc } from '@/components/viewport/use-car-doc'
 import { challengesIn } from '@/game/challenges'
 import { getRepo } from '@/lib/platform/repo'
 import { useGarageStore } from '@/stores/garage.store'
@@ -36,7 +37,14 @@ export function ChallengesScreen() {
   }, [])
 
   const activeCar = carId ?? garageCar
+  const { doc: activeDoc } = useCarDoc(activeCar)
   const list = challengesIn(place)
+
+  // A car with no stored picture yet gets one rendered now, so the cards never show a placeholder for long.
+  useEffect(() => {
+    if (activeDoc && !thumbs[activeDoc.carId])
+      void useGarageStore.getState().refreshThumbnail(activeDoc)
+  }, [activeDoc, thumbs])
 
   useEffect(() => {
     const s = useSessionStore.getState()

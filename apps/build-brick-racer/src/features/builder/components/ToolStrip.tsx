@@ -60,7 +60,7 @@ export function ToolStrip(p: ToolStripProps) {
   if (!p.placing && !p.hasSelection && !(free && p.emptyCar))
     return null
   return (
-    <div className="bd-tools" role="toolbar" aria-label={p.placing ? 'Placing tools' : 'Selected piece tools'}>
+    <>
       {p.armed && (
         <div className="bd-cycle br-panel" role="group" aria-label="Choose between overlapping spots">
           <button type="button" className="bd-cycle-btn" aria-label="Previous spot" data-testid="cycle-prev" onClick={() => p.onCycle(-1)}><Icon name="arrow-left" size={28} /></button>
@@ -75,17 +75,19 @@ export function ToolStrip(p: ToolStripProps) {
           <button type="button" className="btn br-btn br-cta bd-place-btn" aria-label="Place here" data-testid="place-here" onClick={p.onConfirmArmed}><Icon name="check" size={26} /></button>
         </div>
       )}
-      <Tool icon="rotate" label="Rotate" onClick={p.onRotate} testId="tool-rotate" />
-      <Tool icon="paint" label="Colour" onClick={p.onColour} testId="tool-colour" pulse={p.coachColour}>
-        <span className="bd-colour-dot" style={{ background: p.colourHex }} aria-hidden="true" />
-      </Tool>
-      {p.placing && <Tool icon="mirror" label="Mirror" active={p.mirror} onClick={p.onMirror} testId="tool-mirror" />}
-      {p.placing && free && <Tool icon="loose" label="Place loose" onClick={p.onPlaceLoose} testId="place-loose" />}
-      {!p.placing && free && <Tool icon="copy" label="Copy" onClick={p.onDuplicate} testId="tool-duplicate" disabled={!p.hasSelection} />}
-      {!p.placing && free && <Tool icon="cube" label="Move" active={p.nudgeOpen} onClick={p.onNudge} testId="tool-nudge" disabled={!p.hasSelection} />}
-      {!p.placing && free && <Tool icon="plus" label="Select more" active={p.multi} onClick={p.onMulti} testId="tool-multi" />}
-      {!p.placing && <Tool icon="trash" label="Remove" onClick={p.onDelete} testId="tool-delete" disabled={!p.hasSelection} />}
-      {(p.placing || p.hasSelection) && <Tool icon="close" label={p.placing ? 'Done' : 'Deselect'} onClick={p.onCancel} testId="tool-cancel" />}
-    </div>
+      <div className="bd-tools" role="toolbar" aria-label={p.placing ? 'Placing tools' : 'Selected piece tools'}>
+        <Tool icon="rotate" label="Rotate" onClick={p.onRotate} testId="tool-rotate" />
+        <Tool icon="paint" label="Colour" onClick={p.onColour} testId="tool-colour" pulse={p.coachColour}>
+          <span className="bd-colour-dot" style={{ background: p.colourHex }} aria-hidden="true" />
+        </Tool>
+        {p.placing && <Tool icon="mirror" label="Mirror" active={p.mirror} onClick={p.onMirror} testId="tool-mirror" />}
+        {p.placing && free && <Tool icon="loose" label="Place loose" onClick={p.onPlaceLoose} testId="place-loose" />}
+        {!p.placing && free && <Tool icon="copy" label="Copy" onClick={p.onDuplicate} testId="tool-duplicate" disabled={!p.hasSelection} />}
+        {!p.placing && free && <Tool icon="cube" label="Move" active={p.nudgeOpen} onClick={p.onNudge} testId="tool-nudge" disabled={!p.hasSelection} />}
+        {!p.placing && free && <Tool icon="plus" label="Select more" active={p.multi} onClick={p.onMulti} testId="tool-multi" />}
+        {!p.placing && <Tool icon="trash" label="Remove" onClick={p.onDelete} testId="tool-delete" disabled={!p.hasSelection} />}
+        {(p.placing || p.hasSelection) && <Tool icon="close" label={p.placing ? 'Done' : 'Deselect'} onClick={p.onCancel} testId="tool-cancel" />}
+      </div>
+    </>
   )
 }

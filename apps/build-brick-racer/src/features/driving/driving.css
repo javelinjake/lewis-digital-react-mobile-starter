@@ -192,7 +192,7 @@
   color: #ffb3ad;
 }
 
-.dr-cue {
+.dr-hud-layer .dr-cue {
   position: absolute;
   left: 50%;
   bottom: calc(var(--edge-b) + 62px);
@@ -374,12 +374,14 @@
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: calc(var(--edge-t) + 58px);
+  pointer-events: none;
 }
 
 .dr-countdown-num {
-  font-size: clamp(5rem, 30vh, 10rem);
+  font-size: clamp(4rem, 24vh, 8rem);
   color: var(--br-orange);
   -webkit-text-stroke: 3px #fff;
   paint-order: stroke fill;
@@ -520,9 +522,9 @@
 }
 
 .dr-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 22px;
 }
 
 .dr-row {
@@ -530,14 +532,30 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 52px;
+  min-height: 48px;
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1rem;
+}
+
+.dr-row .select,
+.dr-row .range {
+  max-width: 55%;
 }
 
 .dr-note {
+  grid-column: 1 / -1;
   font-size: 0.78rem;
   color: var(--br-muted);
+}
+
+.dr-settings > .btn {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .dr-settings {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---- Status panels ---- */

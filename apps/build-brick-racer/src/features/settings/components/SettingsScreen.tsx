@@ -70,10 +70,11 @@ export function SettingsScreen() {
             <input id="set-lefty" type="checkbox" className="toggle br-toggle" checked={prefs.controls.leftHanded} onChange={e => updateControls({ leftHanded: e.target.checked })} />
           </Row>
           <Row label="Control size" htmlFor="set-size">
+            <ControlPreview leftHanded={prefs.controls.leftHanded} scale={prefs.controls.scale} />
             <input
               id="set-size"
               type="range"
-              className="range br-range w-40"
+              className="range br-range w-28"
               min={0.8}
               max={1.4}
               step={0.05}
@@ -82,7 +83,6 @@ export function SettingsScreen() {
               onChange={e => updateControls({ scale: Number(e.target.value) })}
             />
           </Row>
-          <ControlPreview leftHanded={prefs.controls.leftHanded} scale={prefs.controls.scale} />
         </section>
 
         <section className="set-panel br-panel" aria-label="Sound and display">

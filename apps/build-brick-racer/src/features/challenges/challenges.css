@@ -119,10 +119,23 @@
   --cut: 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 14px 12px;
+  gap: 4px;
+  padding: 8px 14px 10px;
   min-height: 0;
   overflow-y: auto;
+}
+
+.ready-panel .btn.br-cta {
+  position: sticky;
+  bottom: 0;
+  min-height: 54px;
+  font-size: 1.35rem;
+  flex: 0 0 auto;
+}
+
+.ready-panel .toggle.br-toggle {
+  width: 3.6rem;
+  height: 2rem;
 }
 
 .ready-row {
@@ -130,7 +143,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
+  min-height: 40px;
   border-top: 1px solid rgba(140, 240, 255, 0.28);
 }
 

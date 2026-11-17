@@ -71,7 +71,7 @@ export function CarViewport({
 
         let floor: import('three').Object3D | null = null
         if (mat) {
-          floor = render.createFloorMat(radius * 4.2, radius * 4.2)
+          floor = render.createFloorMat(radius * 3.1, radius * 3.1)
           floor.position.set(centre.x, box.min.y - 0.002, centre.z)
           kit.scene.add(floor)
         }
@@ -80,7 +80,7 @@ export function CarViewport({
           const aspect = Math.max(0.5, canvas.clientWidth / Math.max(1, canvas.clientHeight))
           const vFov = (kit.camera.fov * Math.PI) / 180
           const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect)
-          const dist = (radius / Math.sin(Math.min(vFov, hFov) / 2)) * 0.92 * zoom
+          const dist = (radius / Math.sin(Math.min(vFov, hFov) / 2)) * 0.95 * zoom
           const dir = new THREE.Vector3(0.45, 0.55, 0.7).normalize()
           kit.camera.position.copy(centre).addScaledVector(dir, dist)
           kit.camera.lookAt(centre.x, centre.y - radius * 0.06, centre.z)

@@ -10,7 +10,6 @@ import { assessDrive } from '@/game/vehicle/analysis'
 import { getRepo } from '@/lib/platform/repo'
 import { carForEditing } from '../lib/actions'
 import { assistLabel, formatPrimary } from '../lib/format'
-import { observe } from '../lib/results-model'
 import { bestPerChallenge } from '../lib/tests-tab'
 import { useRunData } from '../lib/use-run-data'
 import { useCarPicture } from '../lib/use-thumb'
@@ -87,8 +86,8 @@ export function DetailsScreen() {
   const comparison = compareRuns(run, previous, { current: snapshot, previous: previousSnapshot })
   const ids = [def.metrics.primary, ...def.metrics.secondary.filter(m => m !== def.metrics.primary)]
   const rows = ids.map((id) => {
-    const cur = run.metrics[id]
-    const prev = previous?.metrics[id]
+    const cur = id === 'progress' ? (run.metrics.progress ?? run.progress) : run.metrics[id]
+    const prev = id === 'progress' ? (previous ? (previous.metrics.progress ?? previous.progress) : undefined) : previous?.metrics[id]
     const delta = comparison.compatible ? compareMetric(id, cur, prev) : null
     const primary = id === def.metrics.primary
     return {
@@ -245,7 +244,7 @@ export function DetailsScreen() {
           {picture && <img src={picture} alt={`${run.carName} in this run`} draggable={false} />}
           <div>
             <p className="br-display text-base">{changes.length ? 'Build changed' : previous ? 'Same build' : 'First run with this build'}</p>
-            {changes.length > 0 && <p className="text-sm font-bold" data-testid="build-changes">{changes.map(observe).join(', ')}</p>}
+            {changes.length > 0 && <p className="text-sm font-bold" data-testid="build-changes">{changes.join(', ')}</p>}
           </div>
         </aside>
       </div>

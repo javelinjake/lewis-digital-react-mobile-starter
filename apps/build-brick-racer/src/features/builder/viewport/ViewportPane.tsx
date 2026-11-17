@@ -45,7 +45,7 @@ export interface ViewportProps {
 
 /** Owns the canvas and the imperative viewport controller. React only pushes state in; nothing per frame. */
 export function ViewportPane(props: ViewportProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const hostRef = useRef<HTMLDivElement>(null)
   const [ctrl, setCtrl] = useState<BuilderViewport | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [epoch, setEpoch] = useState(0)
@@ -53,9 +53,15 @@ export function ViewportPane(props: ViewportProps) {
   latest.current = props
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas)
+    const host = hostRef.current
+    if (!host)
       return
+    // A fresh canvas per mount: Strict Mode (and context loss) must never reuse a canvas whose WebGL context was released.
+    const canvas = document.createElement('canvas')
+    canvas.className = 'bd-canvas'
+    canvas.setAttribute('aria-label', '3D view of your car. Drag to look around, pinch to zoom.')
+    canvas.dataset.testid = 'builder-canvas'
+    host.appendChild(canvas)
     let viewport: BuilderViewport
     try {
       viewport = new BuilderViewport(canvas, {
@@ -67,6 +73,7 @@ export function ViewportPane(props: ViewportProps) {
       }, latest.current.reducedMotion)
     }
     catch (e) {
+      canvas.remove()
       setError(e instanceof WebGLUnavailableError ? 'This device can’t show 3D right now. Your car is safe; try the Garage or restart the app.' : 'The builder view could not start.')
       return
     }
@@ -79,6 +86,7 @@ export function ViewportPane(props: ViewportProps) {
       registerRings(null, null)
       setCtrl(null)
       viewport.dispose()
+      canvas.remove()
     }
   }, [epoch])
 
@@ -111,7 +119,7 @@ export function ViewportPane(props: ViewportProps) {
 
   return (
     <>
-      <canvas ref={canvasRef} className="bd-canvas" aria-label="3D view of your car. Drag to look around, pinch to zoom." data-testid="builder-canvas" />
+      <div ref={hostRef} className="bd-canvas-host" />
       {error && (
         <div className="absolute inset-0 flex items-center justify-center p-6 text-center" role="alert">
           <p className="br-panel max-w-sm text-base">{error}</p>

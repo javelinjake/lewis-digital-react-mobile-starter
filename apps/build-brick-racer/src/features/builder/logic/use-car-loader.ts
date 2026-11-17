@@ -5,11 +5,11 @@ import { useGarageStore } from '@/stores/garage.store'
 import { usePrefsStore } from '@/stores/prefs.store'
 import { useSessionStore } from '@/stores/session.store'
 
-export type LoaderState =
-  | { status: 'loading' }
-  | { status: 'missing' }
-  | { status: 'error' }
-  | { status: 'ready', recovered: boolean, migrated: boolean }
+export type LoaderState
+  = | { status: 'loading' }
+    | { status: 'missing' }
+    | { status: 'error' }
+    | { status: 'ready', recovered: boolean, migrated: boolean }
 
 /** The previous editor is flushed and cleared before the next car loads (also under Strict Mode). */
 let pendingUnload: Promise<void> = Promise.resolve()

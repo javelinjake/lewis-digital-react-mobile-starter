@@ -19,14 +19,16 @@ export function useStarterPreviews(size = 360): Record<StarterId, string | null>
     void (async () => {
       const render = await import('@/render').catch(() => null)
       for (const id of ['racer', 'buggy'] as const) {
-        if (cache.has(id))
-          continue
-        const doc = buildStarter(id, defaultContext)
-        const url = (render ? await render.renderCarThumbnail(doc, catalog, { size }) : null) ?? render?.fallbackThumbnail(doc.name) ?? null
-        if (url)
-          cache.set(id, url)
+        let url = cache.get(id) ?? null
+        if (!url) {
+          const doc = buildStarter(id, defaultContext)
+          url = (render ? await render.renderCarThumbnail(doc, catalog, { size }) : null) ?? render?.fallbackThumbnail(doc.name) ?? null
+          if (url)
+            cache.set(id, url)
+        }
+        // Always apply what we have: a cancelled earlier run (StrictMode) may have filled the cache already.
         if (!cancelled && url)
-          setUrls(prev => ({ ...prev, [id]: url }))
+          setUrls(prev => (prev[id] === url ? prev : { ...prev, [id]: url }))
       }
     })()
     return () => {

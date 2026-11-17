@@ -75,7 +75,7 @@ export function framePreset(kind: ViewPreset, bounds: Bounds, forward: Forward, 
   const vFov = (fovDeg * Math.PI) / 180
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect)
   const fit = Math.min(vFov, hFov)
-  const distance = clamp((size / 2 / Math.sin(fit / 2)) * 1.08, 0.6, DIST_MAX)
+  const distance = clamp((size / 2 / Math.sin(fit / 2)) * 0.8, 0.55, DIST_MAX)
   let dir: V3
   let pitch: number
   switch (kind) {

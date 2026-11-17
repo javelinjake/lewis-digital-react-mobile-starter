@@ -1,3 +1,6 @@
+import type { CarDocument } from '@/game/build/types'
+import type { ReplayCameraMode } from '@/game/camera/replay-cam'
+import type { CameraPose } from '@/game/camera/rig'
 /**
  * Replay playback. Plays the recorded samples of the actual run (transforms, wheel poses and events) through
  * an interpolating player. Nothing is re-simulated, so the replay shows exactly what happened on the device
@@ -5,14 +8,11 @@
  */
 import type { ChallengeDefinition } from '@/game/challenges/types'
 import type { EnvironmentDefinition } from '@/game/env/types'
-import type { CameraPose } from '@/game/camera/rig'
-import type { ReplayCameraMode } from '@/game/camera/replay-cam'
 import type { ReplayRecord } from '@/game/replay/types'
 import type { VehicleSpec } from '@/game/vehicle/compile'
-import type { CarDocument } from '@/game/build/types'
 import type { CarModel, SceneKit } from '@/render'
-import { catalog } from '@/game/catalog/catalog'
 import { replayPose } from '@/game/camera/replay-cam'
+import { catalog } from '@/game/catalog/catalog'
 import { ReplayPlayer } from '@/game/replay/player'
 import { buildDrivingCarModel, buildEnvironment, createSceneKit } from '@/render'
 import { advanceTime } from './scrubber-math'

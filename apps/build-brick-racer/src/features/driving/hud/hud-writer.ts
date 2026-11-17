@@ -23,7 +23,7 @@ export function writeHud(f: HudFrame): void {
 
   view.set('time', def ? formatTime(rs?.t ?? 0) : 'FREE')
   view.style('progress', '--p', `${Math.round((rs?.progress ?? 0) * 100)}%`)
-  view.show('progressBar', Boolean(def && def.gates.length > 0))
+  view.show('progressBar', def?.rule.kind === 'gate_race')
 
   const cue = cueFor(def, rs, state)
   view.show('cue', cue.kind !== 'none')

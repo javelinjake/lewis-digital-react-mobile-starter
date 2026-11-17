@@ -1,5 +1,5 @@
 import { getGraph } from './context'
-import { enginePitch, engineLevel, slideLevel } from './volumes'
+import { engineLevel, enginePitch, slideLevel } from './volumes'
 
 /** Continuous engine hum and tyre noise for the car being driven. */
 interface Voice {

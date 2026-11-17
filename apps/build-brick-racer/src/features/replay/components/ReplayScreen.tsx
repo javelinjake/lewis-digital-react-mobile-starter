@@ -1,5 +1,5 @@
-import type { ReplayCameraMode } from '@/game/camera/replay-cam'
 import type { ReplayData } from '../use-replay-data'
+import type { ReplayCameraMode } from '@/game/camera/replay-cam'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Icon } from '@/components/ui/Icon'
@@ -98,6 +98,7 @@ function ReplayStage({ data, runId, onBack }: { data: ReplayData, runId: string,
       engineRef.current = engine
     }
     catch {
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
       setError(true)
     }
     return () => {
@@ -135,7 +136,9 @@ function ReplayStage({ data, runId, onBack }: { data: ReplayData, runId: string,
             <span className="br-chip rp-chip">{title}</span>
           </div>
           <button type="button" className="btn br-btn br-cta rp-to-results" onClick={onBack} data-testid="back-to-results">
-            Back to results <Icon name="chevrons" />
+            Back to results
+            {' '}
+            <Icon name="chevrons" />
           </button>
         </header>
 
@@ -172,10 +175,16 @@ function ReplayStage({ data, runId, onBack }: { data: ReplayData, runId: string,
             <Icon name="restart" />
           </button>
           <div className="rp-clock">
-            <span className="rp-time"><span ref={timeRef} data-testid="replay-time">00:00.0</span> / {formatClock(duration)}</span>
+            <span className="rp-time">
+              <span ref={timeRef} data-testid="replay-time">00:00.0</span>
+              {' '}
+              /
+              {' '}
+              {formatClock(duration)}
+            </span>
             <div className="rp-track">
               <div className="rp-ticks" aria-hidden="true">
-                {ticks.map((t, i) => <i key={`${t.type}-${i}`} className={`is-${t.type}`} style={{ left: `${t.left}%` }} title={t.label} />)}
+                {ticks.map(t => <i key={`${t.type}-${t.left}`} className={`is-${t.type}`} style={{ left: `${t.left}%` }} title={t.label} />)}
               </div>
               <input
                 ref={rangeRef}
@@ -220,7 +229,8 @@ function ReplayStage({ data, runId, onBack }: { data: ReplayData, runId: string,
                   engineRef.current?.setSpeed(s)
                 }}
               >
-                {s}×
+                {s}
+                ×
               </button>
             ))}
           </div>

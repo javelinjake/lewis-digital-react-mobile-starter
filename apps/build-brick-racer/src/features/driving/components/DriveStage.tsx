@@ -13,6 +13,7 @@ import { usePrefsStore } from '@/stores/prefs.store'
 import { useSessionStore } from '@/stores/session.store'
 import { DriveEngine } from '../engine/drive-engine'
 import { HudView } from '../hud/hud-view'
+import { attachFocusGuard } from '../input/focus-guard'
 import { ControlHub } from '../input/hub'
 import { registerEngine } from '../test-hook'
 import { Controls } from './Controls'
@@ -139,6 +140,7 @@ export function DriveStage({ plan }: { plan: DrivePlan }) {
     if (!root || !host)
       return
     hub.attach()
+    const detachGuard = attachFocusGuard(hub)
     useAppStore.getState().setDriving(true)
     assistRef.current = usePrefsStore.getState().prefs.assist
     const p = usePrefsStore.getState().prefs
@@ -193,6 +195,7 @@ export function DriveStage({ plan }: { plan: DrivePlan }) {
       registerEngine(null)
       engineRef.current?.dispose()
       engineRef.current = null
+      detachGuard()
       hub.detach()
       useAppStore.getState().setDriving(false)
       void closeAttempt()

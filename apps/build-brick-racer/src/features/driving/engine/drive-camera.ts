@@ -5,9 +5,16 @@ import type { CameraChoice } from '@/game/persistence/types'
 import type { VehicleSpec } from '@/game/vehicle/compile'
 import type { VehicleState } from '@/game/vehicle/sim'
 import type { PhysicsWorld } from '@/game/vehicle/world'
+import type { RigPreset } from '@/game/camera/rig'
 import { CameraRig, RIG_PRESETS } from '@/game/camera/rig'
 import { SmartDirector } from '@/game/camera/smart'
 import { qRotate } from '@/game/math'
+
+/**
+ * Phone-sized screens need the car larger in frame than the shared presets give, so every live camera is brought
+ * in a little. The shared presets in game/camera stay untouched.
+ */
+export const tunePreset = (p: RigPreset): RigPreset => ({ ...p, back: p.back * 0.74, up: p.up * 0.8, look: p.look * 0.9 })
 
 export const CAMERA_ORDER: readonly CameraChoice[] = ['chase', 'close', 'high', 'smart']
 
@@ -95,7 +102,7 @@ export class DriveCamera {
           obstruction: this.rig.obstruction,
         })
       : RIG_PRESETS[this.mode]
-    const pose = this.rig.update(state, dt, { preset, world: pw, excludeBody: body })
+    const pose = this.rig.update(state, dt, { preset: tunePreset(preset), world: pw, excludeBody: body })
     camera.position.set(pose.position[0], pose.position[1], pose.position[2])
     camera.lookAt(pose.target[0], pose.target[1], pose.target[2])
     if (Math.abs(camera.fov - pose.fov) > 0.01) {

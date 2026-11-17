@@ -5,12 +5,12 @@ export function ControlPreview({ leftHanded, scale }: { leftHanded: boolean, sca
   return (
     <div className={`set-preview ${leftHanded ? 'is-lefty' : ''}`} data-testid="control-preview" data-lefty={leftHanded} data-scale={scale} aria-hidden="true">
       <div className="set-preview-group" style={{ transform: `scale(${scale})` }}>
-        <span className="set-preview-pad"><Icon name="arrow-left" size={20} /></span>
-        <span className="set-preview-pad"><Icon name="arrow-right" size={20} /></span>
+        <span className="set-preview-pad"><Icon name="arrow-left" size={14} /></span>
+        <span className="set-preview-pad"><Icon name="arrow-right" size={14} /></span>
       </div>
       <div className="set-preview-group" style={{ transform: `scale(${scale})` }}>
-        <span className="set-preview-pad is-brake"><Icon name="close" size={18} /></span>
-        <span className="set-preview-pad is-gas"><Icon name="arrow-up" size={20} /></span>
+        <span className="set-preview-pad is-brake"><Icon name="close" size={13} /></span>
+        <span className="set-preview-pad is-gas"><Icon name="arrow-up" size={14} /></span>
       </div>
     </div>
   )

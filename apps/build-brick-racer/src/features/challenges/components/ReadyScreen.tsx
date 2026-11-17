@@ -120,7 +120,7 @@ export function ReadyScreen() {
                   <h2 className="br-display flex-1 text-xl text-white">{title}</h2>
                   <Stripes />
                 </div>
-                <p className="text-[0.95rem] leading-snug">{def ? def.objective : 'Drive around with no finish. Reset any time.'}</p>
+                <p className="text-[0.9rem] leading-tight">{def ? def.objective : 'Drive around with no finish. Reset any time.'}</p>
 
                 <div className="ready-row">
                   <span className="flex items-center gap-2 font-black uppercase">
@@ -151,7 +151,7 @@ export function ReadyScreen() {
                     Camera
                   </span>
                   <select
-                    className="select br-select w-36"
+                    className="select br-select !min-h-10 w-36"
                     value={prefs.camera}
                     aria-label="Camera"
                     onChange={e => usePrefsStore.getState().update({ camera: e.target.value as CameraChoice })}
@@ -159,7 +159,7 @@ export function ReadyScreen() {
                     {CAMERAS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                 </label>
-                <label className="flex min-h-9 items-center gap-2 pl-1">
+                <label className="flex min-h-8 items-center gap-2 pl-1">
                   <input
                     type="checkbox"
                     className="checkbox checkbox-primary"

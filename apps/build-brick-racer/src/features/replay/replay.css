@@ -72,7 +72,7 @@
   font-size: 0.95rem;
 }
 
-.rp-cams {
+.rp-hud .rp-cams {
   position: absolute;
   right: var(--edge-r);
   bottom: calc(var(--edge-b) + 76px);
@@ -107,7 +107,7 @@
   color: #05243f;
 }
 
-.rp-bar {
+.rp-hud .rp-bar {
   position: absolute;
   left: var(--edge-x);
   right: var(--edge-r);

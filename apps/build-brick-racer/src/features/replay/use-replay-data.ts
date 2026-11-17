@@ -19,11 +19,11 @@ export interface ReplayData {
   challenge: ChallengeDefinition | null
 }
 
-export type ReplayLoad =
-  | { status: 'loading' }
-  | { status: 'ready', data: ReplayData }
-  | { status: 'norun' }
-  | { status: 'unavailable', run: RunRecord, reason: string }
+export type ReplayLoad
+  = | { status: 'loading' }
+    | { status: 'ready', data: ReplayData }
+    | { status: 'norun' }
+    | { status: 'unavailable', run: RunRecord, reason: string }
 
 /**
  * Loads a run, its recorded replay and the car snapshot from that exact attempt (so editing the saved car
