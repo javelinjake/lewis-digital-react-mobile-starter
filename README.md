@@ -44,3 +44,4 @@ Push to `main` and pull requests run lint, types, unit tests, the architecture c
 - [Shared packages](docs/shared-packages.md)
 - [Native apps](docs/native.md)
 - [PWA and offline](docs/pwa-offline.md)
+- [Build Brick Racer (game app)](docs/build-brick-racer.md)

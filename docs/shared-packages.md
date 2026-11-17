@@ -20,3 +20,5 @@ Preferences (`createKeyValueStorage`) are for non-secret values such as a cached
 Declare every Capacitor plugin, including secure storage, on the app `package.json`. `@ld/native` lists them as peer dependencies. `cap sync` reads the app manifest.
 
 `@ld/motion` and `@ld/notifications` are not separate packages. Toasts and the fade preset live in `@ld/ui` until they need their own package.
+
+`apps/build-brick-racer` does not add a shared game package. Its engine code is pure TypeScript under `src/game`, so it can be lifted into a package once a second game needs it.
