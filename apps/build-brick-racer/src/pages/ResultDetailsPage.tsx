@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { DetailsScreen } from '@/features/results/components/DetailsScreen'
 
-/** Placeholder replaced by the screen implementation. */
 export function ResultDetailsPage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Run details" />
-    </div>
-  )
+  return <DetailsScreen />
 }

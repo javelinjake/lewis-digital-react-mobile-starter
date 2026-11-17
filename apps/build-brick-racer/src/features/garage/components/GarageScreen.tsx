@@ -1,11 +1,11 @@
 import { ConfirmDialog } from '@ld/ui'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { CarViewport } from '@/components/viewport/CarViewport'
-import { useCarDoc } from '@/components/viewport/use-car-doc'
 import { Icon } from '@/components/ui/Icon'
 import { SceneBackdrop } from '@/components/ui/SceneBackdrop'
 import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { CarViewport } from '@/components/viewport/CarViewport'
+import { useCarDoc } from '@/components/viewport/use-car-doc'
 import { useGarageStore } from '@/stores/garage.store'
 import { useSessionStore } from '@/stores/session.store'
 import { installScreensTestHook } from '../lib/dev-hooks'
@@ -116,7 +116,9 @@ export function GarageScreen() {
                       void useGarageStore.getState().duplicate(selected.id)
                     }}
                   >
-                    <Icon name="copy" /> Duplicate
+                    <Icon name="copy" />
+                    {' '}
+                    Duplicate
                   </button>
                   <button
                     type="button"
@@ -127,7 +129,9 @@ export function GarageScreen() {
                       setDeleting(true)
                     }}
                   >
-                    <Icon name="trash" /> Delete
+                    <Icon name="trash" />
+                    {' '}
+                    Delete
                   </button>
                 </div>
               )}
@@ -155,13 +159,19 @@ export function GarageScreen() {
 
           <div className="garage-actions br-layer">
             <button type="button" className="btn br-btn" onClick={() => navigate('/starters')}>
-              <Icon name="plus" /> Build a car
+              <Icon name="plus" />
+              {' '}
+              Build a car
             </button>
             <button type="button" className="btn br-btn" disabled={!selected} onClick={() => selected && navigate(`/build/${selected.id}`)}>
-              <Icon name="pencil" /> Edit car
+              <Icon name="pencil" />
+              {' '}
+              Edit car
             </button>
             <button type="button" className="btn br-cta" disabled={!selected} onClick={drive}>
-              Drive <Icon name="chevrons" size={30} />
+              Drive
+              {' '}
+              <Icon name="chevrons" size={30} />
             </button>
           </div>
         </>

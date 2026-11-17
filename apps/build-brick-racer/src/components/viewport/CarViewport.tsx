@@ -87,10 +87,12 @@ export function CarViewport({
           kit.followSun([centre.x, centre.y, centre.z])
         }
         place()
-        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => {
-          place()
-          kit.render()
-        })
+        const observer = typeof ResizeObserver === 'undefined'
+          ? null
+          : new ResizeObserver(() => {
+              place()
+              kit.render()
+            })
         observer?.observe(canvas)
 
         const start = performance.now()

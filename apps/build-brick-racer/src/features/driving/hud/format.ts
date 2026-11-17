@@ -1,5 +1,5 @@
-import type { ChallengeDefinition } from '@/game/challenges/types'
 import type { RunState } from '@/game/challenges/rules/types'
+import type { ChallengeDefinition } from '@/game/challenges/types'
 import type { VehicleState } from '@/game/vehicle/sim'
 
 /** Elapsed time as `mm:ss.t`. */

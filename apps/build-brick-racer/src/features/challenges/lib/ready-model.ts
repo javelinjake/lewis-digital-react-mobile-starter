@@ -1,11 +1,11 @@
-import type { DriveAssessment } from '@/game/vehicle/analysis'
 import type { ChallengeDefinition } from '@/game/challenges/types'
+import type { DriveAssessment } from '@/game/vehicle/analysis'
 import { fitsSpawn } from '@/game/challenges/spawn'
 
-export type ReadyState =
-  | { kind: 'ok' }
-  | { kind: 'too_big', reason: string }
-  | { kind: 'blocked', reason: string, instanceIds: string[] }
+export type ReadyState
+  = | { kind: 'ok' }
+    | { kind: 'too_big', reason: string }
+    | { kind: 'blocked', reason: string, instanceIds: string[] }
 
 /**
  * Whether the car can start this challenge. A free drive always has open ground. A concrete simulation

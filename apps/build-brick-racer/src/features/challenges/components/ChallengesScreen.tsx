@@ -5,11 +5,11 @@ import { Icon } from '@/components/ui/Icon'
 import { SceneBackdrop } from '@/components/ui/SceneBackdrop'
 import { ScreenHeader } from '@/components/ui/ScreenHeader'
 import { challengesIn } from '@/game/challenges'
-import { fallbackThumbnailSafe } from '../lib/thumb'
 import { getRepo } from '@/lib/platform/repo'
 import { useGarageStore } from '@/stores/garage.store'
 import { usePrefsStore } from '@/stores/prefs.store'
 import { useSessionStore } from '@/stores/session.store'
+import { fallbackThumbnailSafe } from '../lib/thumb'
 import { ChallengeCard } from './ChallengeCard'
 import '../challenges.css'
 
@@ -84,7 +84,11 @@ export function ChallengesScreen() {
         ? (
             <div className="br-layer br-fill flex flex-col items-center justify-center gap-3 text-center">
               <p className="br-display text-xl">You need a car first</p>
-              <button type="button" className="btn br-btn br-cta" onClick={() => navigate('/starters')}><Icon name="plus" /> Build a car</button>
+              <button type="button" className="btn br-btn br-cta" onClick={() => navigate('/starters')}>
+                <Icon name="plus" />
+                {' '}
+                Build a car
+              </button>
             </div>
           )
         : (
@@ -114,10 +118,14 @@ export function ChallengesScreen() {
             navigate('/ready')
           }}
         >
-          <Icon name="car" /> Free drive
+          <Icon name="car" />
+          {' '}
+          Free drive
         </button>
         <button type="button" className="btn br-cta" disabled={noCar || !challengeId} onClick={() => navigate('/ready')}>
-          Next <Icon name="chevrons" size={30} />
+          Next
+          {' '}
+          <Icon name="chevrons" size={30} />
         </button>
       </div>
     </div>

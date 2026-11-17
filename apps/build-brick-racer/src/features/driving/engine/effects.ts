@@ -1,5 +1,5 @@
-import type { SimEvent, VehicleState } from '@/game/vehicle/sim'
 import type { SurfaceId } from '@/game/vehicle/physics-config'
+import type { SimEvent, VehicleState } from '@/game/vehicle/sim'
 import * as THREE from 'three'
 
 /**

@@ -1,6 +1,6 @@
+import type { HudView } from './hud-view'
 import type { ChallengeRun } from '@/game/challenges/run'
 import type { VehicleState } from '@/game/vehicle/sim'
-import type { HudView } from './hud-view'
 import { cueFor, formatSpeed, formatTime } from './format'
 
 export interface HudFrame {

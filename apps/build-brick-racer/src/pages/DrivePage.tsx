@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { DriveScreen } from '@/features/driving'
 
-/** Placeholder replaced by the screen implementation. */
 export function DrivePage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Drive" />
-    </div>
-  )
+  return <DriveScreen />
 }

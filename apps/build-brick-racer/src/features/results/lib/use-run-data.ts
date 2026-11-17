@@ -4,19 +4,19 @@ import { useEffect, useState } from 'react'
 import { getChallenge } from '@/game/challenges'
 import { getRepo } from '@/lib/platform/repo'
 
-export type RunData =
-  | { status: 'loading' }
-  | { status: 'missing' }
-  | {
-    status: 'ready'
-    run: RunRecord
-    def: ChallengeDefinition
-    previous: RunRecord | null
-    snapshot: CarSnapshot | null
-    previousSnapshot: CarSnapshot | null
-    /** The saved car still exists in the garage. */
-    carExists: boolean
-  }
+export type RunData
+  = | { status: 'loading' }
+    | { status: 'missing' }
+    | {
+      status: 'ready'
+      run: RunRecord
+      def: ChallengeDefinition
+      previous: RunRecord | null
+      snapshot: CarSnapshot | null
+      previousSnapshot: CarSnapshot | null
+      /** The saved car still exists in the garage. */
+      carExists: boolean
+    }
 
 /** Everything a result screen needs, read from local storage. Works offline. */
 export function useRunData(runId: string | undefined): RunData {

@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { ResultsScreen } from '@/features/results/components/ResultsScreen'
 
-/** Placeholder replaced by the screen implementation. */
 export function ResultsPage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Results" />
-    </div>
-  )
+  return <ResultsScreen />
 }

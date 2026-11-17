@@ -4,11 +4,12 @@
  */
 import type { ChallengeId } from '@/game/challenges/types'
 import type { RunRecord } from '@/game/persistence/types'
-import { makeId } from '@/game/build/doc'
+import { defaultContext, makeId } from '@/game/build/doc'
+import { swapWheelGroup } from '@/game/build/edit'
 import { getChallenge } from '@/game/challenges'
 import { settingsSignature } from '@/game/comparison'
-import { getRepo } from '@/lib/platform/repo'
 import { PHYSICS_VERSION, SURFACE_SIGNATURE } from '@/game/vehicle/physics-config'
+import { getRepo } from '@/lib/platform/repo'
 import { useGarageStore } from '@/stores/garage.store'
 
 export interface SeedRunOptions {
@@ -31,6 +32,8 @@ declare global {
     __brickScreensTest?: {
       seedCar: (kind: 'racer' | 'buggy' | 'empty') => Promise<string | null>
       seedRun: (o: SeedRunOptions) => Promise<string>
+      /** Swap the steering wheels for off-road wheels and save, so the next run has a different build. */
+      editWheels: (carId: string) => Promise<boolean>
     }
   }
 }
@@ -44,6 +47,19 @@ export function installScreensTestHook(): void {
     async seedCar(kind) {
       const doc = await useGarageStore.getState().create(kind)
       return doc?.carId ?? null
+    },
+    async editWheels(carId) {
+      const repo = getRepo()
+      const loaded = await repo.loadCar(carId)
+      const group = loaded?.doc.wheelGroups.find(g => g.steering)
+      if (!loaded || !group)
+        return false
+      const result = swapWheelGroup(loaded.doc, group.id, 'wheel_offroad', defaultContext)
+      if (!result.ok)
+        return false
+      await repo.saveCar(result.doc)
+      await useGarageStore.getState().refresh()
+      return true
     },
     async seedRun(o) {
       const repo = getRepo()

@@ -4,10 +4,10 @@ import { Icon } from '@/components/ui/Icon'
 import { SceneBackdrop } from '@/components/ui/SceneBackdrop'
 import { ScreenHeader, Stripes } from '@/components/ui/ScreenHeader'
 import { CarViewport } from '@/components/viewport/CarViewport'
-import { useCarPicture } from '../lib/use-thumb'
-import { prepareDriveAgain, carForEditing } from '../lib/actions'
+import { carForEditing, prepareDriveAgain } from '../lib/actions'
 import { buildResultsViewModel } from '../lib/results-model'
 import { useRunData } from '../lib/use-run-data'
+import { useCarPicture } from '../lib/use-thumb'
 import '../results.css'
 
 /** Result of one attempt: one big number, a badge and four actions. Details are one tap away. */
@@ -33,7 +33,11 @@ export function ResultsScreen() {
                 <>
                   <p className="br-display text-xl">We could not find that result</p>
                   <p className="opacity-80">It may have been cleared from this device.</p>
-                  <button type="button" className="btn br-btn br-cta" onClick={() => navigate('/')}><Icon name="garage" /> Garage</button>
+                  <button type="button" className="btn br-btn br-cta" onClick={() => navigate('/')}>
+                    <Icon name="garage" />
+                    {' '}
+                    Garage
+                  </button>
                 </>
               )}
         </div>
@@ -67,7 +71,11 @@ export function ResultsScreen() {
 
       <div className="results-grid br-layer br-fill">
         <div className="results-stage">
-          <div className="results-name br-chip"><Stripes count={3} /> <span>{run.carName}</span></div>
+          <div className="results-name br-chip">
+            <Stripes count={3} />
+            {' '}
+            <span>{run.carName}</span>
+          </div>
           <CarViewport doc={snapshot?.doc ?? null} thumbnail={picture ?? undefined} className="absolute inset-0" mat={false} zoom={1.05} />
         </div>
 
@@ -114,10 +122,14 @@ export function ResultsScreen() {
 
       <div className="results-actions br-layer">
         <button type="button" className="btn br-cta" disabled={!canDrive} onClick={driveAgain}>
-          Drive again <Icon name="chevrons" size={26} />
+          Drive again
+          {' '}
+          <Icon name="chevrons" size={26} />
         </button>
         <button type="button" className="btn br-btn" disabled={busy} onClick={() => void changeCar()}>
-          <Icon name="car" size={22} /> Change car
+          <Icon name="car" size={22} />
+          {' '}
+          Change car
         </button>
         <button
           type="button"
@@ -126,10 +138,14 @@ export function ResultsScreen() {
           aria-label={vm.replay.label}
           onClick={() => navigate(`/replay/${run.id}`)}
         >
-          <Icon name="play" size={22} /> {vm.replay.available ? 'Watch replay' : 'Replay unavailable'}
+          <Icon name="play" size={22} />
+          {' '}
+          {vm.replay.available ? 'Watch replay' : 'Replay unavailable'}
         </button>
         <button type="button" className="btn br-btn" onClick={() => navigate(`/results/${run.id}/details`)}>
-          <Icon name="list" size={22} /> Details
+          <Icon name="list" size={22} />
+          {' '}
+          Details
         </button>
       </div>
     </div>

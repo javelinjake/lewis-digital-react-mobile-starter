@@ -1,3 +1,5 @@
+import type { HudView } from '../hud/hud-view'
+import type { ControlHub } from '../input/hub'
 /**
  * The live driving runtime, outside React. One requestAnimationFrame loop advances the physics in fixed 60 Hz
  * ticks (render-rate independent), interpolates the car between ticks, updates the camera, particles, audio and
@@ -11,8 +13,6 @@ import type { VehicleSpec } from '@/game/vehicle/compile'
 import type { AssistMode } from '@/game/vehicle/physics-config'
 import type { SimEvent, VehicleState } from '@/game/vehicle/sim'
 import type { CarModel, SceneKit, WheelPose } from '@/render'
-import type { ControlHub } from '../input/hub'
-import type { HudView } from '../hud/hud-view'
 import * as THREE from 'three'
 import { catalog } from '@/game/catalog/catalog'
 import { DriveSession } from '@/game/session'

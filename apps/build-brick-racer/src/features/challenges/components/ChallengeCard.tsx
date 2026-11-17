@@ -51,11 +51,15 @@ export function ChallengeCard({
         </svg>
         {carThumb && <img className="ch-car" src={carThumb} alt="" draggable={false} />}
         <span className="br-chip ch-title">
-          <Icon name="flag" size={18} /> {def.shortName}
+          <Icon name="flag" size={18} />
+          {' '}
+          {def.shortName}
         </span>
         {award !== 'none' && (
           <span className={`ch-award ${award === 'great' ? 'is-great' : ''}`}>
-            <Icon name="check" size={13} /> {award === 'great' ? 'Great' : 'Done'}
+            <Icon name="check" size={13} />
+            {' '}
+            {award === 'great' ? 'Great' : 'Done'}
           </span>
         )}
       </span>
@@ -64,7 +68,10 @@ export function ChallengeCard({
         {best !== null && (
           <>
             <span aria-hidden="true">|</span>
-            <span>Best <b>{formatPrimary(def, best)}</b></span>
+            <span>
+              Best
+              <b>{formatPrimary(def, best)}</b>
+            </span>
           </>
         )}
       </span>

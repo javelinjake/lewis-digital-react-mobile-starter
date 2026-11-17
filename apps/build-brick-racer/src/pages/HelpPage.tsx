@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { HelpScreen } from '@/features/settings/components/HelpScreen'
 
-/** Placeholder replaced by the screen implementation. */
 export function HelpPage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Help" />
-    </div>
-  )
+  return <HelpScreen />
 }

@@ -1,7 +1,7 @@
-/** Extra viewport overlays: wheel-group highlight, forward arrow, and the wheel contact / balance preview. */
-import type { Forward } from '@/game/build/types'
 import type { ContactPreview } from '@/features/builder/logic/contact-preview'
 import type { Bounds } from '@/features/builder/logic/orbit'
+/** Extra viewport overlays: wheel-group highlight, forward arrow, and the wheel contact / balance preview. */
+import type { Forward } from '@/game/build/types'
 import type { Aabb } from '@/render'
 import * as THREE from 'three'
 import { FORWARD_VECTORS } from '@/game/build/types'

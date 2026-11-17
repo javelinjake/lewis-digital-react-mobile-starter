@@ -92,18 +92,24 @@ export function ReadyScreen() {
                 {warnings.length > 0 && (
                   <div className="ready-heads br-panel" role="status">
                     <button type="button" className="flex w-full items-center gap-2 text-left font-bold" aria-expanded={headsOpen} onClick={() => setHeadsOpen(v => !v)}>
-                      <Icon name="warn" size={18} className="text-[var(--br-amber)]" /> Heads up ({warnings.length})
+                      <Icon name="warn" size={18} className="text-[var(--br-amber)]" />
+                      {' '}
+                      Heads up (
+                      {warnings.length}
+                      )
                     </button>
                     {headsOpen && (
                       <ul className="mt-1 list-disc pl-5">
-                        {warnings.slice(0, 4).map((w, i) => <li key={`${w.code}-${i}`}>{w.message}</li>)}
+                        {warnings.slice(0, 4).map(w => <li key={`${w.code}-${w.instanceIds.join(',')}`}>{w.message}</li>)}
                       </ul>
                     )}
                   </div>
                 )}
                 <div className="absolute bottom-0 left-0 z-[3]">
                   <button type="button" className="btn br-btn br-btn-sm" onClick={() => setPicker(true)}>
-                    <Icon name="car" /> Change car
+                    <Icon name="car" />
+                    {' '}
+                    Change car
                   </button>
                 </div>
               </div>
@@ -117,11 +123,19 @@ export function ReadyScreen() {
                 <p className="text-[0.95rem] leading-snug">{def ? def.objective : 'Drive around with no finish. Reset any time.'}</p>
 
                 <div className="ready-row">
-                  <span className="flex items-center gap-2 font-black uppercase"><Icon name="gear" size={20} /> Power</span>
+                  <span className="flex items-center gap-2 font-black uppercase">
+                    <Icon name="gear" size={20} />
+                    {' '}
+                    Power
+                  </span>
                   <span className="ready-pill" data-testid="power-label">{powerLabel(def)}</span>
                 </div>
                 <label className="ready-row">
-                  <span className="flex items-center gap-2 font-black uppercase"><Icon name="target" size={20} /> Steering help</span>
+                  <span className="flex items-center gap-2 font-black uppercase">
+                    <Icon name="target" size={20} />
+                    {' '}
+                    Steering help
+                  </span>
                   <input
                     type="checkbox"
                     className="toggle br-toggle"
@@ -131,7 +145,11 @@ export function ReadyScreen() {
                   />
                 </label>
                 <label className="ready-row">
-                  <span className="flex items-center gap-2 font-black uppercase"><Icon name="camera" size={20} /> Camera</span>
+                  <span className="flex items-center gap-2 font-black uppercase">
+                    <Icon name="camera" size={20} />
+                    {' '}
+                    Camera
+                  </span>
                   <select
                     className="select br-select w-36"
                     value={prefs.camera}
@@ -169,7 +187,9 @@ export function ReadyScreen() {
                   disabled={loading || !doc || state.kind === 'too_big'}
                   onClick={launch.start}
                 >
-                  Start <Icon name="play" size={26} />
+                  Start
+                  {' '}
+                  <Icon name="play" size={26} />
                 </button>
               </section>
             </div>

@@ -71,7 +71,9 @@ export function StartersScreen() {
           <Icon name="back" size={28} />
         </button>
         <button type="button" className="btn br-cta" disabled={busy} onClick={start}>
-          {busy ? 'Starting…' : 'Start building'} <Icon name="chevrons" size={30} />
+          {busy ? 'Starting…' : 'Start building'}
+          {' '}
+          <Icon name="chevrons" size={30} />
         </button>
       </div>
     </div>

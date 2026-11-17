@@ -1,0 +1,239 @@
+/* Replay screen. The recorded run plays full-bleed with a control bar like the design board. */
+
+.rp-root {
+  position: fixed;
+  inset: 0;
+  background: #0b1f3a;
+  overflow: hidden;
+  --edge-x: calc(var(--safe-left, 0px) + 12px);
+  --edge-r: calc(var(--safe-right, 0px) + 12px);
+  --edge-t: calc(var(--safe-top, 0px) + 8px);
+  --edge-b: calc(var(--safe-bottom, 0px) + 8px);
+}
+
+.rp-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.rp-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--br-ink);
+}
+
+.rp-hud button,
+.rp-hud input {
+  pointer-events: auto;
+}
+
+.rp-top {
+  position: absolute;
+  top: var(--edge-t);
+  left: var(--edge-x);
+  right: var(--edge-r);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rp-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px;
+  border-radius: 10px;
+  background: rgba(8, 22, 44, 0.6);
+}
+
+.rp-title-text {
+  font-size: clamp(1.1rem, 4vh, 1.6rem);
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.rp-chip {
+  --cut: 8px;
+  min-height: 30px;
+  font-size: 0.85rem;
+}
+
+.rp-to-results {
+  font-size: 0.95rem;
+}
+
+.rp-cams {
+  position: absolute;
+  right: var(--edge-r);
+  bottom: calc(var(--edge-b) + 76px);
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  --cut: 10px;
+  pointer-events: auto;
+}
+
+.rp-cam {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 56px;
+  min-height: 48px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #fff;
+  background: transparent;
+}
+
+.rp-cam.is-active {
+  background: linear-gradient(180deg, #5be4ff, #1fc0f0);
+  color: #05243f;
+}
+
+.rp-bar {
+  position: absolute;
+  left: var(--edge-x);
+  right: var(--edge-r);
+  bottom: var(--edge-b);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  --cut: 12px;
+  pointer-events: auto;
+}
+
+.rp-clock {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rp-time {
+  font-weight: 800;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: #cfe9ff;
+}
+
+.rp-track {
+  position: relative;
+  height: 28px;
+}
+
+.rp-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+}
+
+.rp-ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -2px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.rp-ticks > i {
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 8px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--br-cyan);
+}
+
+.rp-ticks > i.is-impact,
+.rp-ticks > i.is-wall {
+  background: var(--br-red);
+}
+
+.rp-ticks > i.is-reset {
+  background: var(--br-amber);
+}
+
+.rp-ticks > i.is-finish {
+  background: var(--br-green);
+}
+
+.rp-ticks > i.is-airborne {
+  background: var(--br-orange);
+}
+
+.rp-percent {
+  min-width: 3ch;
+  text-align: right;
+  font-weight: 800;
+  color: #cfe9ff;
+}
+
+.rp-speeds {
+  display: flex;
+  gap: 6px;
+  padding-left: 10px;
+  border-left: 2px solid rgba(140, 240, 255, 0.35);
+}
+
+.rp-speed {
+  min-width: 52px;
+  min-height: 44px;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(8, 22, 44, 0.8);
+  border: 2px solid var(--br-cyan-lo);
+}
+
+.rp-speed.is-active {
+  background: linear-gradient(180deg, #5be4ff, #1fc0f0);
+  color: #05243f;
+}
+
+.rp-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rp-card {
+  max-width: min(520px, 92vw);
+  padding: 18px 24px;
+  text-align: center;
+}
+
+.rp-card-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+@media (max-height: 420px) {
+  .rp-cams {
+    bottom: calc(var(--edge-b) + 70px);
+  }
+
+  .rp-cam {
+    min-height: 44px;
+  }
+}

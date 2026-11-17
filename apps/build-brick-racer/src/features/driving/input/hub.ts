@@ -1,8 +1,8 @@
+import type { KeyActions } from './keyboard'
 import type { RawControls } from '@/game/vehicle/input'
 import { emptyControls } from '@/game/vehicle/input'
 import { GamepadPoller } from './gamepad'
 import { KeyboardInput } from './keyboard'
-import type { KeyActions } from './keyboard'
 import { TouchControls } from './touch-controls'
 
 /**

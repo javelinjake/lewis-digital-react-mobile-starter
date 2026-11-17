@@ -15,7 +15,9 @@ export function ResetPrompt({ onReset }: { onReset: () => void }) {
   return (
     <div className="dr-reset-prompt">
       <button type="button" className="btn br-btn br-cta br-pulse" onClick={onReset} data-testid="reset-prompt">
-        <Icon name="restart" /> Back on track? Reset
+        <Icon name="restart" />
+        {' '}
+        Back on track? Reset
       </button>
     </div>
   )

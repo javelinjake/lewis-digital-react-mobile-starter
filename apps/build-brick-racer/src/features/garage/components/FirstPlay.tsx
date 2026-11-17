@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router'
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Icon } from '@/components/ui/Icon'
 import { prepareTryACar } from '../lib/try-a-car'
 import { useStarterPreviews } from '../lib/use-starter-previews'
@@ -29,13 +29,17 @@ export function FirstPlay() {
         <button type="button" className="br-card firstplay-card" onClick={() => navigate('/starters')} aria-label="Build a car">
           <BricksArt className="" />
           <span className="btn br-btn br-cta pointer-events-none" aria-hidden="true">
-            <Icon name="plus" /> Build a car
+            <Icon name="plus" />
+            {' '}
+            Build a car
           </span>
         </button>
         <button type="button" className="br-card firstplay-card" disabled={busy} onClick={tryCar} aria-label="Try a car">
           {previews.racer ? <img src={previews.racer} alt="" draggable={false} /> : <span className="loading loading-spinner loading-lg text-primary" />}
           <span className="btn br-btn pointer-events-none" aria-hidden="true">
-            <Icon name="flag" /> {busy ? 'Getting ready…' : 'Try a car'}
+            <Icon name="flag" />
+            {' '}
+            {busy ? 'Getting ready…' : 'Try a car'}
           </span>
         </button>
       </div>

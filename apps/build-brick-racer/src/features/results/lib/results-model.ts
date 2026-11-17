@@ -4,8 +4,8 @@
  * than causes.
  */
 import type { ChallengeDefinition } from '@/game/challenges/types'
-import type { CarSnapshot, RunRecord } from '@/game/persistence/types'
 import type { Direction } from '@/game/comparison'
+import type { CarSnapshot, RunRecord } from '@/game/persistence/types'
 import { compareRuns, METRIC_LABELS } from '@/game/comparison'
 import { formatPrimary } from './format'
 
@@ -40,19 +40,20 @@ const SUGGESTIONS: Partial<Record<string, string>> = {
 /** Turn a build-change note into a plain observation about the car. */
 export function observe(change: string): string {
   const lower = change.charAt(0).toLowerCase() + change.slice(1)
-  if (/^(larger|smaller|different) /i.test(change))
+  if (/^(?:larger|smaller|different) /i.test(change))
     return `This car has ${lower}`
-  if (/^(heavier|lighter)$/i.test(change))
+  if (/^(?:heavier|lighter)$/i.test(change))
     return `This car is ${lower}`
-  if (/^(added|removed) /i.test(change))
+  if (/^(?:added|removed) /i.test(change))
     return `This car ${lower}`
   return change
 }
 
-const incompleteTitle = (run: RunRecord): { title: string, badge: BadgeKind, text: string } =>
-  ['failed', 'timeout', 'stopped'].includes(run.endReason ?? '')
+function incompleteTitle(run: RunRecord): { title: string, badge: BadgeKind, text: string } {
+  return ['failed', 'timeout', 'stopped'].includes(run.endReason ?? '')
     ? { title: 'TRY AGAIN', badge: 'tryagain', text: 'Try again' }
     : { title: 'RUN ENDED', badge: 'ended', text: 'Run ended' }
+}
 
 export function buildResultsViewModel(input: {
   run: RunRecord
