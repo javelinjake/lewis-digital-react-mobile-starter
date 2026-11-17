@@ -36,7 +36,10 @@ export interface EngineCallbacks {
 }
 
 export interface EngineOptions {
-  canvas: HTMLCanvasElement
+  /** The engine creates and owns its own canvas inside this element, so a remount never shares a WebGL context. */
+  host: HTMLElement
+  /** Checked after the WASM physics loads, so a screen that already unmounted never builds a renderer. */
+  isCancelled: () => boolean
   hud: HudView
   hub: ControlHub
   doc: CarDocument
@@ -91,8 +94,8 @@ export class DriveEngine {
   /** Frame time samples (ms) for diagnostics. */
   readonly frameTimes: number[] = []
 
-  private constructor(private readonly o: EngineOptions, private readonly pw: PhysicsWorld) {
-    const kit = createSceneKit(o.canvas, { quality: 'high', shadows: true })
+  private constructor(private readonly o: EngineOptions, private readonly pw: PhysicsWorld, private readonly canvas: HTMLCanvasElement) {
+    const kit = createSceneKit(canvas, { quality: 'high', shadows: true })
     this.kit = kit
     this.envMesh = buildEnvironment(o.env, o.challenge ?? undefined)
     kit.scene.add(this.envMesh.root)
@@ -110,10 +113,16 @@ export class DriveEngine {
     this.buildSession()
   }
 
-  static async create(o: EngineOptions): Promise<DriveEngine> {
+  static async create(o: EngineOptions): Promise<DriveEngine | null> {
     const R = await loadRapier()
+    if (o.isCancelled())
+      return null
     const pw = new PhysicsWorld(R, o.env)
-    return new DriveEngine(o, pw)
+    const canvas = document.createElement('canvas')
+    canvas.className = 'dr-canvas'
+    canvas.setAttribute('aria-label', 'Driving view')
+    o.host.appendChild(canvas)
+    return new DriveEngine(o, pw, canvas)
   }
 
   private buildSession(): void {
@@ -458,7 +467,7 @@ export class DriveEngine {
   }
 
   /** Snapshot for diagnostics and tests. */
-  telemetry(): { phase: DrivePhase, speed: number, elapsed: number, runPhase: string, resets: number, camera: CameraChoice, quality: string } {
+  telemetry(): { phase: DrivePhase, speed: number, elapsed: number, runPhase: string, resets: number, camera: CameraChoice, quality: string, car: number[], cam: number[], frameMs: number } {
     return {
       phase: this.phase,
       speed: this.session.sim.state.speed,
@@ -467,6 +476,9 @@ export class DriveEngine {
       resets: this.session.run?.run.resets ?? 0,
       camera: this.camera.mode,
       quality: this.kit.quality,
+      car: [...this.session.sim.state.pos],
+      cam: [this.kit.camera.position.x, this.kit.camera.position.y, this.kit.camera.position.z],
+      frameMs: this.frameTimes.length ? this.frameTimes.slice(-60).reduce((a, b) => a + b, 0) / Math.min(60, this.frameTimes.length) : 0,
     }
   }
 
@@ -482,5 +494,6 @@ export class DriveEngine {
     this.envMesh.dispose()
     this.effects.pool.dispose()
     this.kit.dispose()
+    this.canvas.remove()
   }
 }

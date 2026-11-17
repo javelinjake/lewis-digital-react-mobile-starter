@@ -11,6 +11,11 @@
   --edge-b: calc(var(--safe-bottom, 0px) + 8px);
 }
 
+.rp-canvas-host {
+  position: absolute;
+  inset: 0;
+}
+
 .rp-canvas {
   position: absolute;
   inset: 0;

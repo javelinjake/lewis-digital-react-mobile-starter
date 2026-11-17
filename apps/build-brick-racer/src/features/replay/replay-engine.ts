@@ -18,7 +18,8 @@ import { buildDrivingCarModel, buildEnvironment, createSceneKit } from '@/render
 import { advanceTime } from './scrubber-math'
 
 export interface ReplayEngineOptions {
-  canvas: HTMLCanvasElement
+  /** The engine creates and owns its own canvas in this element (see DriveEngine). */
+  host: HTMLElement
   doc: CarDocument
   spec: VehicleSpec
   env: EnvironmentDefinition
@@ -49,10 +50,22 @@ export class ReplayEngine {
   private disposed = false
   readonly frameTimes: number[] = []
 
+  private readonly canvas: HTMLCanvasElement
+
   constructor(private readonly o: ReplayEngineOptions) {
     this.player = new ReplayPlayer(o.record)
     this.duration = o.record.duration
-    this.kit = createSceneKit(o.canvas, { quality: 'high', shadows: true })
+    this.canvas = document.createElement('canvas')
+    this.canvas.className = 'rp-canvas'
+    this.canvas.setAttribute('aria-label', 'Replay view')
+    o.host.appendChild(this.canvas)
+    try {
+      this.kit = createSceneKit(this.canvas, { quality: 'high', shadows: true })
+    }
+    catch (error) {
+      this.canvas.remove()
+      throw error
+    }
     this.env = buildEnvironment(o.env, o.challenge ?? undefined)
     this.kit.scene.add(this.env.root)
     this.env.apply(this.kit.scene)
@@ -177,5 +190,6 @@ export class ReplayEngine {
     this.car.dispose()
     this.env.dispose()
     this.kit.dispose()
+    this.canvas.remove()
   }
 }

@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { BuilderScreen } from '@/features/builder/BuilderScreen'
 
-/** Placeholder replaced by the screen implementation. */
 export function BuilderPage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Builder" />
-    </div>
-  )
+  return <BuilderScreen />
 }

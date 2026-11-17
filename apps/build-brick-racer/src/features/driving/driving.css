@@ -15,6 +15,11 @@
   --edge-b: calc(var(--safe-bottom, 0px) + 10px);
 }
 
+.dr-canvas-host {
+  position: absolute;
+  inset: 0;
+}
+
 .dr-canvas {
   position: absolute;
   inset: 0;

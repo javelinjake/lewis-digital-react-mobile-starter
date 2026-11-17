@@ -29,7 +29,7 @@ export function DriveStage({ plan }: { plan: DrivePlan }) {
   const navigate = useNavigate()
   const prefs = usePrefsStore(s => s.prefs)
   const trying = useSessionStore(s => s.trying)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const hostRef = useRef<HTMLDivElement>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const engineRef = useRef<DriveEngine | null>(null)
   const startedAt = useRef('')
@@ -135,15 +135,16 @@ export function DriveStage({ plan }: { plan: DrivePlan }) {
   useEffect(() => {
     let cancelled = false
     const root = rootRef.current
-    const canvas = canvasRef.current
-    if (!root || !canvas)
+    const host = hostRef.current
+    if (!root || !host)
       return
     hub.attach()
     useAppStore.getState().setDriving(true)
     assistRef.current = usePrefsStore.getState().prefs.assist
     const p = usePrefsStore.getState().prefs
     void DriveEngine.create({
-      canvas,
+      host,
+      isCancelled: () => cancelled,
       hud: new HudView(root),
       hub,
       doc: plan.doc,
@@ -173,6 +174,8 @@ export function DriveStage({ plan }: { plan: DrivePlan }) {
         },
       },
     }).then((engine) => {
+      if (!engine)
+        return
       if (cancelled) {
         engine.dispose()
         return
@@ -261,7 +264,7 @@ export function DriveStage({ plan }: { plan: DrivePlan }) {
   const placeLabel = plan.env.label
   return (
     <div className="dr-root" ref={rootRef} data-phase={phase} data-testid="drive-root">
-      <canvas ref={canvasRef} className="dr-canvas" aria-label="Driving view" />
+      <div ref={hostRef} className="dr-canvas-host" />
       <div className="dr-hud-layer">
         <Hud
           challenge={plan.challenge}

@@ -59,7 +59,7 @@ export function ReplayScreen() {
 
 function ReplayStage({ data, runId, onBack }: { data: ReplayData, runId: string, onBack: () => void }) {
   const reducedMotion = usePrefsStore(s => s.prefs.reducedMotion)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const hostRef = useRef<HTMLDivElement>(null)
   const engineRef = useRef<ReplayEngine | null>(null)
   const timeRef = useRef<HTMLSpanElement>(null)
   const percentRef = useRef<HTMLSpanElement>(null)
@@ -73,12 +73,12 @@ function ReplayStage({ data, runId, onBack }: { data: ReplayData, runId: string,
   const ticks = useMemo(() => eventTicks(data.record.events, duration), [data.record.events, duration])
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas)
+    const host = hostRef.current
+    if (!host)
       return
     try {
       const engine = new ReplayEngine({
-        canvas,
+        host,
         doc: data.doc,
         spec: data.spec,
         env: data.env,
@@ -123,7 +123,7 @@ function ReplayStage({ data, runId, onBack }: { data: ReplayData, runId: string,
   const title = data.challenge?.shortName ?? data.run.challengeId
   return (
     <div className="rp-root" data-testid="replay-root" data-run={runId}>
-      <canvas ref={canvasRef} className="rp-canvas" aria-label="Replay view" />
+      <div ref={hostRef} className="rp-canvas-host" />
       <div className="rp-hud">
         <header className="rp-top">
           <button type="button" className="btn br-btn br-cta br-btn-icon rp-back" aria-label="Back to results" onClick={onBack}>
