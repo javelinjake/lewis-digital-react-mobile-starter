@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { ChallengesScreen } from '@/features/challenges/components/ChallengesScreen'
 
-/** Placeholder replaced by the screen implementation. */
 export function ChallengesPage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Choose a challenge" />
-    </div>
-  )
+  return <ChallengesScreen />
 }

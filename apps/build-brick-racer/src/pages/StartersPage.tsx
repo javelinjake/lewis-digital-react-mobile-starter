@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { StartersScreen } from '@/features/garage/components/StartersScreen'
 
-/** Placeholder replaced by the screen implementation. */
 export function StartersPage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Choose your starter" />
-    </div>
-  )
+  return <StartersScreen />
 }

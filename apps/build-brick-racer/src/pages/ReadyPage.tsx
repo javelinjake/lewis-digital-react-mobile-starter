@@ -1,10 +1,5 @@
-import { ScreenHeader } from '@/components/ui/ScreenHeader'
+import { ReadyScreen } from '@/features/challenges/components/ReadyScreen'
 
-/** Placeholder replaced by the screen implementation. */
 export function ReadyPage() {
-  return (
-    <div className="br-screen">
-      <ScreenHeader title="Ready to drive?" />
-    </div>
-  )
+  return <ReadyScreen />
 }
