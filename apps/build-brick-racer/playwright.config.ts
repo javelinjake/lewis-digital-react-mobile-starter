@@ -8,6 +8,8 @@ import { defineConfig, devices } from '@playwright/test'
  * WebGL runs on software rendering in headless mode; it verifies behaviour, not device performance.
  */
 const port = Number(process.env.PREVIEW_PORT ?? 4173)
+/** Set E2E_BASE_URL to test against a server you started yourself (skips the build + preview web server). */
+const externalBase = process.env.E2E_BASE_URL
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined
 
 const launchOptions = {
@@ -24,16 +26,19 @@ export default defineConfig({
   reporter: 'list',
   timeout: 90_000,
   expect: { timeout: 15_000 },
-  use: { baseURL: `http://localhost:${port}`, trace: 'off' },
+  use: { baseURL: externalBase ?? `http://127.0.0.1:${port}`, trace: 'off' },
   projects: [
     { name: 'phone', use: { ...devices['Pixel 7 landscape'], launchOptions } },
     { name: 'tablet', use: { ...devices['iPad Pro 11 landscape'], browserName: 'chromium', defaultBrowserType: 'chromium', launchOptions } },
   ],
-  webServer: {
-    command: `pnpm dev --port ${port} --strictPort`,
-    url: `http://localhost:${port}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    env: { ...process.env, VITE_BUILD_TARGET: 'web' } as Record<string, string>,
-  },
+  webServer: externalBase
+    ? undefined
+    : {
+        // A production build avoids dev-server dependency re-optimisation reloads and matches what ships.
+        command: `pnpm run build && pnpm exec vite preview --port ${port} --strictPort --host 127.0.0.1`,
+        url: `http://127.0.0.1:${port}`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 240_000,
+        env: { ...process.env, VITE_BUILD_TARGET: 'web' } as Record<string, string>,
+      },
 })
