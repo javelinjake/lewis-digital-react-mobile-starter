@@ -11,6 +11,12 @@
       "packageName": "@ld/app-zactiv-family",
       "path": "apps/zactiv-family",
       "deployable": true
+    },
+    {
+      "slug": "build-brick-racer",
+      "packageName": "@ld/app-build-brick-racer",
+      "path": "apps/build-brick-racer",
+      "deployable": false
     }
   ]
 }

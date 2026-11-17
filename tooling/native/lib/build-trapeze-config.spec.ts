@@ -39,6 +39,30 @@ describe('buildTrapezeConfig', () => {
   })
 })
 
+describe('buildTrapezeConfig orientation', () => {
+  it('stays portrait on phones unless landscape is requested', () => {
+    const config = buildTrapezeConfig(identity)
+    const ios = (config.platforms.ios.targets as { App: Record<string, unknown> }).App
+    const entries = (ios.plist as Array<{ entries: Array<Record<string, unknown>> }>)[0]?.entries[0]
+
+    assert.deepEqual(entries?.UISupportedInterfaceOrientations, ['UIInterfaceOrientationPortrait'])
+    assert.equal(config.platforms.android.manifest, undefined)
+  })
+
+  it('locks iOS and Android to landscape when requested', () => {
+    const config = buildTrapezeConfig({ ...identity, orientation: 'landscape' })
+    const ios = (config.platforms.ios.targets as { App: Record<string, unknown> }).App
+    const entries = (ios.plist as Array<{ entries: Array<Record<string, unknown>> }>)[0]?.entries[0]
+    const manifest = config.platforms.android.manifest as Array<{ attrs?: Record<string, string> }>
+
+    assert.deepEqual(entries?.UISupportedInterfaceOrientations, [
+      'UIInterfaceOrientationLandscapeLeft',
+      'UIInterfaceOrientationLandscapeRight',
+    ])
+    assert.equal(manifest[0]?.attrs?.['android:screenOrientation'], 'sensorLandscape')
+  })
+})
+
 describe('deriveBuildNumber', () => {
   it('is monotonic and within Android limits', () => {
     const earlier = deriveBuildNumber(new Date('2026-01-01T00:00:00Z'))

@@ -10,6 +10,8 @@ export interface PwaConfigOptions {
   apiOrigins?: string[]
   devEnabled?: boolean
   iconSource?: string | false
+  /** Manifest orientation. Defaults to `portrait`. */
+  orientation?: 'portrait' | 'landscape' | 'any'
 }
 
 const ONE_DAY = 60 * 60 * 24
@@ -65,6 +67,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
     apiOrigins = [],
     devEnabled = false,
     iconSource = 'public/pwa-icon.svg',
+    orientation = 'portrait',
   } = options
 
   return VitePWA({
@@ -78,7 +81,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
       theme_color: themeColor,
       background_color: backgroundColor,
       display: 'standalone',
-      orientation: 'portrait',
+      orientation,
       start_url: '/',
       scope: '/',
     },

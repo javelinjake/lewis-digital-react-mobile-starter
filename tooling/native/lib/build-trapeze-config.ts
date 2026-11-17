@@ -4,6 +4,8 @@ export interface NativeIdentity {
   version: string
   buildNumber: number
   hostname?: string
+  /** Defaults to `portrait`. `landscape` locks phones to landscape on iOS and Android. */
+  orientation?: 'portrait' | 'landscape'
   /** iOS usage strings shown in permission prompts; required for App Store review. */
   usage: {
     camera: string
@@ -24,6 +26,7 @@ export interface TrapezeConfig {
  */
 export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
   const hostname = identity.hostname?.trim()
+  const landscape = identity.orientation === 'landscape'
 
   const iosTarget: Record<string, unknown> = {
     bundleId: identity.appId,
@@ -40,7 +43,9 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
             NSPhotoLibraryAddUsageDescription: identity.usage.photos,
             UIViewControllerBasedStatusBarAppearance: true,
             UIStatusBarStyle: 'UIStatusBarStyleDefault',
-            UISupportedInterfaceOrientations: ['UIInterfaceOrientationPortrait'],
+            UISupportedInterfaceOrientations: landscape
+              ? ['UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight']
+              : ['UIInterfaceOrientationPortrait'],
             'UISupportedInterfaceOrientations~ipad': [
               'UIInterfaceOrientationPortrait',
               'UIInterfaceOrientationPortraitUpsideDown',
@@ -66,22 +71,33 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
     versionCode: identity.buildNumber,
   }
 
-  if (hostname) {
-    android.manifest = [
-      {
-        file: 'AndroidManifest.xml',
-        target: 'manifest/application/activity',
-        inject: [
-          '<intent-filter android:autoVerify="true">',
-          '  <action android:name="android.intent.action.VIEW" />',
-          '  <category android:name="android.intent.category.DEFAULT" />',
-          '  <category android:name="android.intent.category.BROWSABLE" />',
-          `  <data android:scheme="https" android:host="${hostname}" />`,
-          '</intent-filter>',
-        ].join('\n'),
-      },
-    ]
+  const manifestEdits: Array<Record<string, unknown>> = []
+
+  if (landscape) {
+    manifestEdits.push({
+      file: 'AndroidManifest.xml',
+      target: 'manifest/application/activity',
+      attrs: { 'android:screenOrientation': 'sensorLandscape' },
+    })
   }
+
+  if (hostname) {
+    manifestEdits.push({
+      file: 'AndroidManifest.xml',
+      target: 'manifest/application/activity',
+      inject: [
+        '<intent-filter android:autoVerify="true">',
+        '  <action android:name="android.intent.action.VIEW" />',
+        '  <category android:name="android.intent.category.DEFAULT" />',
+        '  <category android:name="android.intent.category.BROWSABLE" />',
+        `  <data android:scheme="https" android:host="${hostname}" />`,
+        '</intent-filter>',
+      ].join('\n'),
+    })
+  }
+
+  if (manifestEdits.length > 0)
+    android.manifest = manifestEdits
 
   return {
     platforms: {

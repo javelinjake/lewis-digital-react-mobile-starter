@@ -21,7 +21,7 @@ async function main() {
     throw new Error('Run this from an app directory containing app.meta.ts')
 
   const { appMeta } = await import(pathToFileURL(metaPath).href) as {
-    appMeta: { appId: string, name: string, hostname?: string }
+    appMeta: { appId: string, name: string, hostname?: string, orientation?: 'portrait' | 'landscape' }
   }
   const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version: string }
 
@@ -33,6 +33,7 @@ async function main() {
     version: pkg.version,
     buildNumber,
     hostname: appMeta.hostname,
+    orientation: appMeta.orientation,
     usage: {
       camera: `${appMeta.name} uses the camera to capture photos you attach to your records.`,
       photos: `${appMeta.name} accesses your photo library so you can attach existing photos.`,
