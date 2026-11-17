@@ -58,7 +58,7 @@ export function createSceneKit(canvas: HTMLCanvasElement, opts: SceneKitOptions 
   }
 
   renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.05
+  renderer.toneMappingExposure = 0.95
   if (opts.transparent)
     renderer.setClearColor(0x000000, 0)
 
@@ -66,10 +66,10 @@ export function createSceneKit(canvas: HTMLCanvasElement, opts: SceneKitOptions 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.02, 600)
   camera.position.set(1.4, 0.9, 1.6)
 
-  const hemi = new THREE.HemisphereLight(0xCDE8FF, 0x8A735C, 0.85)
+  const hemi = new THREE.HemisphereLight(0xCDE8FF, 0x8A735C, 0.65)
   scene.add(hemi)
 
-  const sun = new THREE.DirectionalLight(0xFFF3DC, 2.1)
+  const sun = new THREE.DirectionalLight(0xFFF3DC, 1.85)
   sun.position.copy(SUN_OFFSET)
   sun.target.position.set(0, 0, 0)
   sun.shadow.mapSize.set(1024, 1024)

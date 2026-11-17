@@ -1,0 +1,459 @@
+/*
+ * Build Brick Racer theme tokens and component skins.
+ *
+ * Visual direction (from the supplied design boards): deep navy panels with cyan edges and chamfered
+ * corners, big italic display type, orange call-to-action buttons, cyan/orange slash stripes.
+ * Everything is a token below so the style can change without touching gameplay logic. Components
+ * are DaisyUI elements (`btn`, `toggle`, `range`, `select`, `tabs`, `modal`) skinned with the `br-*` classes.
+ */
+
+:root,
+[data-theme="brickracer"] {
+  --br-navy: #0b1f3a;
+  --br-navy-2: #10315c;
+  --br-panel-top: rgba(15, 40, 74, 0.94);
+  --br-panel-bottom: rgba(7, 20, 42, 0.96);
+  --br-cyan: #36d6ff;
+  --br-cyan-hi: #8cf0ff;
+  --br-cyan-lo: #0b8fbf;
+  --br-orange: #ff7a1a;
+  --br-orange-hi: #ffa04a;
+  --br-orange-lo: #f24e00;
+  --br-green: #3ddc6c;
+  --br-red: #ff5a4f;
+  --br-amber: #ffc83d;
+  --br-ink: #eaf6ff;
+  --br-muted: #9db7d3;
+  --br-cut: 14px;
+  --br-edge: 2px;
+  --br-hit: 56px;
+}
+
+/* ---------- Screens ---------- */
+
+.br-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 10px) calc(var(--safe-bottom) + 8px) calc(var(--safe-left) + 10px);
+  color: var(--br-ink);
+  background: var(--br-navy);
+  overflow: hidden;
+}
+
+.br-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.br-layer {
+  position: relative;
+  z-index: 1;
+}
+
+.br-fill {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* ---------- Typography ---------- */
+
+.br-display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+}
+
+.br-display-sm {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.br-shadow {
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Chamfered panel ---------- */
+
+.br-panel,
+.br-btn,
+.br-cta,
+.br-chip,
+.br-tab,
+.br-card {
+  --cut: var(--br-cut);
+  --edge: var(--br-edge);
+  --edge-bg: linear-gradient(135deg, var(--br-cyan-hi), var(--br-cyan-lo) 55%, var(--br-cyan-hi));
+  --fill-bg: linear-gradient(180deg, var(--br-panel-top), var(--br-panel-bottom));
+  position: relative;
+  isolation: isolate;
+  background: var(--edge-bg);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+}
+
+.br-panel::before,
+.br-btn::before,
+.br-cta::before,
+.br-chip::before,
+.br-tab::before,
+.br-card::before {
+  content: "";
+  position: absolute;
+  inset: var(--edge);
+  z-index: -1;
+  background: var(--fill-bg);
+  clip-path: polygon(calc(var(--cut) - var(--edge) * 0.42) 0, calc(100% - var(--cut) + var(--edge) * 0.42) 0, 100% calc(var(--cut) - var(--edge) * 0.42), 100% calc(100% - var(--cut) + var(--edge) * 0.42), calc(100% - var(--cut) + var(--edge) * 0.42) 100%, calc(var(--cut) - var(--edge) * 0.42) 100%, 0 calc(100% - var(--cut) + var(--edge) * 0.42), 0 calc(var(--cut) - var(--edge) * 0.42));
+}
+
+.br-panel {
+  padding: 10px 14px;
+}
+
+/* ---------- Buttons (DaisyUI `btn` skinned) ---------- */
+
+.btn.br-btn,
+.btn.br-cta {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-shadow: none;
+  --btn-noise: none;
+  --btn-fg: var(--br-ink);
+  min-height: var(--br-hit);
+  min-width: var(--br-hit);
+  border: 0;
+  border-radius: 0;
+  padding-inline: 18px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: 1.05rem;
+  color: var(--br-ink);
+  gap: 8px;
+  box-shadow: none;
+}
+
+.btn.br-btn:hover,
+.btn.br-cta:hover {
+  --btn-bg: transparent;
+  filter: brightness(1.12);
+}
+
+.btn.br-btn:active,
+.btn.br-cta:active {
+  transform: translateY(1px) scale(0.99);
+  filter: brightness(1.2);
+}
+
+.btn.br-btn:focus-visible,
+.btn.br-cta:focus-visible {
+  outline: 3px solid var(--br-amber);
+  outline-offset: 2px;
+}
+
+.btn.br-btn[disabled],
+.btn.br-cta[disabled] {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+}
+
+.br-cta {
+  --fill-bg: linear-gradient(180deg, var(--br-orange-hi), var(--br-orange) 45%, var(--br-orange-lo));
+  color: #fff;
+}
+
+.btn.br-cta {
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(120, 30, 0, 0.55);
+  font-size: 1.5rem;
+  min-height: 64px;
+  padding-inline: 28px;
+}
+
+.br-btn-sm.btn.br-btn {
+  min-height: 48px;
+  font-size: 0.95rem;
+  padding-inline: 14px;
+}
+
+.br-btn-icon.btn.br-btn {
+  padding-inline: 0;
+  width: var(--br-hit);
+}
+
+.br-btn-danger {
+  --edge-bg: linear-gradient(135deg, #ff9d96, var(--br-red) 55%, #ff9d96);
+}
+
+.br-selected {
+  --edge-bg: linear-gradient(135deg, #d6fbff, var(--br-cyan) 50%, #d6fbff);
+  filter: drop-shadow(0 0 8px rgba(54, 214, 255, 0.75));
+}
+
+/* ---------- Title bar and stripe motifs ---------- */
+
+.br-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+}
+
+.br-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 48px;
+  padding: 0 22px;
+  --cut: 12px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(1.1rem, 3.2vmin, 1.7rem);
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.br-stripes {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.br-stripes > i {
+  display: block;
+  width: 8px;
+  height: 18px;
+  transform: skewX(-24deg);
+  background: var(--br-cyan);
+  border-radius: 1px;
+}
+
+.br-stripes.is-orange > i {
+  background: var(--br-orange);
+}
+
+/* ---------- Chip, tabs, cards ---------- */
+
+.br-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px;
+  --cut: 10px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.br-tab {
+  --cut: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 28px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--br-ink);
+  cursor: pointer;
+}
+
+.br-tab.is-active {
+  --fill-bg: linear-gradient(180deg, #5be4ff, #1fc0f0);
+  color: #05243f;
+}
+
+.br-card {
+  --cut: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+}
+
+.br-card.is-selected {
+  --edge-bg: linear-gradient(135deg, #d6fbff, var(--br-cyan) 50%, #d6fbff);
+  --edge: 3px;
+}
+
+.br-caption {
+  padding: 6px 12px;
+  background: linear-gradient(180deg, #e8f1fb, #cddbec);
+  color: #0b1f3a;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* ---------- Form controls (DaisyUI) ---------- */
+
+.toggle.br-toggle {
+  --tglbg: #1d2f4a;
+  --toggle-p: 0.2rem;
+  width: 4.4rem;
+  height: 2.4rem;
+  border: 2px solid var(--br-cyan);
+  background-color: #14243e;
+  color: #fff;
+}
+
+.toggle.br-toggle:checked {
+  background-color: var(--br-green);
+  border-color: #b6ffc9;
+}
+
+.range.br-range {
+  --range-bg: #24344d;
+  --range-thumb: #fff;
+  color: var(--br-cyan);
+  height: 2rem;
+}
+
+.select.br-select {
+  min-height: 48px;
+  border: 2px solid var(--br-cyan);
+  background: #0e2240;
+  color: #fff;
+  font-weight: 800;
+}
+
+/* ---------- Driving HUD ---------- */
+
+.br-hud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(8, 22, 44, 0.62);
+  border: 2px solid rgba(140, 240, 255, 0.7);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.br-hud-btn:active {
+  background: rgba(54, 214, 255, 0.45);
+}
+
+.br-pad {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: rgba(8, 22, 44, 0.5);
+  border: 3px solid rgba(140, 240, 255, 0.65);
+  backdrop-filter: blur(3px);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.br-pad.is-down {
+  background: rgba(54, 214, 255, 0.5);
+  border-color: #fff;
+}
+
+.br-pad.is-throttle {
+  border-color: rgba(255, 170, 90, 0.9);
+}
+
+.br-pad.is-throttle.is-down {
+  background: rgba(255, 122, 26, 0.6);
+}
+
+.br-pad.is-brake {
+  border-color: rgba(255, 120, 110, 0.9);
+}
+
+.br-pad.is-brake.is-down {
+  background: rgba(255, 90, 79, 0.6);
+}
+
+/* ---------- Misc ---------- */
+
+.br-pulse {
+  animation: br-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes br-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .br-pulse {
+    animation: none;
+  }
+}
+
+[data-reduced-motion="true"] .br-pulse,
+[data-reduced-motion="true"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.br-rotate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--br-navy);
+  color: #fff;
+  text-align: center;
+  padding: 24px;
+}
+
+@media (orientation: portrait) and (max-width: 820px) {
+  .br-rotate {
+    display: flex;
+  }
+}
+
+.br-scroll {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.br-scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.br-scroll-x::-webkit-scrollbar {
+  display: none;
+}

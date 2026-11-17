@@ -112,7 +112,7 @@ else if (sceneName === 'parts') {
     ids.forEach((id, i) => {
       const def = catalog.get(id)!
       const w = rot === 0 ? def.size[0] : def.size[0]
-      doc = ok(addParts(doc, [{ defId: id, pos: [x, 0, row * 12], rot, colour: colours[i % colours.length]! }], ctx))
+      doc = ok(addParts(doc, [{ defId: id, pos: [x, 0, row * 16], rot, colour: colours[i % colours.length]! }], ctx))
       x += w + 2
     })
   }
@@ -137,7 +137,7 @@ else if (sceneName === 'snap') {
   const found = findPlacements(doc, def, { rotations: [0] }, ctx)
   const anchors = [...new Map(found.map(f => [f.anchor.join(','), f.anchor] as const)).values()]
   markers.set(anchors, 3)
-  const best = found.find(f => f.pos[1] === 6 && f.pos[2] >= 10) ?? found[0]!
+  const best = found.filter(f => f.pos[1] === 6).sort((a, b) => b.pos[2] - a.pos[2])[0] ?? found[0]!
   const ghost = createGhost(def, best.pos, best.rot, 'valid')
   const bad = createGhost(def, [1, 5, 5], 0, 'invalid')
   const mirror = createMirrorPlane(6, { min: [min.x, min.y, min.z], max: [max.x, max.y, max.z] })
