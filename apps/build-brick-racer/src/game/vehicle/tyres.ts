@@ -37,7 +37,10 @@ export const KINETIC_FACTOR = 0.9
 
 export function tyreForces(i: TyreInput): TyreOutput {
   const fxMax = Math.max(1e-6, i.muX * i.load)
-  const fyMax = Math.max(1e-6, i.muY * i.load)
+  // Power oversteer: drive force a driven tyre carries takes lateral grip away beyond the plain friction
+  // ellipse, so a rear-driven car can step out under throttle. Gameplay model, tuned in physics-config.
+  const driveUse = Math.min(1, Math.abs(i.driveForce) / fxMax)
+  const fyMax = Math.max(1e-6, i.muY * i.load * (1 - physicsConfig.tyre.powerSlide * driveUse))
 
   let fxDemand = i.driveForce
   if (i.brakeInput > 0.001) {

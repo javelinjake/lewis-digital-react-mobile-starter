@@ -45,13 +45,17 @@ export class PhysicsWorld {
   }
 
   /** True when an oriented box overlaps no static geometry. */
-  boxIsClear(centre: V3, half: V3, rot: Q4): boolean {
+  boxIsClear(centre: V3, half: V3, rot: Q4, excludeBody?: RAPIER.RigidBody): boolean {
     const R = this.rapier
     const shape = new R.Cuboid(half[0], half[1], half[2])
     const hit = this.world.intersectionWithShape(
       { x: centre[0], y: centre[1], z: centre[2] },
       { x: rot[0], y: rot[1], z: rot[2], w: rot[3] },
       shape,
+      undefined,
+      undefined,
+      undefined,
+      excludeBody,
     )
     return hit === null
   }

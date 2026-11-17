@@ -152,6 +152,10 @@ export class VehicleSim {
     this.assist = mode
   }
 
+  get rigidBody(): RAPIER.RigidBody {
+    return this.body
+  }
+
   get state(): VehicleState {
     return this._state
   }

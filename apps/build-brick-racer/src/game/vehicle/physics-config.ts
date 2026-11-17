@@ -44,7 +44,7 @@ export const physicsConfig = {
 
   motor: {
     /** Stall torque at the driven wheel shafts, N*m. Shared by all driven wheels. */
-    stallTorque: 2.1,
+    stallTorque: 3.2,
     /** Wheel angular speed (rad/s) where torque falls to zero. */
     freeSpeed: 62,
     /** Power limit, watts. */
@@ -57,7 +57,7 @@ export const physicsConfig = {
     /** Peak brake torque per braking wheel, N*m. Grip is normally the limit. */
     torquePerWheel: 6,
     /** Seconds of sustained brake at standstill before reverse engages. */
-    reverseDelay: 0.45,
+    reverseDelay: 0.8,
     /** Speed under which the car counts as stationary, m/s. */
     standstill: 0.15,
   },
@@ -74,13 +74,15 @@ export const physicsConfig = {
 
   tyre: {
     /** Rate (1/s) at which contact patches try to cancel slip speed when gripping. */
-    stickRate: 38,
+    stickRate: 24,
     /** Wheel spin inertia as a multiple of m*r^2 (slip visuals). */
     spinInertia: 0.5,
+    /** Fraction of lateral grip a driven tyre loses at full drive-force use. Makes power slides possible. */
+    powerSlide: 0.6,
   },
 
   steering: {
-    maxAngleDeg: 30,
+    maxAngleDeg: 35,
     /** Digital steering ramp, per second. */
     rampUp: 5,
     rampDown: 7,
@@ -88,7 +90,7 @@ export const physicsConfig = {
 
   aero: {
     /** Gameplay air density scale (not real air; chosen so drag is noticeable at toy speeds). */
-    density: 3.2,
+    density: 2.2,
     bodyDragCoefficient: 0.9,
     wingDragCoefficient: 0.9,
     wingLiftCoefficient: 3.5,
@@ -97,18 +99,18 @@ export const physicsConfig = {
   assist: {
     light: {
       /** Steering angle is divided by 1 + (speed/reference)^2. */
-      speedReference: 3.2,
+      speedReference: 5,
       /** Yaw rate beyond (1 + tolerance) x expected is damped at this rate, 1/s. */
-      yawDamping: 3.5,
-      yawTolerance: 0.55,
+      yawDamping: 7,
+      yawTolerance: 0.7,
     },
   },
 
   surfaces: {
     plastic: { id: 'plastic', label: 'Toy track', grip: 1.05, rolling: 0.012, sink: 0, effect: 'none' },
-    tile: { id: 'tile', label: 'Kitchen tile', grip: 0.85, rolling: 0.014, sink: 0, effect: 'dust' },
+    tile: { id: 'tile', label: 'Kitchen tile', grip: 0.6, rolling: 0.014, sink: 0, effect: 'dust' },
     grass: { id: 'grass', label: 'Grass', grip: 0.72, rolling: 0.034, sink: 0, effect: 'dirt' },
-    mud: { id: 'mud', label: 'Mud', grip: 0.6, rolling: 0.05, sink: 0.06, effect: 'splash' },
+    mud: { id: 'mud', label: 'Mud', grip: 0.42, rolling: 0.05, sink: 0.12, effect: 'splash' },
     wood: { id: 'wood', label: 'Wood plank', grip: 0.95, rolling: 0.016, sink: 0, effect: 'dust' },
   } satisfies Record<SurfaceId, SurfaceDefinition>,
 
