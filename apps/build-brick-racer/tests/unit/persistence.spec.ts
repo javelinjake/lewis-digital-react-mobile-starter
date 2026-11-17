@@ -151,7 +151,8 @@ describe('cars (AC24, AC25, AC26, AC27)', () => {
     const replay = rec.finish(run2.id, 's', 'garden_mud', 1)
     const failingReplay: AsyncStorage = { ...db, get: db.get, keys: db.keys, remove: db.remove, set: async (k, v) => {
       if (k.startsWith('replay:'))
-        throw new Error('disk'); return db.set(k, v)
+        throw new Error('disk')
+      return db.set(k, v)
     } }
     const saved = await new GameRepo(failingReplay, kv()).commitRun(run2, def, outcomeFor(run2), replay)
     expect(saved.replaySaved).toBe(false)
