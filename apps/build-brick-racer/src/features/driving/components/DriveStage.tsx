@@ -15,7 +15,7 @@ import { DriveEngine } from '../engine/drive-engine'
 import { HudView } from '../hud/hud-view'
 import { attachFocusGuard } from '../input/focus-guard'
 import { ControlHub } from '../input/hub'
-import { registerEngine } from '../test-hook'
+import { countRender, registerEngine } from '../test-hook'
 import { Controls } from './Controls'
 import { Hud } from './Hud'
 import { CountdownOverlay, FinishBanner, ResetPrompt, TryHint } from './Overlays'
@@ -27,6 +27,7 @@ const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, m
 
 /** The live driving screen: canvas, HUD, touch controls and overlays around a `DriveEngine`. */
 export function DriveStage({ plan }: { plan: DrivePlan }) {
+  countRender()
   const navigate = useNavigate()
   const prefs = usePrefsStore(s => s.prefs)
   const trying = useSessionStore(s => s.trying)
@@ -296,6 +297,9 @@ export function DriveStage({ plan }: { plan: DrivePlan }) {
             busy={busy}
             onResume={() => engineRef.current?.resume()}
             onRestart={() => {
+              // A restart discards this attempt; the next Go opens a new one with a fresh start time.
+              void closeAttempt()
+              startedAt.current = ''
               setFinish(null)
               engineRef.current?.restart()
             }}

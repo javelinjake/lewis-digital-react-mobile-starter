@@ -221,7 +221,7 @@
 
 .bd-headsup { position: relative; }
 
-.bd-headsup-list {
+.br-panel.bd-headsup-list {
   position: absolute;
   top: 44px;
   left: 0;
@@ -281,7 +281,7 @@
 .bd-banner.is-error { background: rgba(176, 28, 38, 0.95); border: 2px solid #ff9d96; }
 .bd-banner.is-info { background: rgba(12, 36, 72, 0.95); border: 2px solid var(--br-cyan); }
 
-.bd-coach {
+.br-panel.bd-coach {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -312,8 +312,8 @@
   font-weight: 800;
 }
 
-.bd-empty-hint,
-.bd-first {
+.br-panel.bd-empty-hint,
+.br-cta.bd-first {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -370,7 +370,7 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
 }
 
-.bd-cycle {
+.br-panel.bd-cycle {
   position: absolute;
   left: 50%;
   bottom: 10px;
@@ -379,14 +379,15 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
+  --cut: 10px;
 }
 
 .bd-cycle-btn {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 52px;
+  width: 52px;
+  height: 44px;
   border-radius: 12px;
   color: #fff;
   background: rgba(54, 214, 255, 0.2);
@@ -395,9 +396,9 @@
 
 .bd-cycle-count { min-width: 52px; text-align: center; font-weight: 800; color: #fff; }
 
-.btn.br-cta.bd-place-btn { min-height: 52px; padding-inline: 16px; --cut: 10px; }
+.btn.br-cta.bd-place-btn { min-height: 44px; padding-inline: 14px; --cut: 10px; }
 
-.bd-pad {
+.br-panel.bd-pad {
   position: absolute;
   left: 8px;
   bottom: 8px;
@@ -424,7 +425,7 @@
 .bd-pad-text { font-size: 0.72rem; font-weight: 800; }
 .bd-pad-mid { display: grid; place-items: center; opacity: 0.6; }
 
-.bd-popover {
+.br-panel.bd-popover {
   position: absolute;
   left: 50%;
   top: 8px;
@@ -450,7 +451,7 @@
 
 .bd-swatch.is-on { border-color: #fff; box-shadow: 0 0 0 3px var(--br-cyan); }
 
-.bd-wheelpanel {
+.br-panel.bd-wheelpanel {
   position: absolute;
   left: 8px;
   bottom: 8px;
@@ -501,7 +502,7 @@
 
 /* ---------- Parts tray ---------- */
 
-.bd-tray {
+.br-panel.bd-tray {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -614,7 +615,7 @@
 
 /* ---------- Free Build panels ---------- */
 
-.bd-freepanel {
+.br-panel.bd-freepanel {
   position: absolute;
   left: 8px;
   top: 8px;

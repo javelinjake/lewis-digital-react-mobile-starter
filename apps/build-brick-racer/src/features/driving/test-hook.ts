@@ -9,6 +9,8 @@ interface BrickTestHook {
   seedStarter: (kind: 'racer' | 'buggy') => Promise<string>
   telemetry: () => ReturnType<DriveEngine['telemetry']> | null
   lastRunId: () => string | null
+  /** How many times the driving screen has rendered. Must not grow per frame. */
+  renders: () => number
 }
 
 declare global {
@@ -18,6 +20,12 @@ declare global {
 }
 
 let current: DriveEngine | null = null
+let renders = 0
+
+/** Called from the driving screen's render body (a plain counter; negligible cost). */
+export function countRender(): void {
+  renders += 1
+}
 
 export function registerEngine(engine: DriveEngine | null): void {
   current = engine
@@ -32,5 +40,6 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     },
     telemetry: () => current?.telemetry() ?? null,
     lastRunId: () => useSessionStore.getState().lastRunId,
+    renders: () => renders,
   }
 }

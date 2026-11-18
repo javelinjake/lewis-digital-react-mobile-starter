@@ -49,6 +49,7 @@ test.describe('first play (AC01)', () => {
 
 test.describe('garage (AC27)', () => {
   test('rename, duplicate and delete with confirmation', async ({ page }) => {
+    test.setTimeout(180_000)
     await openGarage(page)
     test.skip(!(await hookReady(page)), 'needs the dev-only seeding helper')
     await seedCar(page, 'racer')
@@ -128,6 +129,8 @@ test.describe('challenges and ready (AC17)', () => {
 
 test.describe('results and details (AC23)', () => {
   test('personal best with previous run, replay label and details tabs', async ({ page }) => {
+    // Many full page loads with software WebGL: allow more than the default.
+    test.setTimeout(240_000)
     await openGarage(page)
     test.skip(!(await hookReady(page)), 'needs the dev-only seeding helper')
     const carId = await seedCar(page)

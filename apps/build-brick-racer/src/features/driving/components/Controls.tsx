@@ -39,7 +39,12 @@ export function Controls({ hub, leftHanded, scale, powered, enabled }: ControlsP
       if (!enabled)
         return
       e.preventDefault()
-      e.currentTarget.setPointerCapture?.(e.pointerId)
+      try {
+        e.currentTarget.setPointerCapture?.(e.pointerId)
+      }
+      catch {
+        // Capture can be refused (for example a synthetic pointer); the press is still tracked by pointer id.
+      }
       hub.touch.press(pad, e.pointerId)
     },
     onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {

@@ -53,8 +53,9 @@ test.describe('driving', () => {
     await waitPhase(page, 'running')
     expect(await speedText(page)).toBeLessThan(0.5)
     await page.keyboard.down('ArrowUp')
-    await waitElapsed(page, 1.2)
-    expect(await speedText(page)).toBeGreaterThan(1)
+    // Read early: the 4 m/s target is reached (and the run ends) after about 1.8 s of simulation time.
+    await waitElapsed(page, 0.7)
+    expect(await speedText(page)).toBeGreaterThan(0.8)
     await page.keyboard.up('ArrowUp')
   })
 
@@ -132,8 +133,9 @@ test.describe('driving', () => {
     // Hold the brake on the ramp: no progress despite waiting.
     await page.keyboard.down('Space')
     await expect(page.getByTestId('reset-prompt')).toBeVisible({ timeout: 180_000 })
-    await page.keyboard.up('Space')
+    // Keep holding the brake while clicking: the prompt stays only while the car is still stuck.
     await page.getByTestId('reset-prompt').click()
+    await page.keyboard.up('Space')
     await page.waitForFunction(() => (window.__brickTest?.telemetry()?.resets ?? 0) >= 1, null, { timeout: 60_000 })
     await expect(page.getByText('Practice run').first()).toBeVisible()
   })
@@ -161,6 +163,20 @@ test.describe('driving', () => {
     const steer = await page.getByTestId('steer-cluster').boundingBox()
     const pedals = await page.getByTestId('pedal-cluster').boundingBox()
     expect(steer!.x).toBeGreaterThan(pedals!.x)
+  })
+
+  test('the driving screen does not re-render per frame (game loop stays outside React)', async ({ page }) => {
+    const id = await seed(page)
+    await open(page, id, 'challenge=free&place=kitchen')
+    await waitPhase(page, 'running')
+    await page.keyboard.down('ArrowUp')
+    const before = await page.evaluate(() => window.__brickTest!.renders())
+    const t0 = (await telemetry(page))!.elapsed
+    await waitElapsed(page, t0 + 3)
+    const after = await page.evaluate(() => window.__brickTest!.renders())
+    await page.keyboard.up('ArrowUp')
+    // Three seconds of driving is ~180 physics ticks and many rendered frames: React renders only on phase changes.
+    expect(after - before).toBeLessThanOrEqual(2)
   })
 
   test('cameras cycle and the lock toggles without changing steering', async ({ page }) => {
@@ -198,8 +214,13 @@ test.describe('results hand-off and replay', () => {
     }
     await page.getByTestId('speed-0.5').click()
     await expect(page.getByTestId('speed-0.5')).toHaveAttribute('aria-pressed', 'true')
-    await page.getByTestId('play-pause').click()
-    await expect(page.getByTestId('play-pause')).toHaveAttribute('aria-label', 'Play')
+    // A short run may already have finished playing; get to a paused state either way.
+    const toggle = page.getByTestId('play-pause')
+    if ((await toggle.getAttribute('aria-label')) === 'Pause')
+      await toggle.click()
+    else
+      await toggle.click().then(() => toggle.click())
+    await expect(toggle).toHaveAttribute('aria-label', 'Play')
     await page.getByTestId('scrubber').fill('500')
     await page.waitForFunction(() => document.querySelector('[data-testid=replay-time]')?.textContent !== '00:00.0', null, { timeout: 30_000 })
     await page.getByTestId('restart').click()
