@@ -1,6 +1,6 @@
 /**
  * Development-only helpers for the screen e2e tests: seed cars and finished runs without driving.
- * Installed only when `import.meta.env.DEV` is true, so nothing ships in production builds.
+ * Installed only in dev mode or an explicit end-to-end build (`VITE_E2E=true`), so nothing ships in production builds.
  */
 import type { ChallengeId } from '@/game/challenges/types'
 import type { RunRecord } from '@/game/persistence/types'
@@ -41,7 +41,7 @@ declare global {
 let seq = 0
 
 export function installScreensTestHook(): void {
-  if (!import.meta.env.DEV || typeof window === 'undefined' || window.__brickScreensTest)
+  if (!(import.meta.env.DEV || import.meta.env.VITE_E2E === 'true') || typeof window === 'undefined' || window.__brickScreensTest)
     return
   window.__brickScreensTest = {
     async seedCar(kind) {

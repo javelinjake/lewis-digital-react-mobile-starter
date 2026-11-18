@@ -31,7 +31,7 @@ export function registerEngine(engine: DriveEngine | null): void {
   current = engine
 }
 
-if (import.meta.env.DEV && typeof window !== 'undefined') {
+if ((import.meta.env.DEV || import.meta.env.VITE_E2E === 'true') && typeof window !== 'undefined') {
   window.__brickTest = {
     async seedStarter(kind) {
       const doc = buildStarter(kind, defaultContext)

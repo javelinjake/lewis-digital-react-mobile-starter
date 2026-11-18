@@ -59,3 +59,4 @@ apps/*/android/captures
 apps/*/android/keystore.properties
 
 apps/*/.trapeze
+apps/*/dist-e2e

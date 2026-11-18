@@ -34,8 +34,8 @@ export default defineConfig({
   webServer: externalBase
     ? undefined
     : {
-        // A production build avoids dev-server dependency re-optimisation reloads and matches what ships.
-        command: `pnpm run build && pnpm exec vite preview --port ${port} --strictPort --host 127.0.0.1`,
+        // A production bundle (with the end-to-end test hooks enabled) avoids dev-server re-optimisation reloads and matches what ships.
+        command: `VITE_E2E=true pnpm exec vite build --outDir dist-e2e && pnpm exec vite preview --outDir dist-e2e --port ${port} --strictPort --host 127.0.0.1`,
         url: `http://127.0.0.1:${port}`,
         reuseExistingServer: !process.env.CI,
         timeout: 240_000,
