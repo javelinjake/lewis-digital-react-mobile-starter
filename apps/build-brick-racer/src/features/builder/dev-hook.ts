@@ -1,5 +1,5 @@
 /**
-* Test hook for development and explicit end-to-end builds (VITE_E2E=true); never present in normal production builds. It lets end-to-end tests seed cars through
+ * Test hook for development and explicit end-to-end builds (VITE_E2E=true); never present in normal production builds. It lets end-to-end tests seed cars through
  * the app's own garage store and read editor state and snap-ring screen positions. It cannot change a car.
  */
 import type { NewCarKind } from '@/stores/garage.store'

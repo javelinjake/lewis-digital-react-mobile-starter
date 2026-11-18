@@ -19,8 +19,8 @@ import { cameraPosition, EMPTY_BOUNDS, framePreset, lerpOrbit, orbitBy, panBy, z
 import { PICK_RADIUS } from '@/features/builder/logic/picking'
 import { catalog } from '@/game/catalog/catalog'
 import { buildBuilderModel, createFloorMat, createSceneKit, disposeObject } from '@/render'
-import { findPickablePoint, idle, measureModel } from './model-bounds'
 import { FramePacer } from './frame-pacer'
+import { findPickablePoint, idle, measureModel } from './model-bounds'
 import { PlacementLayer } from './placement-layer'
 import { createContactOverlay, createForwardArrow, createHighlight } from './scene-overlays'
 
