@@ -243,7 +243,7 @@
 @media (max-height: 480px) {
   .results-card.br-panel {
     gap: 4px;
-    padding: 10px 14px 8px;
+    padding: 10px 14px 18px;
   }
 
   .results-mark {
@@ -261,6 +261,11 @@
   .results-notes {
     font-size: 0.82rem;
     line-height: 1.2;
+  }
+
+  /* One big metric and a short note on small screens. The full list is on the Details screen. */
+  .results-notes li:nth-child(n + 3) {
+    display: none;
   }
 
   .details-table th,
