@@ -11,9 +11,11 @@ import type { Pose, SimEvent } from './vehicle/sim'
  * source of driving commands.
  */
 import type { PhysicsWorld } from './vehicle/world'
+import { makeId } from './build/doc'
 import { FREE_DRIVE } from './challenges'
 import { ChallengeRun } from './challenges/run'
 import { freeDrivePose, poseOnGround, resetPose, startPose } from './challenges/spawn'
+import { StuckMonitor } from './challenges/stuck'
 import { qRotate, yawOfDirection } from './math'
 import { ReplayRecorder } from './replay/recorder'
 import { InputRamp } from './vehicle/input'
@@ -31,6 +33,9 @@ export class DriveSession {
   readonly sim: VehicleSim
   readonly run: ChallengeRun | null
   readonly dt = 1 / physicsConfig.tickHz
+  /** One id per attempt, so saving the same attempt twice (a retry) never creates a second record. */
+  readonly runId = makeId()
+  private readonly freeStuck = new StuckMonitor()
   private readonly ramp = new InputRamp()
   private readonly recorder: ReplayRecorder
   private prev
@@ -66,6 +71,11 @@ export class DriveSession {
 
   get phase(): 'free' | 'ready' | 'running' | 'finished' | 'ended' {
     return this.run ? this.run.run.phase : 'free'
+  }
+
+  /** Reset prompt: upside down or stuck for three seconds. Works in free drive too. */
+  get resetSuggested(): boolean {
+    return this.run ? this.run.resetSuggested : this.freeStuck.suggested
   }
 
   get active(): boolean {
@@ -123,6 +133,8 @@ export class DriveSession {
         this.recorder.capture(this.elapsed, state, true)
       }
     }
+    if (!this.run)
+      this.freeStuck.update(state, input, false, this.dt)
     this.recorder.capture(this.elapsed, state)
     this.prev = state
     return events
@@ -146,6 +158,7 @@ export class DriveSession {
     this.sim.reset(pose)
     this.ramp.reset()
     this.run?.noteReset()
+    this.freeStuck.reset()
     this.prev = this.sim.state
     this.recorder.event({ t: this.elapsed, type: 'reset', pos: [...pose.pos] as [number, number, number] })
     this.recorder.capture(this.elapsed, this.sim.state, true)

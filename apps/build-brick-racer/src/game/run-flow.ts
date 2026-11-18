@@ -9,7 +9,6 @@ import type { GameRepo } from './persistence/repo'
 import type { CameraChoice, ProgressRecord, RunRecord } from './persistence/types'
 import type { DriveSession } from './session'
 import type { AssistMode } from './vehicle/physics-config'
-import { makeId } from './build/doc'
 import { evaluateRun } from './challenges/eval'
 import { settingsSignature } from './comparison'
 import { PHYSICS_VERSION, SURFACE_SIGNATURE } from './vehicle/physics-config'
@@ -32,7 +31,7 @@ export interface RecordRunInput {
 export async function recordRun(input: RecordRunInput): Promise<{ run: RunRecord, progress: ProgressRecord, previous: RunRecord | null }> {
   const { repo, doc, def, session, run } = input
   const outcome = evaluateRun(def, run.run)
-  const runId = input.runId ?? makeId()
+  const runId = input.runId ?? session.runId
   const snapshotId = await repo.saveSnapshot(doc)
 
   const comparable = {

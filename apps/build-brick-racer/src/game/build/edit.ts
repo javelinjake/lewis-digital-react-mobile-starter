@@ -5,7 +5,7 @@
  */
 import type { Rot, V3I } from '../lattice'
 import type { EditContext } from './doc'
-import type { BuildIssue, CarDocument, EditResult, Forward, PartInstance, WheelGroup } from './types'
+import type { BuildIssue, CarDocument, Connection, EditResult, Forward, PartInstance, WheelGroup } from './types'
 import { normRot } from '../lattice'
 import { computeAssemblies, looseInstanceIds } from './assemblies'
 import { deriveConnections } from './connections'
@@ -32,6 +32,38 @@ interface CommitOptions {
 
 function issue(code: BuildIssue['code'], message: string, instanceIds: string[], severity: BuildIssue['severity'] = 'block'): BuildIssue {
   return { code, severity, message, instanceIds }
+}
+
+/**
+ * Stored connections whose endpoint definition is missing cannot be re-derived from geometry. They are kept
+ * as they were so the car stays blocked from compiling until the dependency is resolved.
+ */
+function preservedConnections(doc: Pick<CarDocument, 'connections'>, instances: readonly PartInstance[], placedIds: ReadonlySet<string>): Connection[] {
+  const present = new Set(instances.map(i => i.id))
+  return doc.connections.filter(c =>
+    present.has(c.a.instanceId) && present.has(c.b.instanceId)
+    && (!placedIds.has(c.a.instanceId) || !placedIds.has(c.b.instanceId)))
+}
+
+function mergeConnections(derived: Connection[], kept: Connection[]): Connection[] {
+  return [...derived, ...kept].sort((x, y) => (x.id < y.id ? -1 : 1))
+}
+
+/**
+ * Validate or reconstruct derived data from instance transforms: connections and wheel groups. Used on load,
+ * so saves from older schemas (which stored neither) become drivable. Returns the same object when nothing changed.
+ */
+export function rebuildDerived(doc: CarDocument, ctx: EditContext): CarDocument {
+  const set = placeAll(doc.instances, ctx.catalog)
+  const connections = mergeConnections(deriveConnections(set.placed), preservedConnections(doc, doc.instances, new Set(set.byId.keys())))
+  const rootInstanceId = doc.instances.some(i => i.id === doc.rootInstanceId) ? doc.rootInstanceId : (doc.instances[0]?.id ?? null)
+  const withConnections = { ...doc, connections, rootInstanceId }
+  const wheelGroups = reconcileWheelGroups(withConnections, set, ctx.newId)
+  const next = { ...withConnections, wheelGroups }
+  const same = JSON.stringify(next.connections) === JSON.stringify(doc.connections)
+    && JSON.stringify(next.wheelGroups) === JSON.stringify(doc.wheelGroups)
+    && next.rootInstanceId === doc.rootInstanceId
+  return same ? doc : next
 }
 
 export function commit(doc: CarDocument, instances: PartInstance[], ctx: EditContext, opts: CommitOptions, patch: Partial<CarDocument> = {}): EditResult {
@@ -74,7 +106,7 @@ export function commit(doc: CarDocument, instances: PartInstance[], ctx: EditCon
     }
   }
 
-  const connections = deriveConnections(set.placed)
+  const connections = mergeConnections(deriveConnections(set.placed), preservedConnections(doc, instances, new Set(set.byId.keys())))
 
   if (!opts.cosmetic) {
     const mounted = mountedWheelIds(set, connections)
@@ -98,7 +130,7 @@ export function commit(doc: CarDocument, instances: PartInstance[], ctx: EditCon
   const next: CarDocument = {
     ...base,
     rootInstanceId,
-    wheelGroups: opts.cosmetic && !('wheelGroups' in patch) ? doc.wheelGroups : reconcileWheelGroups({ ...base, wheelGroups: patch.wheelGroups ?? doc.wheelGroups }, set, ctx.newId),
+    wheelGroups: opts.cosmetic && !('wheelGroups' in patch) && !('forward' in patch) ? doc.wheelGroups : reconcileWheelGroups({ ...base, wheelGroups: patch.wheelGroups ?? doc.wheelGroups }, set, ctx.newId),
     revisionId: ctx.newId(),
     parentRevisionId: doc.revisionId,
     updatedAt: ctx.now(),
@@ -137,6 +169,10 @@ export function rotateParts(doc: CarDocument, ids: readonly string[], ctx: EditC
   const placed = placeAll(chosen, ctx.catalog).placed
   if (placed.length === 0)
     return { ok: false, issues: [issue('unknown_part', 'Select a piece first.', [])] }
+  if (placed.length !== chosen.length) {
+    const known = new Set(placed.map(p => p.instance.id))
+    return { ok: false, issues: [issue('unknown_part', 'A missing piece cannot be turned. Remove it or pick other pieces.', chosen.filter(i => !known.has(i.id)).map(i => i.id))] }
+  }
   const minX = Math.min(...placed.map(p => p.bounds.min[0]))
   const maxX = Math.max(...placed.map(p => p.bounds.max[0]))
   const minZ = Math.min(...placed.map(p => p.bounds.min[2]))

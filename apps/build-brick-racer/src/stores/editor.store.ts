@@ -194,8 +194,12 @@ export const useEditorStore = create<EditorState>((set, get) => {
       if (!doc)
         return false
       const parts = [{ defId: candidate.defId, pos: candidate.pos, rot: candidate.rot, colour }]
-      if (mirror && doc.ui.mirrorPlane2 !== null) {
-        const mirrored = mirrorPlacement(candidate, doc.ui.mirrorPlane2, ctx)
+      // Undoing past the toggle can leave the plane unset while mirroring is still on; recreate it, never go quiet.
+      const plane = mirror ? (doc.ui.mirrorPlane2 ?? defaultMirrorPlane2(doc, ctx)) : null
+      if (mirror && doc.ui.mirrorPlane2 === null)
+        updateUi({ mirrorPlane2: plane })
+      if (mirror && plane !== null) {
+        const mirrored = mirrorPlacement(candidate, plane, ctx)
         if (!mirrored) {
           set({ issues: [{ code: 'mirror_unavailable', severity: 'block', instanceIds: [], message: 'This piece cannot be mirrored.' }] })
           return false
@@ -204,28 +208,28 @@ export const useEditorStore = create<EditorState>((set, get) => {
           parts.push({ defId: mirrored.defId, pos: mirrored.pos, rot: mirrored.rot, colour })
       }
       // Both pieces go in as one transaction: a failure on either side commits nothing.
-      return apply(parts.length > 1 ? 'Place mirrored pair' : 'Place piece', addParts(doc, parts, ctx))
+      return apply(parts.length > 1 ? 'Place mirrored pair' : 'Place piece', addParts(get().doc ?? doc, parts, ctx))
     },
 
     moveSelection(delta) {
       const { doc, selection } = get()
-      return doc ? apply('Move', movePartsBy(doc, selection, delta, ctx), selection) : false
+      return doc && selection.length > 0 ? apply('Move', movePartsBy(doc, selection, delta, ctx), selection) : false
     },
     rotateSelection(turns = 1) {
       const { doc, selection } = get()
-      return doc ? apply('Rotate', rotateParts(doc, selection, ctx, turns), selection) : false
+      return doc && selection.length > 0 ? apply('Rotate', rotateParts(doc, selection, ctx, turns), selection) : false
     },
     paintSelection(colour) {
       const { doc, selection } = get()
-      return doc ? apply('Paint', paintParts(doc, selection, colour ?? get().colour, ctx), selection) : false
+      return doc && selection.length > 0 ? apply('Paint', paintParts(doc, selection, colour ?? get().colour, ctx), selection) : false
     },
     deleteSelection() {
       const { doc, selection } = get()
-      return doc ? apply('Remove', deleteParts(doc, selection, ctx), []) : false
+      return doc && selection.length > 0 ? apply('Remove', deleteParts(doc, selection, ctx), []) : false
     },
     duplicateSelection() {
       const { doc, selection } = get()
-      return doc ? apply('Duplicate', duplicateParts(doc, selection, ctx)) : false
+      return doc && selection.length > 0 ? apply('Duplicate', duplicateParts(doc, selection, ctx)) : false
     },
     swapWheels: (groupId, defId) => {
       const doc = get().doc

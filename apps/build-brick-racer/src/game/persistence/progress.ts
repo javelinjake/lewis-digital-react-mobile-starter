@@ -42,7 +42,8 @@ export function applyRun(
   let wasBest = false
   if (run.outcome.status === 'finished') {
     next.completed = true
-    if (run.outcome.completion === 'great')
+    // A practice run (reset, wall hit, out-of-range entry...) can finish but never earns the Great run award.
+    if (run.outcome.completion === 'great' && run.outcome.eligible)
       next.great = true
     const value = run.outcome.metrics[def.metrics.primary]
     if (run.outcome.eligible && value !== undefined && Number.isFinite(value)) {

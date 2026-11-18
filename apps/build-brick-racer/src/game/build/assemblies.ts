@@ -64,6 +64,13 @@ export function computeAssemblies(doc: Pick<CarDocument, 'instances' | 'connecti
     if (rootIndex !== undefined)
       mainIndex = rootIndex
   }
+  // If the first-placed piece was moved away from the car, drive the biggest assembly that has wheels
+  // instead of treating the whole car as loose.
+  if (catalog && mainIndex >= 0 && !hasWheel(components[mainIndex]!)) {
+    const wheeled = components.findIndex(ids => hasWheel(ids))
+    if (wheeled >= 0)
+      mainIndex = wheeled
+  }
   return { components, mainIndex, componentOf }
 }
 

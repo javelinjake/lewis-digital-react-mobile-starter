@@ -126,6 +126,8 @@ export function assessDrive(doc: CarDocument, catalog: PartCatalog = shippedCata
     warnings.push(warn('no_steering', 'No wheels steer, so this car will only go straight.', spec.wheels.map(w => w.instanceId)))
   if (!spec.wheels.some(w => w.driven))
     warnings.push(warn('odd_wheels', 'No wheel is driven. It can still roll downhill.', spec.wheels.map(w => w.instanceId)))
+  if (!spec.wheels.some(w => w.axle[0] === 1))
+    warnings.push(warn('odd_wheels', 'These wheels point sideways, so the car will slide instead of rolling forward. Check which way the front is.', spec.wheels.map(w => w.instanceId)))
   if (spec.wheels.length < 3 || !derived.comInsideSupport)
     warnings.push(warn('poor_balance', 'The wheels do not sit under the car\'s weight, so it may tip over.', spec.wheels.map(w => w.instanceId)))
   else if (derived.tipAngleDeg < 28)

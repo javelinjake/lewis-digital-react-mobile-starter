@@ -17,6 +17,7 @@ export function createDrift(): Rule {
   let credited = false
   let lastAngle: number | null = null
   let sawZone = false
+  let wallCooldown = 0
   return {
     tick(run, tick, def) {
       if (def.rule.kind !== 'drift')
@@ -27,7 +28,10 @@ export function createDrift(): Rule {
       const slipDeg = (state.slipAngle * 180) / Math.PI
       const progressing = lastAngle !== null && polar.angle >= lastAngle - 1e-4
       lastAngle = polar.angle
-      const wall = hitWall(tick.events)
+      if (hitWall(tick.events))
+        wallCooldown = 0.6
+      const wall = wallCooldown > 0
+      wallCooldown = Math.max(0, wallCooldown - dt)
       if (polar.inside)
         sawZone = true
 
@@ -74,6 +78,7 @@ export function createDrift(): Rule {
       pending = 0
       credited = false
       lastAngle = null
+      wallCooldown = 0
     },
   }
 }

@@ -4,7 +4,7 @@ import type { VehicleSpec } from '../vehicle/compile'
 import type { Pose } from '../vehicle/sim'
 import type { PhysicsWorld } from '../vehicle/world'
 import type { ChallengeDefinition } from './types'
-import { qFromYaw } from '../math'
+import { qFromYaw, qRotate } from '../math'
 
 /** Distance the car's wheels start above the ground so it settles instead of intersecting. */
 const DROP = 0.03
@@ -31,7 +31,10 @@ export function fitsSpawn(def: ChallengeDefinition, spec: VehicleSpec): { fits: 
 function clear(pw: PhysicsWorld, spec: VehicleSpec, pose: Pose, body?: RAPIER.RigidBody): boolean {
   const q: Q4 = qFromYaw(pose.yaw)
   const half: V3 = [spec.size[0] / 2 + 0.03, spec.size[1] / 2, spec.size[2] / 2 + 0.03]
-  const centre: V3 = [pose.pos[0], pose.pos[1] + spec.wheelBottomY + half[1] + 0.1, pose.pos[2]]
+  // Bounds are relative to the centre of mass, so offset to the geometric centre and turn with the car.
+  const mid: V3 = [(spec.bounds.min[0] + spec.bounds.max[0]) / 2, (spec.bounds.min[1] + spec.bounds.max[1]) / 2, (spec.bounds.min[2] + spec.bounds.max[2]) / 2]
+  const turned = qRotate(q, mid)
+  const centre: V3 = [pose.pos[0] + turned[0], pose.pos[1] + turned[1] + 0.1, pose.pos[2] + turned[2]]
   return pw.boxIsClear(centre, half, q, body)
 }
 

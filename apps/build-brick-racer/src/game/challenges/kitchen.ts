@@ -68,9 +68,9 @@ export const kitchenBraking: ChallengeDefinition = {
   spawnClearance: spawn(-9, 0, 0),
   gates: [gate('box-entry', 'entry', -9, 0, 16, 1.6, 0, 'Enter at speed')],
   outOfBounds: [],
-  rule: { kind: 'brake_test', targetEntrySpeed: 3.2, tolerance: 0.1, lane: zone(-9, 0.5, 26, 1.6, 1.5, 10), stopSpeed: 0.08, stopHold: 0.4 },
+  rule: { kind: 'brake_test', targetEntrySpeed: 3.2, tolerance: 0.1, lane: zone(-9, 0.5, 26, 1.6, 1.5, 10), stopSpeed: 0.08, stopHold: 0.5 },
   metrics: { primary: 'stoppingDistance', secondary: ['entrySpeed'] },
-  thresholds: { great: 0.75 },
+  thresholds: { great: 0.85 },
   timeLimit: 25,
   markers: [
     { kind: 'lane', zone: zone(-9, 0.02, 26, 1.6, 0.02, 10), colour: '#ffd21f', label: 'STOP BOX' },

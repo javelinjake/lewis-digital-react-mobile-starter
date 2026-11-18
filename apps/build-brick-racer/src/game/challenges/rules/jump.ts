@@ -3,6 +3,8 @@ import type { Rule } from './types'
 import { horizontalDistance, inZone } from '../geometry'
 import { endRun, finish } from './types'
 
+const MIN_AIRTIME = 0.08
+
 /**
  * Plank Jump. Take-off is the last grounded position inside the take-off zone when all wheels leave the
  * ground. The jump counts only if the car lands upright with wheel contact for the hold time.
@@ -34,17 +36,26 @@ export function createJump(): Rule {
         }
       }
       else if (phase === 'flying') {
-        flight += dt
-        run.hud.airtime = flight
-        if (state.groundedWheels > 0 && flight > 0.08) {
+        if (state.groundedWheels === 0) {
+          // Only time spent off the ground counts as flight.
+          flight += dt
+          run.hud.airtime = flight
+        }
+        else if (flight > MIN_AIRTIME) {
           phase = 'landing'
           landing = state.pos
           good = 0
           bad = 0
         }
+        else {
+          // A bump or a one-tick loss of contact is not a jump.
+          phase = 'approach'
+          takeoff = null
+          flight = 0
+        }
       }
       else if (takeoff && landing) {
-        const upright = state.upDot > 0.5 && state.groundedWheels >= 2
+        const upright = state.upDot > 0.5 && state.groundedWheels >= 1
         if (upright) {
           good += dt
           bad = 0

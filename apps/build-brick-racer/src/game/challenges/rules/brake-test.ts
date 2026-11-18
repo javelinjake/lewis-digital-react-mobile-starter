@@ -45,7 +45,7 @@ export function createBrakeTest(): Rule {
         run.invalid.add('Hit a wall')
 
       if (!braking) {
-        if (input.brake > 0.3 && inZone(r.lane, state.pos)) {
+        if (input.brake > 0.05 && inZone(r.lane, state.pos)) {
           braking = true
           last = state.pos
           distance = 0

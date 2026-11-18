@@ -14,6 +14,8 @@ import type { ChallengeDefinition } from '../challenges/types'
 import type { ReplayRecord } from '../replay/types'
 import type { Sealed } from './checksum'
 import type { CarSnapshot, InterruptedAttempt, PlayerPreferences, ProgressRecord, RunRecord, SaveOutcome } from './types'
+import { defaultContext } from '../build/doc'
+import { rebuildDerived } from '../build/edit'
 import { seal, unseal } from './checksum'
 import { migrateCar } from './migrations'
 import { applyRun, emptyProgress } from './progress'
@@ -98,14 +100,16 @@ export class GameRepo {
       const result = migrateCar(c.raw)
       if (!result.ok)
         continue
+      // Connections and wheel groups are derived data: validate or rebuild them from the instance transforms.
+      const doc = rebuildDerived(result.doc, defaultContext)
       if (result.migrated) {
         // Keep an untouched backup of the original until the migrated car is written.
         await this.db.set(KEYS.backup(id, result.from), c.raw)
-        const saved = await this.saveCar(result.doc)
+        const saved = await this.saveCar(doc)
         if (saved.ok)
           await this.db.remove(KEYS.backup(id, result.from))
       }
-      return { doc: result.doc, recovered: c.recovered, migrated: result.migrated }
+      return { doc, recovered: c.recovered, migrated: result.migrated }
     }
     return null
   }
@@ -183,7 +187,7 @@ export class GameRepo {
 
   /** Most recent earlier finished run with identical comparable settings. */
   async previousComparable(run: RunRecord): Promise<RunRecord | null> {
-    const runs = await this.listRuns(r => r.signature === run.signature && r.id !== run.id && r.status === 'finished' && r.endedAt <= run.endedAt)
+    const runs = await this.listRuns(r => r.signature === run.signature && r.id !== run.id && r.status === 'finished' && r.eligible && r.endedAt <= run.endedAt)
     return runs[0] ?? null
   }
 
@@ -249,6 +253,10 @@ export class GameRepo {
     for (const key of keys) {
       const entry = await this.db.get<{ run: RunRecord, progress: ProgressRecord }>(key)
       if (entry) {
+        // The journal is written before the replay, so confirm the replay actually exists.
+        const hasReplay = entry.run.replayRef ? Boolean(await this.db.get(entry.run.replayRef)) : false
+        if (entry.run.replayRef && !hasReplay)
+          entry.run = { ...entry.run, replayRef: null }
         await this.db.set(KEYS.run(entry.run.id), entry.run)
         await this.db.set(KEYS.progress(entry.run.signature), entry.progress)
         recovered += 1

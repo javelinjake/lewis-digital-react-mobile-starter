@@ -13,6 +13,7 @@ import { createGateRace } from './rules/gate-race'
 import { createJump } from './rules/jump'
 import { createTargetSpeed } from './rules/target-speed'
 import { endRun } from './rules/types'
+import { RESET_PROMPT_SECONDS, StuckMonitor } from './stuck'
 
 function createRule(def: ChallengeDefinition): Rule {
   switch (def.rule.kind) {
@@ -25,16 +26,13 @@ function createRule(def: ChallengeDefinition): Rule {
   }
 }
 
-/** Time the car may be flipped or stuck before the reset prompt is offered. */
-export const RESET_PROMPT_SECONDS = 3
+export { RESET_PROMPT_SECONDS }
 
 export class ChallengeRun {
   readonly run: RunState
   private readonly rule: Rule
   private filtered = 0
-  private flipped = 0
-  private stuck = 0
-  private _resetSuggested = false
+  private readonly stuck = new StuckMonitor()
 
   constructor(readonly def: ChallengeDefinition, readonly killY: number, readonly spec?: VehicleSpec) {
     this.rule = createRule(def)
@@ -55,7 +53,7 @@ export class ChallengeRun {
   }
 
   get resetSuggested(): boolean {
-    return this._resetSuggested
+    return this.stuck.suggested
   }
 
   /** Go: timing starts. */
@@ -71,9 +69,7 @@ export class ChallengeRun {
     r.invalid.add('Reset used')
     r.metrics.resets = r.resets
     r.motorEnabled = this.def.powerMode === 'motor'
-    this.flipped = 0
-    this.stuck = 0
-    this._resetSuggested = false
+    this.stuck.reset()
     this.rule.onReset?.(r)
   }
 
@@ -107,11 +103,8 @@ export class ChallengeRun {
   }
 
   private trackStuck(tick: Tick): void {
-    const { state, input, dt } = tick
-    this.flipped = state.upDot < 0.25 ? this.flipped + dt : 0
-    const wantsToMove = input.throttle > 0.3 || (this.def.powerMode === 'gravity' && this.run.t > 2)
-    this.stuck = Math.abs(state.forwardSpeed) < 0.12 && wantsToMove ? this.stuck + dt : 0
-    this._resetSuggested = this.flipped >= RESET_PROMPT_SECONDS || this.stuck >= RESET_PROMPT_SECONDS
+    const wantsToMove = this.def.powerMode === 'gravity' && this.run.t > 2
+    this.stuck.update(tick.state, tick.input, wantsToMove, tick.dt)
   }
 }
 
