@@ -1,55 +1,11 @@
-import type { ReactNode } from 'react'
 import type { DriveAssessment } from '@/game/vehicle/analysis'
-import { useState } from 'react'
 import { Icon } from '@/components/ui/Icon'
 
 /**
- * Pre-launch check shared by the Builder's Drive button and the Ready screen.
+ * Pre-launch check dialog shared by the Builder's Drive button and the Ready screen (see `use-launch-check`).
  * Blocks only for a concrete simulation problem (and names the cause). Loose pieces get a choice.
- * Everything else is a warning the caller can show, but never blocks.
  */
 export type LaunchPhase = 'idle' | 'blocked' | 'loose'
-
-export function useLaunchCheck(assess: () => DriveAssessment | null, onLaunch: () => void, onFix: (instanceIds: string[]) => void) {
-  const [phase, setPhase] = useState<LaunchPhase>('idle')
-  const [assessment, setAssessment] = useState<DriveAssessment | null>(null)
-
-  const start = () => {
-    const a = assess()
-    setAssessment(a)
-    if (!a) {
-      return
-    }
-    if (a.blocks.length > 0)
-      setPhase('blocked')
-    else if (a.spec && a.spec.looseInstanceIds.length > 0)
-      setPhase('loose')
-    else
-      onLaunch()
-  }
-
-  const close = () => setPhase('idle')
-
-  const dialog: ReactNode = phase === 'idle' || !assessment
-    ? null
-    : (
-        <LaunchDialog
-          phase={phase}
-          assessment={assessment}
-          onKeepLoose={() => {
-            close()
-            onLaunch()
-          }}
-          onFix={(ids) => {
-            close()
-            onFix(ids)
-          }}
-          onClose={close}
-        />
-      )
-
-  return { start, dialog, phase }
-}
 
 export function LaunchDialog({
   phase,

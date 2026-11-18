@@ -17,6 +17,8 @@ export default createViteConfig({
         themeColor: appMeta.themeColor,
         backgroundColor: appMeta.backgroundColor,
         orientation: appMeta.orientation,
+        // Rapier's WASM (bundled inline) is about 4.3 MB; offline play needs it precached.
+        maxPrecacheFileSizeBytes: 8 * 1024 * 1024,
         devEnabled: process.env.VITE_PWA_DEV === 'true',
         iconSource: false,
       }

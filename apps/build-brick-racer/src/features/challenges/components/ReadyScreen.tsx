@@ -1,7 +1,7 @@
 import type { CameraChoice } from '@/game/persistence/types'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useLaunchCheck } from '@/components/launch/LaunchDialog'
+import { useLaunchCheck } from '@/components/launch/use-launch-check'
 import { Icon } from '@/components/ui/Icon'
 import { SceneBackdrop } from '@/components/ui/SceneBackdrop'
 import { ScreenHeader, Stripes } from '@/components/ui/ScreenHeader'

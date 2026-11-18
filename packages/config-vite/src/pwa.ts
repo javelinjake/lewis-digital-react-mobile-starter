@@ -12,6 +12,8 @@ export interface PwaConfigOptions {
   iconSource?: string | false
   /** Manifest orientation. Defaults to `portrait`. */
   orientation?: 'portrait' | 'landscape' | 'any'
+  /** Largest file the service worker may precache. Workbox defaults to 2 MiB. Apps with a WASM bundle raise it. */
+  maxPrecacheFileSizeBytes?: number
 }
 
 const ONE_DAY = 60 * 60 * 24
@@ -68,6 +70,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
     devEnabled = false,
     iconSource = 'public/pwa-icon.svg',
     orientation = 'portrait',
+    maxPrecacheFileSizeBytes,
   } = options
 
   return VitePWA({
@@ -90,6 +93,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
       : { preset: 'minimal-2023', image: iconSource },
     workbox: {
       globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      ...(maxPrecacheFileSizeBytes ? { maximumFileSizeToCacheInBytes: maxPrecacheFileSizeBytes } : {}),
       cleanupOutdatedCaches: true,
       clientsClaim: true,
       navigateFallbackDenylist: [/^\/api\//],
