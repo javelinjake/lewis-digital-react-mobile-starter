@@ -31,8 +31,8 @@ best, details, replay, garage).
 | CI command `turbo run lint ts test:unit architecture:check build` for the whole monorepo | 63 of 63 tasks pass. App lint: 0 errors, 15 advisory warnings (see gaps) |
 | `pnpm test:native-tooling` | 5 of 5 pass (includes the new landscape orientation cases) |
 | Unit tests (vitest, jsdom, real Rapier WASM) | 225 pass in 27 files |
-| e2e, phone profile (Pixel 7 landscape emulation), production bundle | 31 of 31 pass, plus journey and offline: 33 of 33 |
-| e2e, tablet profile (iPad Pro 11 landscape emulation, Chromium) | see "Final status" below |
+| e2e, phone profile (Pixel 7 landscape emulation), production bundle | 33 of 33 pass (includes journey and offline), plus AC04 run on its own: 34 of 34 |
+| e2e, tablet profile (iPad Pro 11 landscape emulation, Chromium, device pixel ratio 1) | 33 of 33 pass (10.7 minutes). AC04 was not run on the tablet profile |
 
 **Platforms actually used:** headless Chromium on Linux with software WebGL (SwiftShader), emulating phone and tablet landscape
 viewports with touch. Node 22, Three.js 0.187, Rapier 0.21 (WASM), React 19, Vite 7. **No real phone or tablet, no iOS or Android
@@ -63,7 +63,7 @@ Status words: **Verified** = automated test passed; **Seen** = also reviewed in 
 | AC01 | Verified | e2e: Try a car reaches driving; Build a car, starter, builder; journey spec; drive spec |
 | AC02 | Verified, seen | builder e2e AC02: touch placement, rotate, recolour, remove |
 | AC03 | Verified | builder e2e AC03 and editor store tests: customised car survives Easy/Free switching |
-| AC04 | See final status | Catalogue test (36 definitions, unique, placeable) passes. The e2e that places every part twice is slow on software WebGL |
+| AC04 | Verified (phone profile) | Catalogue test (36 definitions, unique, placeable) passes. e2e AC04 chooses and places every one of the 36 parts twice with touch taps (2.7 minutes on software WebGL). Not run on the tablet profile |
 | AC05 | Verified | stress tests: 1, 2, 3, 4, 6 and 8 wheel cars and a tall car compile and simulate stably; warnings, not blocks |
 | AC06 | Verified | unit and e2e: invalid placement shows a reason and commits nothing |
 | AC07 | Verified | unit: mirror pair and paired wheel swap are one transaction and undo/redo in one step |
@@ -124,4 +124,22 @@ Status words: **Verified** = automated test passed; **Seen** = also reviewed in 
 
 ## Final status
 
-See the end of this file for the last tablet and AC04 results.
+| Item | Result |
+| --- | --- |
+| Unit tests | 225 of 225 pass |
+| CI command for the whole monorepo | 63 of 63 tasks pass |
+| e2e phone profile | 33 of 33 pass, plus AC04 (34 of 34 run) |
+| e2e tablet profile | 33 of 33 pass at device pixel ratio 1 |
+| AC04 e2e | Passes on the phone profile. Not run on the tablet profile |
+| AC30 (real-device performance), AC31 (child usability) | Not verified. No device or child session was available |
+
+Notes from the last verification pass:
+
+- The tablet profile runs at device pixel ratio 1. At ratio 2 the software WebGL renderer in the test container stalls on the tablet-sized
+  canvas. This is a limit of the test machine, not a measured limit of the game.
+- The first AC04 run failed twice, both times from the test and not the game. The test placed wheel mounts loose, where the camera
+  could not see them, and then needed a hub ring on screen. The test now fits mounts onto the chassis and steps through the camera
+  presets when no ring is in view.
+- That run did show something for the usability session (AC31): the builder camera stays where the player left it as the car grows, so a
+  new mount or wheel can land out of view until the player moves the camera or taps a view preset. Rings and wheels place correctly once
+  they are in view. An automatic re-frame after a placement would help young players and has not been built.

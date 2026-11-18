@@ -41,6 +41,23 @@ async function tapRing(page: Page, pick: 'middle' | 'first' = 'middle') {
     await confirm.tap()
 }
 
+/** Number of snap rings on screen. If a new piece sits out of view, step through the camera presets to bring one into view. */
+async function visibleRings(page: Page, reframe = false): Promise<number> {
+  const count = () => page.evaluate(() => window.__brickBuilder!.rings().length)
+  await page.waitForTimeout(900)
+  let n = await count()
+  if (n > 0 || !reframe)
+    return n
+  for (const view of ['threeQuarter', 'side', 'top', 'front']) {
+    await page.getByTestId(`view-${view}`).tap()
+    await page.waitForTimeout(1100)
+    n = await count()
+    if (n > 0)
+      return n
+  }
+  return n
+}
+
 async function tapPart(page: Page, id: string) {
   let point = await page.evaluate(i => window.__brickBuilder!.partPoint(i), id)
   if (!point) {
@@ -219,17 +236,18 @@ test.describe('Builder', () => {
       for (let copy = 0; copy < 2; copy++) {
         const before = (await state(page)).instances
         if (def.category === 'wheels') {
-          let rings = await page.evaluate(() => window.__brickBuilder!.rings().length)
-          if (rings === 0) {
+          // Wheels only go on a hub. If no free hub is in view, fit a wheel mount onto the chassis first.
+          if (await visibleRings(page, true) === 0) {
             await chooseCategoryPart(page, 'wheel_mount')
-            await page.getByTestId('place-loose').tap()
+            expect(await visibleRings(page, true), 'chassis has a free spot for a wheel mount').toBeGreaterThan(0)
+            await tapRing(page)
             await expect.poll(async () => (await state(page)).instances).toBe(before + 1)
             await chooseCategoryPart(page, def.id)
-            rings = 1
+            expect(await visibleRings(page, true), `${def.id} hub in reach after fitting a mount`).toBeGreaterThan(0)
           }
           const need = (await state(page)).instances
           await tapRing(page)
-          await expect.poll(async () => (await state(page)).instances, { message: `${def.id} copy ${copy + 1}` }).toBeGreaterThan(need - 1)
+          await expect.poll(async () => (await state(page)).instances, { message: `${def.id} copy ${copy + 1}` }).toBe(need + 1)
           expect((await state(page)).defs.filter(d => d === def.id).length).toBeGreaterThanOrEqual(copy + 1)
         }
         else {
