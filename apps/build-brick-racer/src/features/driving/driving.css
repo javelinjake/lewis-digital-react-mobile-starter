@@ -165,7 +165,7 @@
 
 .dr-badges {
   position: absolute;
-  top: calc(var(--edge-t) + 64px);
+  bottom: calc(var(--edge-b) + 58px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -195,7 +195,7 @@
 .dr-hud-layer .dr-cue {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--edge-b) + 62px);
+  top: calc(var(--edge-t) + 58px);
   transform: translateX(-50%);
   width: min(320px, 42vw);
   padding: 6px 12px 8px;
@@ -255,7 +255,7 @@
 
 .dr-message {
   position: absolute;
-  top: calc(var(--edge-t) + 100px);
+  top: calc(var(--edge-t) + 150px);
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 16px;

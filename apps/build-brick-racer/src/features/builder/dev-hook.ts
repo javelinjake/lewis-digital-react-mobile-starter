@@ -1,5 +1,5 @@
 /**
- * Development-only test hook (never present in production builds). It lets end-to-end tests seed cars through
+* Test hook for development and explicit end-to-end builds (VITE_E2E=true); never present in normal production builds. It lets end-to-end tests seed cars through
  * the app's own garage store and read editor state and snap-ring screen positions. It cannot change a car.
  */
 import type { NewCarKind } from '@/stores/garage.store'
@@ -29,11 +29,15 @@ interface BuilderTestHook {
     forward: string | null
     wheelGroups: number
     loose: number
-    colourOf: (id: string) => string | null
     revision: string | null
   }
   rings: () => RingInfo[]
+  colourOf: (id: string) => string | null
+  /** Fallback when a part is fully hidden from the camera. */
+  select: (ids: string[]) => void
   ringCount: () => number
+  /** Client point where a tap would pick the part, or null if hidden. */
+  partPoint: (id: string) => { x: number, y: number } | null
 }
 
 declare global {
@@ -44,13 +48,15 @@ declare global {
 
 let rings: () => RingInfo[] = () => []
 let ringCount: () => number = () => 0
+let part: (id: string) => { x: number, y: number } | null = () => null
 
-export function registerRings(fn: (() => RingInfo[]) | null, count: (() => number) | null): void {
+export function registerRings(fn: (() => RingInfo[]) | null, count: (() => number) | null, partFn: ((id: string) => { x: number, y: number } | null) | null = null): void {
   rings = fn ?? (() => [])
   ringCount = count ?? (() => 0)
+  part = partFn ?? (() => null)
 }
 
-if (import.meta.env.DEV && typeof window !== 'undefined') {
+if ((import.meta.env.DEV || import.meta.env.VITE_E2E === 'true') && typeof window !== 'undefined') {
   window.__brickBuilder = {
     seed: async kind => (await useGarageStore.getState().create(kind))?.carId ?? null,
     state: () => {
@@ -69,11 +75,21 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
         forward: doc?.forward ?? null,
         wheelGroups: doc?.wheelGroups.length ?? 0,
         loose: 0,
-        colourOf: id => doc?.instances.find(i => i.id === id)?.colour ?? null,
         revision: doc?.revisionId ?? null,
       }
     },
-    rings: () => rings(),
+    colourOf: id => useEditorStore.getState().doc?.instances.find(i => i.id === id)?.colour ?? null,
+    select: ids => useEditorStore.getState().select(ids),
+    rings: () => rings().filter((r) => {
+      const el = document.elementFromPoint(r.x, r.y)
+      return el?.tagName === 'CANVAS'
+    }),
     ringCount: () => ringCount(),
+    partPoint: (id) => {
+      const p = part(id)
+      if (!p)
+        return null
+      return document.elementFromPoint(p.x, p.y)?.tagName === 'CANVAS' ? p : null
+    },
   }
 }

@@ -257,6 +257,11 @@
     padding: 2px 10px;
   }
 
+  .results-notes {
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+
   .details-table th,
   .details-table td {
     padding: 4px 8px;

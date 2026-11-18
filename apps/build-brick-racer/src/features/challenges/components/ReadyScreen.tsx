@@ -88,7 +88,7 @@ export function ReadyScreen() {
                     <Stripes count={3} />
                   </div>
                 )}
-                <CarViewport doc={doc} thumbnail={activeId ? thumbs[activeId] : undefined} className="absolute inset-0" />
+                <CarViewport doc={doc} thumbnail={activeId ? thumbs[activeId] : undefined} className="absolute inset-0" zoom={1.12} />
                 {warnings.length > 0 && (
                   <div className="ready-heads br-panel" role="status">
                     <button type="button" className="flex w-full items-center gap-2 text-left font-bold" aria-expanded={headsOpen} onClick={() => setHeadsOpen(v => !v)}>

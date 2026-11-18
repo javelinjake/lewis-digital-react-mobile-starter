@@ -15,8 +15,8 @@ export interface ProjectedAnchor {
 
 /** Touch-friendly pick radius (CSS pixels). */
 export const PICK_RADIUS = 28
-/** Rings closer than this on screen count as stacked or obscured. */
-export const STACK_RADIUS = 16
+/** Rings closer than this on screen (but at different depths) count as stacked or obscured. Neighbouring studs are not stacked. */
+export const STACK_RADIUS = 5
 
 const dist = (a: { x: number, y: number }, b: { x: number, y: number }) => Math.hypot(a.x - b.x, a.y - b.y)
 

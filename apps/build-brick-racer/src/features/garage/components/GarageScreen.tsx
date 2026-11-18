@@ -144,13 +144,15 @@ export function GarageScreen() {
                   </div>
                 </div>
               )}
-              <CarViewport doc={doc} thumbnail={selectedId ? thumbs[selectedId] : undefined} className="absolute inset-0" />
+              <CarViewport doc={doc} thumbnail={selectedId ? thumbs[selectedId] : undefined} className="absolute inset-0" zoom={1.15} />
             </div>
 
             <aside className="garage-side br-scroll" aria-label="Your other cars">
               {others.map(c => (
                 <button key={c.id} type="button" className="br-card garage-thumb" onClick={() => select(c.id)} aria-label={`Show ${c.name}`}>
-                  <img src={thumbs[c.id] ?? ''} alt="" draggable={false} onError={e => (e.currentTarget.style.visibility = 'hidden')} />
+                  {thumbs[c.id]
+                    ? <img src={thumbs[c.id]} alt="" draggable={false} />
+                    : <span className="garage-thumb-empty" aria-hidden="true"><Icon name="car" size={36} /></span>}
                   <span className="br-caption">{c.name}</span>
                 </button>
               ))}

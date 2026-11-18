@@ -19,7 +19,7 @@ import { cameraPosition, EMPTY_BOUNDS, framePreset, lerpOrbit, orbitBy, panBy, z
 import { PICK_RADIUS } from '@/features/builder/logic/picking'
 import { catalog } from '@/game/catalog/catalog'
 import { buildBuilderModel, createFloorMat, createSceneKit, disposeObject } from '@/render'
-import { idle, measureModel } from './model-bounds'
+import { findPickablePoint, idle, measureModel } from './model-bounds'
 import { PlacementLayer } from './placement-layer'
 import { createContactOverlay, createForwardArrow, createHighlight } from './scene-overlays'
 
@@ -193,6 +193,13 @@ export class BuilderViewport {
 
   ringCount(): number {
     return this.layer.ringCount()
+  }
+
+  /** Client-coordinate point where tapping picks the part (for automated tests). */
+  partScreenPosition(id: string): { x: number, y: number } | null {
+    const p = findPickablePoint(this.model, this.kit.camera, this.canvas.clientWidth, this.canvas.clientHeight, id)
+    const rect = this.canvas.getBoundingClientRect()
+    return p ? { x: rect.left + p.x, y: rect.top + p.y } : null
   }
 
   dispose(): void {

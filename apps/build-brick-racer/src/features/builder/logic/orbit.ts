@@ -75,7 +75,7 @@ export function framePreset(kind: ViewPreset, bounds: Bounds, forward: Forward, 
   const vFov = (fovDeg * Math.PI) / 180
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect)
   const fit = Math.min(vFov, hFov)
-  const distance = clamp((size / 2 / Math.sin(fit / 2)) * 0.8, 0.55, DIST_MAX)
+  const distance = clamp((size / 2 / Math.sin(fit / 2)) * 0.78, 0.5, DIST_MAX)
   let dir: V3
   let pitch: number
   switch (kind) {
@@ -95,7 +95,9 @@ export function framePreset(kind: ViewPreset, bounds: Bounds, forward: Forward, 
       dir = [f[0] * 0.9 + l[0] * 0.8, 0, f[2] * 0.9 + l[2] * 0.8]
       pitch = 0.5
   }
-  return { target, yaw: Math.atan2(dir[0], dir[2]), pitch, distance }
+  // Aim a little above the car so it sits low in the frame, clear of the banners along the top edge.
+  const lifted: V3 = [target[0], target[1] + size * 0.07, target[2]]
+  return { target: lifted, yaw: Math.atan2(dir[0], dir[2]), pitch, distance }
 }
 
 function wrap(a: number) {

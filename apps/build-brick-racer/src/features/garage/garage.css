@@ -183,3 +183,13 @@
 .starter-card .br-caption {
   font-size: clamp(0.95rem, 2.8vmin, 1.2rem);
 }
+
+.garage-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  color: var(--br-muted);
+  background: linear-gradient(180deg, rgba(40, 90, 150, 0.35), rgba(8, 22, 44, 0.6));
+}

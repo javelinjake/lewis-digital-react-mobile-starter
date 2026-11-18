@@ -17,8 +17,10 @@
 
 .ch-card.br-card {
   --cut: 16px;
-  flex: 1 0 clamp(168px, 24vw, 280px);
+  flex: 1 0 clamp(168px, 18.5vw, 280px);
   max-width: 340px;
+  max-height: min(100%, 440px);
+  align-self: center;
   min-height: 0;
   scroll-snap-align: start;
 }

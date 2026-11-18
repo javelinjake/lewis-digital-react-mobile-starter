@@ -71,7 +71,7 @@
   justify-content: space-between;
   gap: 10px;
   height: 40px;
-  width: 112px;
+  width: 132px;
   flex: 0 0 auto;
   padding: 0 6px;
   margin: 0;
@@ -95,8 +95,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 8px;
   border: 2px solid rgba(140, 240, 255, 0.7);
   background: rgba(8, 22, 44, 0.7);

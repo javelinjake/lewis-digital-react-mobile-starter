@@ -70,13 +70,13 @@ describe('orbit camera maths', () => {
 describe('screen-space picking and cycling', () => {
   const anchors = [
     { index: 0, x: 100, y: 100, depth: 5 },
-    { index: 1, x: 108, y: 104, depth: 3 },
+    { index: 1, x: 103, y: 102, depth: 3 },
     { index: 2, x: 300, y: 100, depth: 4 },
   ]
 
   it('picks the nearest ring within the touch radius and nothing outside it', () => {
     expect(nearestAnchor(anchors, { x: 99, y: 99 })!.index).toBe(0)
-    expect(nearestAnchor(anchors, { x: 112, y: 106 })!.index).toBe(1)
+    expect(nearestAnchor(anchors, { x: 106, y: 105 })!.index).toBe(1)
     expect(nearestAnchor(anchors, { x: 200, y: 200 })).toBeNull()
   })
 

@@ -81,7 +81,7 @@ export function ViewportPane(props: ViewportProps) {
     viewport.setInitialPose(saved ? fromPose(saved) : null)
     setError(null)
     setCtrl(viewport)
-    registerRings(() => viewport.ringScreenPositions(), () => viewport.ringCount())
+    registerRings(() => viewport.ringScreenPositions(), () => viewport.ringCount(), id => viewport.partScreenPosition(id))
     return () => {
       registerRings(null, null)
       setCtrl(null)
