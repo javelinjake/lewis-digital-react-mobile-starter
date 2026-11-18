@@ -124,7 +124,10 @@ describe('forward direction and wheel orientation', () => {
 
   it('re-derives default steering to the new front axle when the forward direction changes', () => {
     const { c, doc } = axleCar()
-    const frontZ = (d: CarDocument) => compileVehicle(d, catalog).ok ? (compileVehicle(d, catalog) as { spec: { wheels: Array<{ steering: boolean, pos: number[] }> } }).spec.wheels.filter(w => w.steering).map(w => w.pos[2]!) : []
+    const frontZ = (d: CarDocument): number[] => {
+      const compiled = compileVehicle(d, catalog)
+      return compiled.ok ? compiled.spec.wheels.filter(w => w.steering).map(w => w.pos[2]) : []
+    }
     expect(frontZ(doc).every(z => z > 0)).toBe(true)
     const flipped = ok(setForward(doc, 'z-', c)).doc
     expect(frontZ(flipped).length).toBeGreaterThan(0)
