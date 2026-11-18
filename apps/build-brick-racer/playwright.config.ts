@@ -29,7 +29,9 @@ export default defineConfig({
   use: { baseURL: externalBase ?? `http://127.0.0.1:${port}`, trace: 'off' },
   projects: [
     { name: 'phone', use: { ...devices['Pixel 7 landscape'], launchOptions } },
-    { name: 'tablet', use: { ...devices['iPad Pro 11 landscape'], browserName: 'chromium', defaultBrowserType: 'chromium', launchOptions } },
+    // Software WebGL renders every pixel on the CPU, so the tablet profile runs at a device pixel ratio of 1 to keep input
+    // responsive. Screenshots for visual review are taken separately at 2x.
+    { name: 'tablet', use: { ...devices['iPad Pro 11 landscape'], browserName: 'chromium', defaultBrowserType: 'chromium', deviceScaleFactor: 1, launchOptions } },
   ],
   webServer: externalBase
     ? undefined
