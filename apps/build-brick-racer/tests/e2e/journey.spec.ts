@@ -49,12 +49,12 @@ test('garage -> build -> challenge -> drive -> results -> details -> replay, fro
   await page.getByRole('button', { name: /Details/i }).click()
   await expect(page).toHaveURL(/\/details$/)
   await expect(page.getByText(/Top speed/i).first()).toBeVisible()
-  await page.getByRole('button', { name: /Back to results/i }).click()
+  await page.getByRole('button', { name: /Back to results/i }).first().click()
 
   // The replay of that exact run opens.
   await page.getByRole('button', { name: /Watch replay/i }).click()
   await expect(page).toHaveURL(/\/replay\/.+/)
-  await expect(page.getByRole('button', { name: /Back to results/i })).toBeVisible({ timeout: 60_000 })
+  await expect(page.getByRole('button', { name: /Back to results/i }).first()).toBeVisible({ timeout: 60_000 })
 
   // Back to the garage: the car and its thumbnail are saved there and survive a reload.
   await page.goto('/')
