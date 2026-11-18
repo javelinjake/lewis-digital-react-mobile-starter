@@ -440,7 +440,7 @@ export class DriveEngine {
       throttleOn: this.lastRaw.throttle > 0.05,
     })
     void view
-    const suggest = this.session.run?.resetSuggested ?? false
+    const suggest = this.session.resetSuggested
     if (suggest !== this.resetPrompt) {
       this.resetPrompt = suggest
       this.o.callbacks.onResetPrompt(suggest)

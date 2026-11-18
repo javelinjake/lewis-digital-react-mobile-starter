@@ -20,6 +20,7 @@ import { PICK_RADIUS } from '@/features/builder/logic/picking'
 import { catalog } from '@/game/catalog/catalog'
 import { buildBuilderModel, createFloorMat, createSceneKit, disposeObject } from '@/render'
 import { findPickablePoint, idle, measureModel } from './model-bounds'
+import { FramePacer } from './frame-pacer'
 import { PlacementLayer } from './placement-layer'
 import { createContactOverlay, createForwardArrow, createHighlight } from './scene-overlays'
 
@@ -50,7 +51,6 @@ export class BuilderViewport {
   private highlighted: ReadonlySet<string> = new Set()
   private bounds: Bounds = EMPTY_BOUNDS
   private groundY = 0
-
   private orbit: OrbitState
   private tween: { from: OrbitState, to: OrbitState, start: number, duration: number } | null = null
   private framed = false
@@ -62,8 +62,8 @@ export class BuilderViewport {
   private moved = false
   private confirmArmed = false
   private pinch: { dist: number, mid: { x: number, y: number }, orbit: OrbitState } | null = null
-
   private raf = 0
+  private readonly pacer = new FramePacer()
   private cancelRebuild: (() => void) | null = null
   private settleTimer: ReturnType<typeof setTimeout> | null = null
   private disposed = false
@@ -295,6 +295,7 @@ export class BuilderViewport {
   }
 
   private invalidate(): void {
+    this.pacer.mark()
     if (this.disposed || this.raf)
       return
     this.raf = requestAnimationFrame(this.frame)
@@ -304,6 +305,12 @@ export class BuilderViewport {
     this.raf = 0
     if (this.disposed)
       return
+    if (!this.pacer.shouldDraw(now, this.tween !== null)) {
+      this.raf = requestAnimationFrame(this.frame)
+      return
+    }
+    if (this.pacer.lagging && this.kit.quality === 'high')
+      this.kit.setQuality('low')
     if (this.tween) {
       const t = Math.min(1, (now - this.tween.start) / this.tween.duration)
       this.orbit = lerpOrbit(this.tween.from, this.tween.to, t * t * (3 - 2 * t))
@@ -320,6 +327,8 @@ export class BuilderViewport {
     const pulsing = !this.reducedMotion && (this.layer.animating || this.issues.size > 0 || this.selection.size > 0)
     if (this.tween !== null || pulsing)
       this.raf = requestAnimationFrame(this.frame)
+    else
+      this.pacer.idle()
   }
 
   // ---- Pointer gestures ------------------------------------------------------------------------------
