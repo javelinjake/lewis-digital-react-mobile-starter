@@ -118,11 +118,11 @@ test.describe('challenges and ready (AC17)', () => {
     await page.getByRole('button', { name: /^Drive/ }).click()
     await page.getByRole('button', { name: /Next/ }).click()
     await page.getByLabel('Steering help').uncheck()
-    await page.getByLabel('Camera').selectOption('smart')
+    await page.getByRole('combobox', { name: 'Camera' }).selectOption('smart')
     await page.getByLabel('Lock camera behind car').check()
     await page.goto('/settings')
     await expect(page.getByLabel('Steering help')).not.toBeChecked()
-    await expect(page.getByLabel('Camera')).toHaveValue('smart')
+    await expect(page.getByRole('combobox', { name: 'Camera' })).toHaveValue('smart')
   })
 })
 
@@ -158,7 +158,7 @@ test.describe('results and details (AC23)', () => {
     await expect(page.getByTestId('car-table')).toContainText('Wheels')
     await page.getByRole('tab', { name: 'Tests' }).click()
     await expect(page.getByTestId('tests-table')).toContainText('Not tested yet')
-    await page.getByRole('button', { name: /Back to results/ }).click()
+    await page.getByText('Back to results', { exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/results/${ids.b}$`))
 
     // An incomplete run is honest: no time, a clear status, progress kept.
@@ -182,10 +182,10 @@ test.describe('settings (AC29)', () => {
     await page.getByLabel('Left-handed').check()
     await page.getByLabel('Reduced motion').check()
     await page.getByLabel('Mute all sound').check()
+    // React tracks input values, so use the native setter the way a real slider drag does.
     await page.getByLabel('Control size').evaluate((el: HTMLInputElement) => {
-      el.value = '1.35'
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(el, '1.35')
       el.dispatchEvent(new Event('input', { bubbles: true }))
-      el.dispatchEvent(new Event('change', { bubbles: true }))
     })
     await expect(page.getByTestId('control-preview')).toHaveAttribute('data-lefty', 'true')
 
