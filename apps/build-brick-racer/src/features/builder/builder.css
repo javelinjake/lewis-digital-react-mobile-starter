@@ -184,6 +184,8 @@
   font-weight: 800;
   font-size: 0.85rem;
   color: #fff;
+  background: rgba(54, 214, 255, 0.14);
+  border: 1.5px solid rgba(140, 240, 255, 0.5);
 }
 
 .bd-view-btn:active { background: rgba(54, 214, 255, 0.45); }
@@ -532,6 +534,21 @@
   font-size: 0.82rem;
   --cut: 8px;
 }
+
+.bd-picked {
+  flex: 0 1 auto;
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  color: #05243f;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--br-cyan);
+}
+
+.bd-picked + .bd-collapse { margin-left: 0; }
 
 .bd-collapse {
   flex: 0 0 auto;

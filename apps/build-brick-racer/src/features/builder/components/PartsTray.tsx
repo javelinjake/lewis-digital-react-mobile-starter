@@ -29,6 +29,7 @@ export function PartsTray({ layout, category, onCategory, partId, onPart }: Part
   const [collapsed, setCollapsed] = useState(false)
   const parts = useMemo(() => catalog.byCategory(category), [category])
   const showCards = layout === 'rail' || !collapsed
+  const pickedLabel = partId ? catalog.get(partId)?.label : undefined
 
   return (
     <section className="bd-tray br-panel" data-layout={layout} aria-label="Parts tray" data-testid="tray">
@@ -50,6 +51,7 @@ export function PartsTray({ layout, category, onCategory, partId, onPart }: Part
             <span>{CATEGORY_LABELS[c]}</span>
           </button>
         ))}
+        {layout === 'bottom' && collapsed && pickedLabel && <span className="bd-picked" data-testid="picked-part">{pickedLabel}</span>}
         {layout === 'bottom' && (
           <button type="button" className="bd-collapse" aria-label={collapsed ? 'Show parts' : 'Hide parts'} aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}>
             <Icon name={collapsed ? 'arrow-up' : 'arrow-down'} size={20} />
@@ -68,7 +70,13 @@ export function PartsTray({ layout, category, onCategory, partId, onPart }: Part
               className={`bd-card ${def.id === partId ? 'is-selected' : ''}`}
               data-part-id={def.id}
               data-testid={`part-${def.id}`}
-              onClick={() => onPart(def.id === partId ? null : def.id)}
+              onClick={() => {
+                const next = def.id === partId ? null : def.id
+                onPart(next)
+                // On phones the 3D view needs the room while placing: keep the categories, tuck the cards away.
+                if (next && layout === 'bottom')
+                  setCollapsed(true)
+              }}
             >
               <PartThumb def={def} size={layout === 'rail' ? 48 : 38} />
               <span className="bd-card-label">{def.label}</span>

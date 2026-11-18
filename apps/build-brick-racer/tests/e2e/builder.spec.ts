@@ -34,6 +34,11 @@ async function tapRing(page: Page, pick: 'middle' | 'first' = 'middle') {
   rings.sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy))
   const r = pick === 'first' ? rings[0]! : rings[Math.min(rings.length - 1, Math.floor(rings.length / 3))]!
   await page.touchscreen.tap(r.x, r.y)
+  // Rings that overlap on screen arm the "which spot?" control instead of placing straight away.
+  await page.waitForTimeout(500)
+  const confirm = page.getByTestId('place-here')
+  if (await confirm.isVisible())
+    await confirm.tap()
 }
 
 async function tapPart(page: Page, id: string) {

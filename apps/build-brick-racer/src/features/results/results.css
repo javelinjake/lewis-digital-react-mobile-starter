@@ -221,7 +221,8 @@
   width: 100%;
   flex: 1 1 0;
   min-height: 0;
-  object-fit: cover;
+  object-fit: contain;
+  background: rgba(8, 24, 52, 0.55);
   border: 2px solid rgba(140, 240, 255, 0.6);
 }
 
