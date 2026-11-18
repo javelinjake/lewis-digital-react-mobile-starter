@@ -514,6 +514,17 @@
   min-height: 32px;
   display: flex;
   align-items: center;
+  gap: 6px;
+  list-style: none;
+}
+
+.dr-keys summary::before {
+  content: '\25B8';
+  font-size: 0.9em;
+}
+
+.dr-keys[open] summary::before {
+  content: '\25BE';
 }
 
 .dr-keys ul {

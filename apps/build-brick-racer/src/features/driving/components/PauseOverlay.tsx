@@ -72,7 +72,7 @@ export function PauseOverlay({ onResume, onRestart, onChangeCar, onGarage, onAss
                   </button>
                 </div>
                 <details className="dr-keys">
-                  <summary>Keyboard</summary>
+                  <summary>Keyboard shortcuts</summary>
                   <ul>
                     {KEY_HELP.map(k => (
                       <li key={k.action}>
