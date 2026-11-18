@@ -60,3 +60,4 @@ apps/*/android/keystore.properties
 
 apps/*/.trapeze
 apps/*/dist-e2e
+apps/*/dist-android
