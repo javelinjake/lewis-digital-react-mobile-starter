@@ -117,7 +117,9 @@ Status words: **Verified** = automated test passed; **Seen** = also reviewed in 
   child-usability session (AC31).
 - Audio and haptics are unit-tested for their maths only; nothing audible was checked.
 - IndexedDB in a WebView can be cleared by the operating system under storage pressure. Cars are not mirrored to native file storage.
-- Native projects were not generated (`cap add ios`/`cap add android` need Xcode or the Android SDK).
+- Android: the `android/` project is generated and a debug APK builds (12.6 MB, debug-signed, landscape). It has **not been installed or run on a
+  device or emulator**. No iOS project was generated (needs Xcode). Launcher icon and splash are Capacitor defaults. The manifest asks for notification
+  permissions through the unused push plugin; remove it before store submission. See `docs/build-brick-racer.md`.
 - 15 advisory lint warnings (`set-state-in-effect`) remain where components sync with an external viewport controller.
 - Two items from an independent audit are accepted as design: moving a car's root piece away selects the wheeled assembly instead; a one-wheel car
   can finish Plank Jump because the rule asks for wheel contact, not two wheels.
