@@ -11,7 +11,7 @@ export { CALENDAR_DAYS, claimAlbumSet, claimCalendar, claimFreePack, claimGoal, 
 export { collectTray, finishPlay, finishWarmup, hotCabinet, type PlayResult, startPlay, startWarmup } from './flow-arcade'
 export { energyAt, energyMax, nextEnergyAt, spendEnergy } from './energy'
 export { collectStadium, stadiumStage, upgradeStadium } from './flow-stadium'
-export { type Bar, KEEPY_STEPS_PER_SECOND, type KeepyResult, keepyMax, keepyScore, type KeepySim, kickPoints, kickRounds, type KickScore, markerAt, newKeepy, nextKickGolden, runKeepy, scoreKick, shareOf, stepKeepy, warmupBar, warmupZone } from './minigames'
+export { type Bar, KEEPY_STEPS_PER_SECOND, type KeepyResult, keepyMax, keepyScore, type KeepySim, keeperAt, kickPoints, kickRounds, type KickScore, markerAt, newKeepy, nextKickGolden, type PenaltyOutcome, type PenaltyRound, type PenaltyScore, penaltyRounds, penaltyShot, type RoundKind, runKeepy, scoreKick, scorePenalties, shareOf, stepKeepy, targetAt, warmupBar, warmupZone } from './minigames'
 export { arcadePack, buyPack, type DecideResult, decidePack, NEW_CARD_PREFIX, openPack, usedToday } from './flow-packs'
 export { addXp, describeReward, grantReward, maxXp, passTiers, pickGoals, recordProgress, rollDaily, rollSeason, seasonOf, tierReached } from './progress'
 export { type CommentaryInput, commentate, type MatchMoment, type MomentKind } from './commentary'

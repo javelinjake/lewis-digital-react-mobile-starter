@@ -6,7 +6,7 @@ import { CABINETS } from './club-state'
 import { spendEnergy } from './energy'
 import { GameRuleError } from './errors'
 import { warmupBonus } from './match'
-import { KEEPY_STEPS_PER_SECOND, keepyMax, runKeepy, scoreKick, shareOf, warmupZone } from './minigames'
+import { KEEPY_STEPS_PER_SECOND, keepyMax, runKeepy, scoreKick, scorePenalties, shareOf, warmupZone } from './minigames'
 import { addXp, recordProgress } from './progress'
 
 /** A play that was never finished is stopped after this long. */
@@ -82,7 +82,7 @@ function checkTiming(ticket: Ticket, lastTapMs: number, ctx: FlowContext) {
     throw new GameRuleError('too-fast', 'That play was faster than a play can be.')
 }
 
-/** Scores a finished play from its taps and pays it. Kick Timer: `taps` are milliseconds into each round. Keepy-Uppy: the 60 Hz steps tapped on. */
+/** Scores a finished play from its taps and pays it. Kick Timer and Penalty Shootout: `taps` are milliseconds into each round. Keepy-Uppy: the 60 Hz steps tapped on. */
 export function finishPlay(ctx: FlowContext, cabinet: Cabinet, taps: readonly number[]): FlowResult<PlayResult> {
   const { state, config } = ctx
   const ticket = state.ticket
@@ -94,16 +94,16 @@ export function finishPlay(ctx: FlowContext, cabinet: Cabinet, taps: readonly nu
 
   let score: number
   let max: number
-  if (cabinet === 'kick') {
+  if (cabinet === 'kick' || cabinet === 'pens') {
     if (taps.some(tap => tap < minTapGapMs))
       throw new GameRuleError('taps', 'A kick cannot be taken that quickly.')
     try {
-      const result = scoreKick(ticket.seed, taps, config)
+      const result = cabinet === 'kick' ? scoreKick(ticket.seed, taps, config) : scorePenalties(ticket.seed, taps, config)
       score = result.total
       max = result.max
     }
     catch {
-      throw new GameRuleError('taps', 'A Kick Timer play has one tap for each kick.')
+      throw new GameRuleError('taps', 'That play has one tap for each kick.')
     }
     checkTiming(ticket, taps.reduce((sum, tap) => sum + tap, 0), ctx)
   }

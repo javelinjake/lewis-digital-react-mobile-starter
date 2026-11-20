@@ -1,18 +1,15 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
-import { energyAt, hotCabinet, keepyMax, pendingTrayTokens } from '@ld/pixel-pitch-core'
+import { energyAt, hotCabinet, pendingTrayTokens } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { Link } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
-import { CABINETS } from '../lib/cabinets'
+import { CABINETS, topScore } from '../lib/cabinets'
 import { useServerNow } from '../lib/server-clock'
 import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
 import { EnergyBar } from './EnergyBar'
 import { Icon } from './sprites'
-
-/** What a perfect play scores in each game, for "best 9 / 15". */
-const topScore = (cabinet: string, keepy: number) => (cabinet === 'keepy' ? keepy : 15)
 
 /** The arcade: one energy bar for every game, one token tray, and a game of the day that pays extra. */
 export function ArcadeScreen({ game }: { game: GameResponse }) {
@@ -59,7 +56,7 @@ export function ArcadeScreen({ game }: { game: GameResponse }) {
               {isHot ? <span className="bg-warning px-2 text-warning-content">{`Today +${bonus}% tokens`}</span> : null}
             </div>
             <span className="text-muted">{blurb}</span>
-            <span className="text-lg tabular-nums">{best > 0 ? `Best: ${best} / ${topScore(cabinet, keepyMax(config))}` : 'Not played yet'}</span>
+            <span className="text-lg tabular-nums">{best > 0 ? `Best: ${best} / ${topScore(cabinet, config)}` : 'Not played yet'}</span>
             {hasEnergy
               ? <Link to={`/arcade/${cabinet}`} className="btn btn-primary min-h-12 font-display text-xs">Play · 1 energy</Link>
               : (

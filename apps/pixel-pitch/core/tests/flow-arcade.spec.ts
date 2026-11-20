@@ -1,7 +1,8 @@
 import type { ClubState, FlowContext } from '../src'
 import { describe, expect, it } from 'vitest'
-import { CABINETS, collectStadium, collectTray, DEFAULT_CONFIG, energyAt, finishPlay, finishWarmup, generateCatalogue, hotCabinet, isGameRuleError, keepyMax, kickRounds, markerAt, newClubState, pendingStadiumCoins, startPlay, startWarmup, upgradeStadium, warmupBar } from '../src'
+import { CABINETS, collectStadium, collectTray, DEFAULT_CONFIG, energyAt, finishPlay, finishWarmup, generateCatalogue, hotCabinet, isGameRuleError, keepyMax, kickRounds, markerAt, newClubState, pendingStadiumCoins, startPlay, startWarmup, targetAt, upgradeStadium, warmupBar } from '../src'
 import { stadiumStage } from '../src/flow-stadium'
+import { penaltyRounds, penaltyShot } from '../src'
 import { newKeepy, stepKeepy } from '../src/minigames'
 
 /** Payout tests run with no hot cabinet, so a play pays the plain amount; the hot cabinet has its own test. */
@@ -32,10 +33,21 @@ function perfectKickTaps(seed: string) {
   return kickRounds(seed, config).map((bar) => {
     let best = 150
     for (let ms = 150; ms < 4000; ms++) {
-      if (Math.abs(markerAt(bar, ms) - bar.centre) < Math.abs(markerAt(bar, best) - bar.centre))
+      if (Math.abs(markerAt(bar, ms) - targetAt(bar, ms)) < Math.abs(markerAt(bar, best) - targetAt(bar, best)))
         best = ms
     }
     return best
+  })
+}
+
+/** The millisecond in each penalty at which the shot goes in the corner. */
+function perfectPenaltyTaps(seed: string) {
+  return penaltyRounds(seed, config).map((round) => {
+    for (let ms = 150; ms < 12_000; ms++) {
+      if (penaltyShot(round, ms, config).outcome === 'corner')
+        return ms
+    }
+    throw new Error('No corner shot')
   })
 }
 
@@ -181,7 +193,7 @@ describe('finishing a Kick Timer play', () => {
     const ctx = started()
     const taps = perfectKickTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + taps.reduce((sum, tap) => sum + tap, 0) + 5000), 'kick', taps)
-    expect(done.extra).toEqual({ score: 15, max: 15, tokens: config.cabinets.playMaxTokens, coins: 0, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
+    expect(done.extra).toEqual({ score: 27, max: 27, tokens: config.cabinets.playMaxTokens, coins: 0, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
     expect(done.state.tokens).toBe(config.cabinets.playMaxTokens)
     expect(done.state.ticket).toBeNull()
     expect(done.ledger).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'kick' }])
@@ -269,27 +281,27 @@ describe('personal bests', () => {
 
     // A perfect play beats it.
     const perfect = play(first.next, perfectKickTaps)
-    expect(perfect.extra).toMatchObject({ previousBest: first.extra.score, newBest: true, score: 15 })
-    expect(perfect.state.arcade.best).toMatchObject({ kick: 15, keepy: 0 })
+    expect(perfect.extra).toMatchObject({ previousBest: first.extra.score, newBest: true, score: 27 })
+    expect(perfect.state.arcade.best).toMatchObject({ kick: 27, keepy: 0, pens: 0 })
 
     // A worse one after that leaves the best alone, and does not call itself a best.
     const worse = play(perfect.next, middling)
-    expect(worse.extra).toMatchObject({ previousBest: 15, newBest: false })
-    expect(worse.state.arcade.best.kick).toBe(15)
+    expect(worse.extra).toMatchObject({ previousBest: 27, newBest: false })
+    expect(worse.state.arcade.best.kick).toBe(27)
   })
 
   it('keeps a best for each game on its own', () => {
     const ctx = apply(context(), startPlay(context(), 'keepy', false))
     const { taps } = perfectKeepyTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + 60_000), 'keepy', taps)
-    expect(done.state.arcade.best).toEqual({ kick: 0, keepy: keepyMax(config) })
+    expect(done.state.arcade.best).toEqual({ kick: 0, keepy: keepyMax(config), pens: 0 })
   })
 
   it('counts a play bought with gems too', () => {
     const base = context(state => ({ ...state, idle: { ...state.idle, gems: 40 } }))
     const ctx = apply(base, startPlay(base, 'kick', true))
     const done = finishPlay(withNow(ctx, T0 + 60_000), 'kick', perfectKickTaps(ctx.state.ticket!.seed))
-    expect(done.state.arcade.best.kick).toBe(15)
+    expect(done.state.arcade.best.kick).toBe(27)
   })
 })
 
@@ -299,7 +311,7 @@ describe('a play bought with gems', () => {
     const ctx = apply(base, startPlay(base, 'kick', true))
     const taps = perfectKickTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + 60_000), 'kick', taps)
-    expect(done.extra).toEqual({ score: 15, max: 15, tokens: 0, coins: config.cabinets.gemPlayCoins, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
+    expect(done.extra).toEqual({ score: 27, max: 27, tokens: 0, coins: config.cabinets.gemPlayCoins, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
     expect(done.state.tokens).toBe(0)
     expect(done.state.coins).toBe(config.cabinets.gemPlayCoins)
     expect(done.ledger!.some(entry => entry.currency === 'tokens')).toBe(false)
@@ -376,5 +388,35 @@ describe('the stadium', () => {
     const top = context(state => ({ ...state, coins: 1_000_000, idle: { ...state.idle, stadiumLevel: config.stadium.coinsPerHour.length } }))
     expect(code(() => upgradeStadium(top))).toBe('max-level')
     expect([1, 3, 4, 7, 8, 10].map(stadiumStage)).toEqual([1, 1, 2, 2, 3, 3])
+  })
+})
+
+describe('the penalty shootout in the arcade', () => {
+  it('is a third cabinet that shares the energy, is scored by the server from the taps, and pays tokens for the score', () => {
+    const base = context()
+    const started = apply(base, startPlay(base, 'pens', false))
+    expect(started.state.ticket).toMatchObject({ kind: 'pens', paid: false })
+    expect(energyAt(started.state, config, started.now)).toBe(4)
+
+    const taps = perfectPenaltyTaps(started.state.ticket!.seed)
+    const done = finishPlay(withNow(started, T0 + taps.reduce((sum, tap) => sum + tap, 0) + 5000), 'pens', taps)
+    expect(done.extra).toMatchObject({ score: 10, max: 10, tokens: config.cabinets.playMaxTokens, coins: 0, newBest: true })
+    expect(done.state.arcade.best).toMatchObject({ pens: 10, kick: 0, keepy: 0 })
+    expect(done.ledger).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'pens' }])
+  })
+
+  it('refuses taps a person could not make, the wrong number of them, and a result sent faster than the play', () => {
+    const ctx = apply(context(), startPlay(context(), 'pens', false))
+    const taps = perfectPenaltyTaps(ctx.state.ticket!.seed)
+    const total = taps.reduce((sum, tap) => sum + tap, 0)
+    expect(code(() => finishPlay(withNow(ctx, T0 + 60_000), 'pens', [10, ...taps.slice(1)]))).toBe('taps')
+    expect(code(() => finishPlay(withNow(ctx, T0 + 60_000), 'pens', taps.slice(0, 3)))).toBe('taps')
+    expect(code(() => finishPlay(withNow(ctx, T0 + 200), 'pens', taps))).toBe('too-fast')
+    expect(code(() => finishPlay(withNow(ctx, T0 + total + 5000), 'pens', taps))).toBe('accepted')
+  })
+
+  it('takes its turn as the cabinet of the day', () => {
+    const days = Array.from({ length: 6 }, (_, day) => hotCabinet(T0 + day * DAY, DEFAULT_CONFIG))
+    expect(days.filter(cabinet => cabinet === 'pens')).toHaveLength(2)
   })
 })

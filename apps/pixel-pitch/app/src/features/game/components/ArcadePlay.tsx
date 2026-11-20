@@ -1,16 +1,17 @@
 import type { Cabinet, GameResponse, PlayResult } from '@ld/pixel-pitch-core'
-import { energyAt, hotCabinet, keepyMax } from '@ld/pixel-pitch-core'
+import { energyAt, hotCabinet } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
-import { CABINETS } from '../lib/cabinets'
+import { CABINETS, topScore } from '../lib/cabinets'
 import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
 import { EnergyBar } from './EnergyBar'
 import { KeepyGame } from './KeepyGame'
 import { KickTimerGame } from './KickTimerGame'
+import { PenaltyGame } from './PenaltyGame'
 import { Icon } from './sprites'
 
 type Phase = 'intro' | 'playing' | 'result'
@@ -52,14 +53,18 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
       <div className="flex flex-col gap-3">
         <h2 className="text-primary">{info.name}</h2>
         {finish.isPending ? <span className="text-muted">Checking your play…</span> : null}
-        {cabinet === 'kick' ? <KickTimerGame key={ticket.id} seed={ticket.seed} onFinish={submit} /> : <KeepyGame key={ticket.id} seed={ticket.seed} onFinish={submit} />}
+        {cabinet === 'kick'
+          ? <KickTimerGame key={ticket.id} seed={ticket.seed} onFinish={submit} />
+          : cabinet === 'pens'
+            ? <PenaltyGame key={ticket.id} seed={ticket.seed} onFinish={submit} />
+            : <KeepyGame key={ticket.id} seed={ticket.seed} onFinish={submit} />}
       </div>
     )
   }
 
   if (phase === 'result' && result) {
     const energyLeft = energyAt(result.club.state, config, result.now)
-    const top = cabinet === 'keepy' ? keepyMax(config) : result.max
+    const top = result.max
     const verdict = result.newBest
       ? (result.previousBest > 0 ? 'New best!' : 'First score on the board!')
       : result.score === 0 && result.previousBest === 0
@@ -109,7 +114,7 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
     <div className="flex flex-col gap-3">
       <h2 className="text-primary">{info.name}</h2>
       <span className="text-lg">{info.blurb}</span>
-      <span className="text-lg tabular-nums">{best > 0 ? `Your best: ${best} / ${cabinet === 'keepy' ? keepyMax(config) : 15}` : 'Not played yet'}</span>
+      <span className="text-lg tabular-nums">{best > 0 ? `Your best: ${best} / ${topScore(cabinet, config)}` : 'Not played yet'}</span>
       {hot ? <span className="text-warning">{`Today's game: +${Math.round(config.cabinets.hotBonus * 100)}% tokens.`}</span> : null}
       <EnergyBar game={game} />
       {paid

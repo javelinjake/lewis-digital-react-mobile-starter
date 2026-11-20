@@ -95,7 +95,27 @@ export const gameConfigSchema = z.object({
       perfect: positive,
       good: positive,
       ok: positive,
+      /** A fast round: the marker is this many times quicker. */
+      fastFactor: positive.default(1.4),
+      /** A narrow round: the zones are this fraction of their usual width. */
+      narrowZone: positive.default(0.6),
+      /** A moving round: the target swings this far either side of its middle, as a fraction of the bar. */
+      drift: z.number().min(0).max(0.3).default(0.14),
     }),
+    /** Penalty Shootout: five penalties, an aim sweeping across the goal and a keeper shuffling along the line. */
+    pens: z.object({
+      rounds: z.number().int().positive(),
+      aimMinSpeed: positive,
+      aimMaxSpeed: positive,
+      keeperMinSpeed: positive,
+      keeperMaxSpeed: positive,
+      /** The posts: an aim closer to the edge than this (a fraction of the width) is wide. */
+      post: z.number().min(0).max(0.3),
+      /** An aim this close to a post is in the corner, worth 2. */
+      corner: z.number().min(0).max(0.5),
+      /** The keeper saves anything within this of where they stand. */
+      reach: positive,
+    }).default({ rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 }),
     keepy: z.object({
       /** Gravity at the start, in pitch units a second squared; the ball is 100 units from the ground up to the top. */
       gravity: positive,
@@ -361,7 +381,8 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   minigames: {
     minTapGapMs: 120,
     clockSlack: 0.85,
-    kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2 },
+    kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14 },
+    pens: { rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 },
     keepy: { gravity: 110, ramp: 0.18, minPeak: 40, maxPeak: 54, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10 },
     warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
   },

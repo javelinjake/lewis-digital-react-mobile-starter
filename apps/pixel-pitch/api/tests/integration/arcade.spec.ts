@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import type { Session } from './harness'
 import { DEFAULT_CONFIG, hotCabinet, keepyMax, shareOf } from '@ld/pixel-pitch-core'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { act, bestWarmupTap, DAY, found, HOUR, perfectKeepyTaps, perfectKickTaps } from './game-helpers'
+import { act, bestWarmupTap, DAY, found, HOUR, perfectKeepyTaps, perfectKickTaps, perfectPenaltyTaps } from './game-helpers'
 import { boot, guest } from './harness'
 
 const config = DEFAULT_CONFIG
@@ -101,12 +101,12 @@ describe('kick Timer', () => {
     const finished = await act(alice, 'arcade/finish', { cabinet: 'kick', taps, score: 999, tokens: 99_999 }, { at: now + taps.reduce((a, b) => a + b, 0) + 3000 })
     expect(finished.status).toBe(200)
     // Whatever score the phone claims is ignored: the server replays the taps.
-    expect(finished.json).toMatchObject({ score: 15, max: 15, tokens: payout('kick', now, 15, 15) })
-    expect(finished.json.club.state.tokens).toBe(before + payout('kick', now, 15, 15))
+    expect(finished.json).toMatchObject({ score: 27, max: 27, tokens: payout('kick', now, 27, 27) })
+    expect(finished.json.club.state.tokens).toBe(before + payout('kick', now, 27, 27))
     expect(finished.json.club.state.ticket).toBeNull()
     // The server remembers the best score, for "new best" next time.
     expect(finished.json).toMatchObject({ previousBest: 0, newBest: true })
-    expect(finished.json.club.state.arcade.best.kick).toBe(15)
+    expect(finished.json.club.state.arcade.best.kick).toBe(27)
   })
 
   it('cannot be finished twice, or without having been started', async () => {
@@ -183,6 +183,45 @@ describe('keepy-Uppy', () => {
     // Twenty kicks, the tenth and twentieth golden: 22 points.
     expect(half.json.score).toBe(22)
     expect(half.json.tokens).toBe(payout('keepy', now, 22, keepyMax(config)))
+  })
+})
+
+describe('penalty Shootout', () => {
+  it('is a third cabinet on the same energy: started with a ticket, scored by the server from the taps', async () => {
+    now += DAY
+    const before = await state(alice)
+    const started = await act(alice, 'arcade/start', { cabinet: 'pens' }, { at: now })
+    expect(started.status).toBe(200)
+    expect(started.json.club.state.ticket).toMatchObject({ kind: 'pens', paid: false })
+    const spent = before.energy.fullAt
+    expect(started.json.club.state.energy.fullAt).toBeGreaterThan(spent)
+
+    const taps = perfectPenaltyTaps(started.json.club.state.ticket.seed)
+    // The phone's own claims are ignored: the server replays the taps.
+    const finished = await act(alice, 'arcade/finish', { cabinet: 'pens', taps, score: 99, tokens: 99_999 }, { at: now + taps.reduce((a, b) => a + b, 0) + 3000 })
+    expect(finished.status).toBe(200)
+    expect(finished.json).toMatchObject({ score: 10, max: 10, tokens: payout('pens', now, 10, 10), newBest: true })
+    expect(finished.json.club.state.arcade.best.pens).toBe(10)
+  })
+
+  it('refuses taps no person could make, and the wrong number of them', async () => {
+    now += DAY
+    const started = await act(alice, 'arcade/start', { cabinet: 'pens' }, { at: now })
+    const taps = perfectPenaltyTaps(started.json.club.state.ticket.seed)
+    const fast = await act(alice, 'arcade/finish', { cabinet: 'pens', taps: [5, 5, 5, 5, 5] }, { at: now + 60_000 })
+    expect(fast.status).toBe(400)
+    const few = await act(alice, 'arcade/finish', { cabinet: 'pens', taps: taps.slice(0, 2) }, { at: now + 60_000 })
+    expect(few.status).toBe(400)
+    expect((await act(alice, 'arcade/finish', { cabinet: 'pens', taps }, { at: now + 200 })).status).toBe(400)
+  })
+
+  it('cannot be played with another player\'s ticket', async () => {
+    now += DAY
+    const started = await act(alice, 'arcade/start', { cabinet: 'pens' }, { at: now })
+    const taps = perfectPenaltyTaps(started.json.club.state.ticket.seed)
+    const stolen = await act(bob, 'arcade/finish', { cabinet: 'pens', taps }, { at: now + 60_000 })
+    expect(stolen.status).toBe(400)
+    expect(JSON.stringify(stolen.json)).toContain('no-ticket')
   })
 })
 

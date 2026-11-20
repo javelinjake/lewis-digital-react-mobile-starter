@@ -283,18 +283,42 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await page.getByRole('button', { name: /^Start/ }).click()
     for (let kick = 1; kick <= 5; kick++) {
       await expect(page.getByText(`Kick ${kick} of 5`)).toBeVisible()
+      // The last round is always fast, and the screen says so before the kick.
+      if (kick === 5)
+        await expect(page.getByText(/Fast!/)).toBeVisible()
       await page.waitForTimeout(300)
       await page.getByRole('button', { name: 'KICK!' }).click()
       await expect(page.getByText(/^(Miss|Close|Good|Perfect!)$/)).toBeVisible()
     }
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 10_000 })
-    await expect(result.getByText(/^\d+ \/ 15$/)).toBeVisible()
+    await expect(result.getByText(/^\d+ \/ 27$/)).toBeVisible()
     // The play is scored against the best so far, and offers another go, with the energy left.
     await expect(result.getByRole('status')).toHaveText(/best|board|Level|off your/i)
     await expect(page.getByRole('button', { name: /Play again · 4 energy left/ })).toBeVisible()
     await page.getByRole('link', { name: 'Back to the arcade' }).click()
     await expect(page.getByRole('region', { name: 'Energy' }).getByText('4 / 5')).toBeVisible()
+  })
+
+  test('Penalty Shootout: five shots against a keeper, scored by the server, sharing the same energy', async ({ page }) => {
+    test.setTimeout(60_000)
+    await foundClub(page)
+    await page.goto('/arcade')
+    await expect(page.getByRole('region', { name: 'Penalty Shootout' }).getByText(/Not played yet/)).toBeVisible()
+    await page.getByRole('region', { name: 'Penalty Shootout' }).getByRole('link', { name: /Play · 1 energy/ }).click()
+    await page.getByRole('button', { name: /^Start/ }).click()
+    for (let penalty = 1; penalty <= 5; penalty++) {
+      await expect(page.getByText(`Penalty ${penalty} of 5`)).toBeVisible()
+      await page.waitForTimeout(300)
+      await page.getByRole('button', { name: 'SHOOT!' }).click()
+      await expect(page.getByText(/^(Wide!|Saved!|Goal!|Top corner! 2 points)$/)).toBeVisible()
+    }
+    const result = page.getByLabel('Result')
+    await expect(result).toBeVisible({ timeout: 10_000 })
+    await expect(result.getByText(/^\d+ \/ 10$/)).toBeVisible()
+    await page.getByRole('link', { name: 'Back to the arcade' }).click()
+    await expect(page.getByRole('region', { name: 'Energy' }).getByText('4 / 5')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Penalty Shootout' }).getByText(/(Best: \d+ \/ 10|Not played yet)/)).toBeVisible()
   })
 
   test('Keepy-Uppy: the ball drops with no taps, and the server scores the play', async ({ page }) => {
