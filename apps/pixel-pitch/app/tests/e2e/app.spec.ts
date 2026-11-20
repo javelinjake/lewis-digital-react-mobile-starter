@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { advanceClock, expect, foundClub, guest, HOUR, tab, test, weakDevice } from './helpers'
+import { advanceClock, expect, foundClub, guest, HOUR, openSettings, tab, test, weakDevice } from './helpers'
 
 test.describe('App smoke @smoke', () => {
   test('login screen renders', async ({ page }) => {
@@ -132,7 +132,7 @@ test.describe('First session @game', () => {
 
   test('the match view is a setting that is remembered', async ({ page }) => {
     await foundClub(page)
-    await tab(page, 'Settings').click()
+    await openSettings(page)
     await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Written report')
     await page.getByRole('button', { name: /Match view/ }).click()
     await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Pixel pitch')
@@ -193,7 +193,7 @@ test.describe('Packs @game', () => {
     await expect(groups).toHaveCount(3)
     await groups.first().getByRole('radio', { name: /^Sell/ }).click()
     await expect(page.getByText(/Bench after signing: 2\/20/)).toBeVisible()
-    await page.getByRole('button', { name: 'Done' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
 
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
     await expect(page.getByLabel('3 of 10 packs')).toBeVisible()
@@ -229,7 +229,7 @@ test.describe('Packs @game', () => {
     await expect(page.getByText(/3 left today/)).toBeVisible()
     await buy.click()
     await flipAll(page)
-    await page.getByRole('button', { name: 'Done' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
     await expect(page.getByText(/2 left today/)).toBeVisible()
     await expect(page.getByRole('button', { name: /^Arcade pack/ })).toBeDisabled()
   })
@@ -288,7 +288,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
         await expect(page.getByText(/Fast!/)).toBeVisible()
       await page.waitForTimeout(300)
       await page.getByRole('button', { name: 'KICK!' }).click()
-      await expect(page.getByText(/^(Miss|Close|Good|Perfect!)$/)).toBeVisible()
+      await expect(page.getByText(/^(Miss|Close|Good|Perfect!)( ×2)?$/)).toBeVisible()
     }
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 10_000 })

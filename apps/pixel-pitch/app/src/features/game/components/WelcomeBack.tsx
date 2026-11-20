@@ -6,7 +6,7 @@ import { useGameConfig } from '../queries/use-game'
 import { Icon } from './sprites'
 
 /** What happened while the player was away. Shown once per sync that had news. */
-export function WelcomeBack({ game, events, onClose }: { game: GameResponse, events: WelcomeBackEvent[], onClose: () => void }) {
+export function WelcomeBack({ game, events, claims, claiming, onClaimAll, onClose }: { game: GameResponse, events: WelcomeBackEvent[], claims: number, claiming: boolean, onClaimAll: () => void, onClose: () => void }) {
   const config = useGameConfig()
   const { idle } = game.club.state
   const stadium = pendingStadiumCoins(idle, config, game.now)
@@ -79,7 +79,14 @@ export function WelcomeBack({ game, events, onClose }: { game: GameResponse, eve
             )
           })}
         </ul>
-        <button type="button" className="btn btn-primary min-h-11 w-full font-display text-xs" onClick={onClose}>Let's go</button>
+        {claims > 0
+          ? (
+              <>
+                <button type="button" className="btn btn-primary min-h-12 w-full font-display text-xs" disabled={claiming} onClick={onClaimAll}>{claims === 1 ? 'Claim it' : `Claim all (${claims})`}</button>
+                <button type="button" className="btn btn-ghost min-h-11 w-full" onClick={onClose}>Let's go</button>
+              </>
+            )
+          : <button type="button" className="btn btn-primary min-h-11 w-full font-display text-xs" onClick={onClose}>Let's go</button>}
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import type { PassTrack } from '@ld/pixel-pitch-core'
 import { defineAction } from '@ld/backend'
-import { claimAlbumSet, claimCalendar, claimFreePack, claimGoal, claimPassTier } from '@ld/pixel-pitch-core'
+import { claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { flowContext, mutateClub } from '../game/mutate-club'
 
@@ -54,4 +54,11 @@ export const claimAlbumSetAction = defineAction({
   },
 })
 
-export const rewardActions = [claimGoalAction, claimFreePackAction, claimCalendarAction, claimPassTierAction, claimAlbumSetAction]
+/** Everything that is waiting, in one call and one transaction: the stadium, the tray, the calendar, the free pack, goals, Pass tiers and album sets. */
+export const claimAllAction = defineAction({
+  path: '/game/claim-all',
+  ...limits,
+  handler: async ctx => ({ body: await mutateClub(ctx, input => claimAll(flowContext(input))) }),
+})
+
+export const rewardActions = [claimAllAction, claimGoalAction, claimFreePackAction, claimCalendarAction, claimPassTierAction, claimAlbumSetAction]

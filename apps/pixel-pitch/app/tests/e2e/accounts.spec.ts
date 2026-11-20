@@ -1,4 +1,4 @@
-import { expect, foundClub, signIn, tab, test } from './helpers'
+import { expect, foundClub, openSettings, signIn, test } from './helpers'
 
 test.describe('Larger screens @layout', () => {
   test('on a tablet or desktop browser the game is a centred column with the tab bar inside it', async ({ page }) => {
@@ -17,7 +17,7 @@ test.describe('Larger screens @layout', () => {
 test.describe('Accounts @auth', () => {
   test('a player on this device is offered a cloud save in settings, and cannot sign out and lose the club', async ({ page }) => {
     await foundClub(page)
-    await tab(page, 'Settings').click()
+    await openSettings(page)
     await expect(page.getByRole('button', { name: /^Account/ })).toHaveCount(0)
     await page.getByRole('button', { name: /This device/ }).click()
     await expect(page.getByRole('button', { name: 'Sign out' })).toHaveCount(0)
@@ -35,7 +35,7 @@ test.describe('Accounts @auth', () => {
     await page.getByRole('button', { name: 'Found the club' }).click()
     await page.getByRole('button', { name: 'Skip' }).click()
     await page.getByRole('button', { name: 'Continue' }).click()
-    await tab(page, 'Settings').click()
+    await openSettings(page)
     await page.getByRole('button', { name: /ada@example.com/ }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
 
@@ -55,12 +55,12 @@ test.describe('Accounts @auth', () => {
     await page.getByRole('button', { name: 'Found the club' }).click()
     await page.getByRole('button', { name: 'Skip' }).click()
     await page.getByRole('button', { name: 'Continue' }).click()
-    await tab(page, 'Settings').click()
+    await openSettings(page)
     await page.getByRole('button', { name: /ada@example.com/ }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
 
     await foundClub(page, 'Device Rovers')
-    await tab(page, 'Settings').click()
+    await openSettings(page)
     await page.getByRole('button', { name: /Sign in to the cloud/ }).click()
     await expect(page.getByText('you get that club and the one on this device is deleted')).toBeVisible()
     await page.getByLabel('Email').fill('ada@example.com')
@@ -73,7 +73,7 @@ test.describe('Accounts @auth', () => {
 
   test('a device club signed in to a new account moves to it', async ({ page }) => {
     await foundClub(page, 'Device Rovers')
-    await tab(page, 'Settings').click()
+    await openSettings(page)
     await page.getByRole('button', { name: /Sign in to the cloud/ }).click()
     await page.getByLabel('Email').fill('bee@example.com')
     await page.getByLabel('Password').fill('secret')

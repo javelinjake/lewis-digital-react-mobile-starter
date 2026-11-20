@@ -49,7 +49,7 @@ test.describe('live backend @live', () => {
       await page.getByRole('button', { name: 'Turn the card over' }).click()
       await (card < 2 ? page.getByRole('button', { name: 'Next', exact: true }) : page.getByRole('button', { name: 'Sign or sell' })).click()
     }
-    await page.getByRole('button', { name: 'Done' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
 
     // The server holds the club: a reload shows the same shelf and squad.

@@ -1,6 +1,7 @@
 import type { GameResponse, WarmupZone } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { useGameAction } from '../mutations/use-game-action'
@@ -42,11 +43,14 @@ export function WarmupCard({ game }: { game: GameResponse }) {
           )
         : tried
           ? (
-              <span className="text-lg">
-                {state.league.warmupBonus > 0
-                  ? `${last ? `${ZONE_TEXT[last.zone]}. ` : ''}+${Math.round(state.league.warmupBonus * 100)}% attack in your next match.`
-                  : 'You have warmed up for this match.'}
-              </span>
+              <>
+                <span className="text-lg">
+                  {state.league.warmupBonus > 0
+                    ? `${last ? `${ZONE_TEXT[last.zone]}. ` : ''}+${Math.round(state.league.warmupBonus * 100)}% attack in your next match.`
+                    : 'You have warmed up for this match.'}
+                </span>
+                <Link to="/squad" className="btn btn-outline min-h-11">Set the lineup ›</Link>
+              </>
             )
           : (
               <>

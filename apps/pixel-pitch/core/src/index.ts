@@ -8,6 +8,7 @@ export { type AlbumSet, albumPower, albumSets, isSetComplete, recordCollected } 
 export { type Cabinet, CABINETS, type DailyGoal, type DayCounter, type PackSource, type PendingPack, type Ticket, upgradeState } from './club-state'
 export { type CardSource, type FlowContext, type FlowResult, type LedgerEntry } from './flow'
 export { CALENDAR_DAYS, claimAlbumSet, claimCalendar, claimFreePack, claimGoal, claimPassTier, nextCalendarDay, type PassTrack } from './flow-rewards'
+export { type ClaimAllResult, claimAll, type Waiting, waitingToClaim } from './flow-claim-all'
 export { collectTray, finishPlay, finishWarmup, hotCabinet, type PlayResult, startPlay, startWarmup } from './flow-arcade'
 export { energyAt, energyMax, nextEnergyAt, spendEnergy } from './energy'
 export { collectStadium, stadiumStage, upgradeStadium } from './flow-stadium'

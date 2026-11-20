@@ -46,6 +46,7 @@ export const gameApi: GameApi = {
   collectStadium: () => act('/game/stadium/collect'),
   upgradeStadium: () => act('/game/stadium/upgrade'),
   collectTray: () => act('/game/arcade/collect', {}),
+  claimAll: () => act('/game/claim-all', {}),
   startPlay: (cabinet, paid) => act('/game/arcade/start', { cabinet, paid }),
   finishPlay: (cabinet, taps) => act('/game/arcade/finish', { cabinet, taps }),
   startWarmup: () => act('/game/warmup/start'),

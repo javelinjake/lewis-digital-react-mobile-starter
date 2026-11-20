@@ -11,6 +11,7 @@ import { useGameConfig } from '../queries/use-game'
 import { EnergyBar } from './EnergyBar'
 import { KeepyGame } from './KeepyGame'
 import { KickTimerGame } from './KickTimerGame'
+import { NextSteps } from './NextSteps'
 import { PenaltyGame } from './PenaltyGame'
 import { Icon } from './sprites'
 
@@ -105,6 +106,7 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
                 <Link to={`/arcade/${cabinet}?paid=1`} className="btn btn-outline min-h-12" onClick={() => setPhase('intro')}>{`Extra play · ${config.cabinets.gemPlayCost} gems`}</Link>
               </>
             )}
+        <NextSteps skip={['arcade']} />
         <Link to="/arcade" className="btn btn-ghost min-h-11 w-full">Back to the arcade</Link>
       </div>
     )

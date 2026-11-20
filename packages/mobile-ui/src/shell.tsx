@@ -4,6 +4,8 @@ import { NavLink } from 'react-router'
 export interface TabBarItem {
   to: string
   label: string
+  /** A count shown on the tab, such as things waiting. Nothing is shown for 0 or when left out. */
+  badge?: number
 }
 
 /**
@@ -82,7 +84,12 @@ export function BottomTabBar({ items }: { items: TabBarItem[] }) {
           // the page background often fails contrast, and the bar carries no text-contrast requirement.
           className={({ isActive }) => `flex min-h-11 items-center justify-center border-t-2 text-sm ${isActive ? 'border-primary font-semibold' : 'border-transparent opacity-70'}`}
         >
-          {item.label}
+          <span className="relative">
+            {item.label}
+            {item.badge && item.badge > 0
+              ? <span className="absolute -right-4 -top-2 min-w-4 bg-secondary px-1 text-center text-[10px] leading-4 text-secondary-content" aria-label={`${item.badge} waiting`}>{item.badge > 9 ? '9+' : item.badge}</span>
+              : null}
+          </span>
         </NavLink>
       ))}
     </nav>

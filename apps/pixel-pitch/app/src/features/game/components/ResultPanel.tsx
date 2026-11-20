@@ -1,5 +1,6 @@
 import type { FixtureResult } from '@ld/pixel-pitch-core'
 import { art } from '../lib/art'
+import { NextSteps } from './NextSteps'
 
 /** What a match paid, shown when it ends. Shared by the pitch and text views. */
 export function ResultPanel({ fixture, onDone }: { fixture: FixtureResult, onDone: () => void }) {
@@ -9,6 +10,7 @@ export function ResultPanel({ fixture, onDone }: { fixture: FixtureResult, onDon
       <span className="text-xl">{`+${fixture.coins} coins${fixture.points ? ` · +${fixture.points} pts` : ''}`}</span>
       {fixture.promotedTo ? <img src={art('text/banner_promoted.png')} alt="Promoted" className="pixel h-auto w-48" /> : null}
       <button type="button" className="btn btn-primary min-h-11 w-full font-display text-xs" onClick={onDone}>Continue</button>
+      {fixture.no >= 0 ? <NextSteps /> : null}
     </div>
   )
 }

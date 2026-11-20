@@ -1,4 +1,4 @@
-import type { Cabinet, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupZone } from '@ld/pixel-pitch-core'
+import type { Cabinet, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupZone } from '@ld/pixel-pitch-core'
 
 /** Everything the game screens ask the server for. `game.live.ts` calls the api; `game.mock.ts` runs the rules here. */
 export interface GameApi {
@@ -24,6 +24,8 @@ export interface GameApi {
   finishPlay: (cabinet: Cabinet, taps: number[]) => Promise<GameResponse & PlayResult>
   startWarmup: () => Promise<GameResponse>
   finishWarmup: (tapMs: number) => Promise<GameResponse & { zone: WarmupZone, bonus: number }>
+  /** Takes everything that is waiting (stadium, tray, calendar, free pack, goals, Pass, album) in one call. */
+  claimAll: () => Promise<GameResponse & ClaimAllResult>
   claimGoal: (goalId: string) => Promise<GameResponse & { reward: Reward }>
   claimFreePack: () => Promise<GameResponse & { packs: number }>
   claimCalendar: () => Promise<GameResponse & { day: number, reward: Reward }>
