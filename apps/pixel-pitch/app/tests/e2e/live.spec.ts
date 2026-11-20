@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './helpers'
 
 // Runs the app against the real api app and database. Start them first:
 //   pnpm db:dev

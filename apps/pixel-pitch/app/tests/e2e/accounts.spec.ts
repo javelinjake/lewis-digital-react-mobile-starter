@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test'
-import { foundClub, signIn, tab } from './helpers'
+import { expect, foundClub, signIn, tab, test } from './helpers'
 
 test.describe('Larger screens @layout', () => {
   test('on a tablet or desktop browser the game is a centred column with the tab bar inside it', async ({ page }) => {

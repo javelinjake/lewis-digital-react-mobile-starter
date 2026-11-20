@@ -1,5 +1,29 @@
 import type { Page } from '@playwright/test'
-import { expect } from '@playwright/test'
+import { test as base, expect } from '@playwright/test'
+
+/**
+ * Every test runs as on a normal modern phone. The app's low-effects mode switches on by itself for a device with
+ * four cores or fewer, which includes GitHub's runners, and then shows the whole written match report at once with
+ * no Skip button. Tests that want a weak device call `weakDevice(page)`.
+ */
+export const test = base.extend<{ strongDevice: void }>({
+  strongDevice: [async ({ context }, use) => {
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8, configurable: true })
+      Object.defineProperty(navigator, 'deviceMemory', { get: () => 8, configurable: true })
+    })
+    await use()
+  }, { auto: true }],
+})
+export { expect }
+
+/** Reports a weak phone (two cores, 2 GB) from the next page load on, so low-effects mode turns on. */
+export async function weakDevice(page: Page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 2, configurable: true })
+    Object.defineProperty(navigator, 'deviceMemory', { get: () => 2, configurable: true })
+  })
+}
 
 export const HOUR = 60 * 60 * 1000
 

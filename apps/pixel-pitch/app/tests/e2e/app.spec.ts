@@ -1,7 +1,5 @@
 import type { Page } from '@playwright/test'
-import { expect, test } from '@playwright/test'
-
-import { advanceClock, foundClub, guest, HOUR, tab } from './helpers'
+import { advanceClock, expect, foundClub, guest, HOUR, tab, test, weakDevice } from './helpers'
 
 test.describe('App smoke @smoke', () => {
   test('login screen renders', async ({ page }) => {
@@ -42,6 +40,17 @@ test.describe('First session @game', () => {
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
     await page.getByRole('heading', { name: /^Squad \(/ }).scrollIntoViewIfNeeded()
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
+  })
+
+  test('on a weak phone the written report shows at once, with no Skip, and still finishes on the result', async ({ page }) => {
+    await weakDevice(page)
+    await guest(page)
+    await page.getByRole('button', { name: 'Found the club' }).click()
+    await expect(page).toHaveURL(/\/match\/-1/)
+    await expect(page.getByRole('button', { name: 'Skip' })).toHaveCount(0)
+    await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
+    await page.getByRole('button', { name: 'Continue' }).click()
+    await expect(page).toHaveURL(/\/squad/)
   })
 
   test('the pitch view plays the match on a canvas and counts the minutes', async ({ page }) => {
