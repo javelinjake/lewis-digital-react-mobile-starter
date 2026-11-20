@@ -1,10 +1,13 @@
 import type { ClubState, FlowContext } from '../src'
 import { describe, expect, it } from 'vitest'
-import { collectStadium, collectTray, DEFAULT_CONFIG, finishPlay, finishWarmup, freePlaysLeft, generateCatalogue, isGameRuleError, kickRounds, markerAt, newClubState, pendingStadiumCoins, startPlay, startWarmup, upgradeStadium, warmupBar } from '../src'
+import { CABINETS, collectStadium, collectTray, DEFAULT_CONFIG, energyAt, finishPlay, finishWarmup, generateCatalogue, hotCabinet, isGameRuleError, keepyMax, kickRounds, markerAt, newClubState, pendingStadiumCoins, startPlay, startWarmup, targetAt, upgradeStadium, warmupBar } from '../src'
 import { stadiumStage } from '../src/flow-stadium'
+import { penaltyRounds, penaltyShot } from '../src'
 import { newKeepy, stepKeepy } from '../src/minigames'
 
-const config = DEFAULT_CONFIG
+/** Payout tests run with no hot cabinet, so a play pays the plain amount; the hot cabinet has its own test. */
+const config = { ...DEFAULT_CONFIG, cabinets: { ...DEFAULT_CONFIG.cabinets, hotBonus: 0 } }
+const MINUTE = 60_000
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 const T0 = Date.UTC(2026, 10, 9, 12)
@@ -30,10 +33,21 @@ function perfectKickTaps(seed: string) {
   return kickRounds(seed, config).map((bar) => {
     let best = 150
     for (let ms = 150; ms < 4000; ms++) {
-      if (Math.abs(markerAt(bar, ms) - bar.centre) < Math.abs(markerAt(bar, best) - bar.centre))
+      if (Math.abs(markerAt(bar, ms) - targetAt(bar, ms)) < Math.abs(markerAt(bar, best) - targetAt(bar, best)))
         best = ms
     }
     return best
+  })
+}
+
+/** The millisecond in each penalty at which the shot goes in the corner. */
+function perfectPenaltyTaps(seed: string) {
+  return penaltyRounds(seed, config).map((round) => {
+    for (let ms = 150; ms < 12_000; ms++) {
+      if (penaltyShot(round, ms, config).outcome === 'corner')
+        return ms
+    }
+    throw new Error('No corner shot')
   })
 }
 
@@ -45,7 +59,7 @@ function perfectKeepyTaps(seed: string) {
   while (!sim.over && sim.step < 7200) {
     const inReach = sim.vy < 0 && sim.y <= config.minigames.keepy.reach
     if (inReach && !was)
-      wait = 6
+      wait = 1
     was = inReach
     let tap = false
     if (wait === 0) {
@@ -62,60 +76,77 @@ function perfectKeepyTaps(seed: string) {
   return { taps, steps: sim.step }
 }
 
-describe('the token trays', () => {
-  it('fill at 12 tokens an hour, hold 8 hours, and are emptied into the wallet', () => {
+describe('the token tray', () => {
+  it('fills at 24 tokens an hour, holds 8 hours, and is emptied into the wallet', () => {
     const ctx = withNow(context(), T0 + 4 * HOUR)
-    const { state, ledger, extra } = collectTray(ctx, 'kick')
-    expect(extra!.tokens).toBe(48)
-    expect(state.tokens).toBe(48)
-    expect(state.idle.trayCollectedAt.kick).toBe(T0 + 4 * HOUR)
-    expect(state.idle.trayCollectedAt.keepy).toBe(T0)
-    expect(ledger).toEqual([{ currency: 'tokens', amount: 48, reason: 'tray', ref: 'kick' }])
+    const { state, ledger, extra } = collectTray(ctx)
+    expect(extra!.tokens).toBe(96)
+    expect(state.tokens).toBe(96)
+    expect(state.idle.trayCollectedAt).toBe(T0 + 4 * HOUR)
+    expect(ledger).toEqual([{ currency: 'tokens', amount: 96, reason: 'tray', ref: 'arcade' }])
 
-    expect(collectTray(withNow(context(), T0 + 3 * DAY), 'keepy').extra!.tokens).toBe(96)
+    expect(collectTray(withNow(context(), T0 + 3 * DAY)).extra!.tokens).toBe(192)
   })
 
-  it('hold 12 hours with the Pass', () => {
+  it('holds 12 hours with the Pass', () => {
     const ctx = withNow(context(state => ({ ...state, idle: { ...state.idle, hasPass: true } })), T0 + 3 * DAY)
-    expect(collectTray(ctx, 'kick').extra!.tokens).toBe(144)
+    expect(collectTray(ctx).extra!.tokens).toBe(288)
   })
 
-  it('refuse an empty tray, and a cabinet that does not exist', () => {
-    expect(code(() => collectTray(context(), 'kick'))).toBe('empty')
-    expect(code(() => collectTray(withNow(context(), T0 + HOUR), 'pinball' as never))).toBe('cabinet')
+  it('refuses an empty tray', () => {
+    expect(code(() => collectTray(context()))).toBe('empty')
   })
 })
 
 describe('starting a play', () => {
-  it('gives three free plays a day for each cabinet, then none, and starts again the next day', () => {
+  it('costs one energy from the one bar every cabinet shares: five plays, then none', () => {
     let ctx = context()
-    for (let play = 0; play < 3; play++) {
-      expect(freePlaysLeft(ctx.state, 'kick', config, ctx.now)).toBe(3 - play)
-      ctx = apply(ctx, startPlay(ctx, 'kick', false))
-      expect(ctx.state.ticket).toMatchObject({ kind: 'kick', paid: false, issuedAt: T0 })
+    expect(energyAt(ctx.state, config, ctx.now)).toBe(5)
+    const games = ['kick', 'keepy', 'kick', 'keepy', 'kick'] as const
+    for (const [play, game] of games.entries()) {
+      expect(energyAt(ctx.state, config, ctx.now)).toBe(5 - play)
+      ctx = apply(ctx, startPlay(ctx, game, false))
+      expect(ctx.state.ticket).toMatchObject({ kind: game, paid: false, issuedAt: T0 })
     }
-    expect(code(() => startPlay(ctx, 'kick', false))).toBe('no-plays')
-    // The other cabinet has its own plays.
-    expect(code(() => startPlay(ctx, 'keepy', false))).toBe('accepted')
-    expect(code(() => startPlay(withNow(ctx, T0 + DAY), 'kick', false))).toBe('accepted')
+    expect(energyAt(ctx.state, config, ctx.now)).toBe(0)
+    // Out for both cabinets, not just the one just played.
+    expect(code(() => startPlay(ctx, 'kick', false))).toBe('no-energy')
+    expect(code(() => startPlay(ctx, 'keepy', false))).toBe('no-energy')
   })
 
-  it('gives four free plays with the Pass', () => {
+  it('gets one back every 90 minutes, on the server clock', () => {
+    let ctx = context()
+    for (let play = 0; play < 5; play++)
+      ctx = apply(ctx, startPlay(ctx, 'kick', false))
+    expect(code(() => startPlay(withNow(ctx, T0 + 89 * MINUTE), 'kick', false))).toBe('no-energy')
+    expect(code(() => startPlay(withNow(ctx, T0 + 90 * MINUTE), 'kick', false))).toBe('accepted')
+    // Two back after three hours, all five after seven and a half.
+    expect(energyAt(ctx.state, config, T0 + 180 * MINUTE)).toBe(2)
+    expect(energyAt(ctx.state, config, T0 + 450 * MINUTE)).toBe(5)
+    expect(energyAt(ctx.state, config, T0 + 30 * DAY)).toBe(5)
+  })
+
+  it('holds six with the Pass', () => {
     let ctx = context(state => ({ ...state, idle: { ...state.idle, hasPass: true } }))
-    for (let play = 0; play < 4; play++)
+    expect(energyAt(ctx.state, config, ctx.now)).toBe(6)
+    for (let play = 0; play < 6; play++)
       ctx = apply(ctx, startPlay(ctx, 'keepy', false))
-    expect(code(() => startPlay(ctx, 'keepy', false))).toBe('no-plays')
+    expect(code(() => startPlay(ctx, 'keepy', false))).toBe('no-energy')
   })
 
-  it('sells an extra play for 20 gems, which does not use up a free one', () => {
+  it('sells an extra play for 20 gems, which does not use any energy', () => {
     let ctx = context(state => ({ ...state, idle: { ...state.idle, gems: 50 } }))
     const paid = startPlay(ctx, 'kick', true)
     expect(paid.state.idle.gems).toBe(30)
     expect(paid.state.ticket).toMatchObject({ paid: true })
     expect(paid.ledger).toEqual([{ currency: 'gems', amount: -20, reason: 'arcade-play', ref: 'kick' }])
     ctx = apply(ctx, paid)
-    expect(freePlaysLeft(ctx.state, 'kick', config, ctx.now)).toBe(3)
+    expect(energyAt(ctx.state, config, ctx.now)).toBe(5)
     expect(code(() => startPlay(context(), 'kick', true))).toBe('gems')
+  })
+
+  it('refuses a cabinet that does not exist', () => {
+    expect(code(() => startPlay(context(), 'pinball' as never, false))).toBe('cabinet')
   })
 
   it('gives every play its own seed', () => {
@@ -130,6 +161,31 @@ describe('starting a play', () => {
   })
 })
 
+describe('the cabinet of the day', () => {
+  it('takes turns, a day each, through every cabinet', () => {
+    const days = Array.from({ length: CABINETS.length * 3 }, (_, day) => hotCabinet(T0 + day * DAY, config))
+    expect(new Set(days)).toEqual(new Set(CABINETS))
+    for (let day = 0; day < days.length - CABINETS.length; day++)
+      expect(days[day + CABINETS.length]).toBe(days[day])
+    expect(days[0]).not.toBe(days[1])
+  })
+
+  it('pays 50% more tokens than a normal day, and only for a free play', () => {
+    const live = { ...DEFAULT_CONFIG }
+    const hot = hotCabinet(T0, live)
+    const cold = CABINETS.find(cabinet => cabinet !== hot)!
+    const play = (cabinet: typeof hot) => {
+      const base = { ...context(), config: live }
+      const started = { ...base, state: startPlay(base, cabinet, false).state }
+      const taps = cabinet === 'kick' ? perfectKickTaps(started.state.ticket!.seed) : perfectKeepyTaps(started.state.ticket!.seed).taps
+      return finishPlay(withNow(started, T0 + 60_000), cabinet, taps)
+    }
+    expect(play(cold).extra!.tokens).toBe(live.cabinets.playMaxTokens)
+    expect(play(hot).extra).toMatchObject({ hot: true, tokens: Math.floor(live.cabinets.playMaxTokens * 1.5) })
+    expect(play(cold).extra).toMatchObject({ hot: false })
+  })
+})
+
 describe('finishing a Kick Timer play', () => {
   const started = () => apply(context(), startPlay(context(), 'kick', false))
 
@@ -137,7 +193,7 @@ describe('finishing a Kick Timer play', () => {
     const ctx = started()
     const taps = perfectKickTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + taps.reduce((sum, tap) => sum + tap, 0) + 5000), 'kick', taps)
-    expect(done.extra).toEqual({ score: 15, max: 15, tokens: config.cabinets.playMaxTokens, coins: 0 })
+    expect(done.extra).toEqual({ score: 27, max: 27, tokens: config.cabinets.playMaxTokens, coins: 0, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
     expect(done.state.tokens).toBe(config.cabinets.playMaxTokens)
     expect(done.state.ticket).toBeNull()
     expect(done.ledger).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'kick' }])
@@ -182,15 +238,16 @@ describe('finishing a Keepy-Uppy play', () => {
     const ctx = apply(context(), startPlay(context(), 'keepy', false))
     const { taps, steps } = perfectKeepyTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + (steps / 60) * 1000 + 1000), 'keepy', taps)
-    expect(done.extra).toEqual({ score: 50, max: 50, tokens: config.cabinets.playMaxTokens, coins: 0 })
+    expect(done.extra).toMatchObject({ score: keepyMax(config), max: keepyMax(config), tokens: config.cabinets.playMaxTokens, coins: 0 })
   })
 
   it('pays less for fewer kicks, and nothing for no taps', () => {
     const ctx = apply(context(), startPlay(context(), 'keepy', false))
     const { taps } = perfectKeepyTaps(ctx.state.ticket!.seed)
     const half = finishPlay(withNow(ctx, T0 + 60_000), 'keepy', taps.slice(0, 10))
-    expect(half.extra!.score).toBe(10)
-    expect(half.extra!.tokens).toBe(Math.floor((config.cabinets.playMaxTokens * 10) / 50))
+    // Ten kicks, the tenth golden: 11 points of 33.
+    expect(half.extra!.score).toBe(11)
+    expect(half.extra!.tokens).toBe(Math.floor((config.cabinets.playMaxTokens * 11) / 33))
     expect(finishPlay(withNow(ctx, T0 + 60_000), 'keepy', []).extra).toMatchObject({ score: 0, tokens: 0 })
   })
 
@@ -209,13 +266,52 @@ describe('finishing a Keepy-Uppy play', () => {
   })
 })
 
+describe('personal bests', () => {
+  /** One free Kick Timer play, `gap` after the start of the test so the energy never runs out, with the given taps. */
+  const play = (ctx: FlowContext, taps: (seed: string) => number[]) => {
+    const started = apply(ctx, startPlay(ctx, 'kick', false))
+    const done = finishPlay(withNow(started, ctx.now + 60_000), 'kick', taps(started.state.ticket!.seed))
+    return { next: { ...started, state: done.state }, extra: done.extra!, state: done.state }
+  }
+  const middling = () => [500, 500, 500, 500, 500]
+
+  it('remembers the best score in each game, and says when a play beats it or by how much it fell short', () => {
+    const first = play(context(), middling)
+    expect(first.extra).toMatchObject({ previousBest: 0, newBest: first.extra.score > 0 })
+
+    // A perfect play beats it.
+    const perfect = play(first.next, perfectKickTaps)
+    expect(perfect.extra).toMatchObject({ previousBest: first.extra.score, newBest: true, score: 27 })
+    expect(perfect.state.arcade.best).toMatchObject({ kick: 27, keepy: 0, pens: 0 })
+
+    // A worse one after that leaves the best alone, and does not call itself a best.
+    const worse = play(perfect.next, middling)
+    expect(worse.extra).toMatchObject({ previousBest: 27, newBest: false })
+    expect(worse.state.arcade.best.kick).toBe(27)
+  })
+
+  it('keeps a best for each game on its own', () => {
+    const ctx = apply(context(), startPlay(context(), 'keepy', false))
+    const { taps } = perfectKeepyTaps(ctx.state.ticket!.seed)
+    const done = finishPlay(withNow(ctx, T0 + 60_000), 'keepy', taps)
+    expect(done.state.arcade.best).toEqual({ kick: 0, keepy: keepyMax(config), pens: 0 })
+  })
+
+  it('counts a play bought with gems too', () => {
+    const base = context(state => ({ ...state, idle: { ...state.idle, gems: 40 } }))
+    const ctx = apply(base, startPlay(base, 'kick', true))
+    const done = finishPlay(withNow(ctx, T0 + 60_000), 'kick', perfectKickTaps(ctx.state.ticket!.seed))
+    expect(done.state.arcade.best.kick).toBe(27)
+  })
+})
+
 describe('a play bought with gems', () => {
   it('pays coins and Pass XP, never tokens', () => {
     const base = context(state => ({ ...state, idle: { ...state.idle, gems: 40 } }))
     const ctx = apply(base, startPlay(base, 'kick', true))
     const taps = perfectKickTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + 60_000), 'kick', taps)
-    expect(done.extra).toEqual({ score: 15, max: 15, tokens: 0, coins: config.cabinets.gemPlayCoins })
+    expect(done.extra).toEqual({ score: 27, max: 27, tokens: 0, coins: config.cabinets.gemPlayCoins, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
     expect(done.state.tokens).toBe(0)
     expect(done.state.coins).toBe(config.cabinets.gemPlayCoins)
     expect(done.ledger!.some(entry => entry.currency === 'tokens')).toBe(false)
@@ -292,5 +388,35 @@ describe('the stadium', () => {
     const top = context(state => ({ ...state, coins: 1_000_000, idle: { ...state.idle, stadiumLevel: config.stadium.coinsPerHour.length } }))
     expect(code(() => upgradeStadium(top))).toBe('max-level')
     expect([1, 3, 4, 7, 8, 10].map(stadiumStage)).toEqual([1, 1, 2, 2, 3, 3])
+  })
+})
+
+describe('the penalty shootout in the arcade', () => {
+  it('is a third cabinet that shares the energy, is scored by the server from the taps, and pays tokens for the score', () => {
+    const base = context()
+    const started = apply(base, startPlay(base, 'pens', false))
+    expect(started.state.ticket).toMatchObject({ kind: 'pens', paid: false })
+    expect(energyAt(started.state, config, started.now)).toBe(4)
+
+    const taps = perfectPenaltyTaps(started.state.ticket!.seed)
+    const done = finishPlay(withNow(started, T0 + taps.reduce((sum, tap) => sum + tap, 0) + 5000), 'pens', taps)
+    expect(done.extra).toMatchObject({ score: 10, max: 10, tokens: config.cabinets.playMaxTokens, coins: 0, newBest: true })
+    expect(done.state.arcade.best).toMatchObject({ pens: 10, kick: 0, keepy: 0 })
+    expect(done.ledger).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'pens' }])
+  })
+
+  it('refuses taps a person could not make, the wrong number of them, and a result sent faster than the play', () => {
+    const ctx = apply(context(), startPlay(context(), 'pens', false))
+    const taps = perfectPenaltyTaps(ctx.state.ticket!.seed)
+    const total = taps.reduce((sum, tap) => sum + tap, 0)
+    expect(code(() => finishPlay(withNow(ctx, T0 + 60_000), 'pens', [10, ...taps.slice(1)]))).toBe('taps')
+    expect(code(() => finishPlay(withNow(ctx, T0 + 60_000), 'pens', taps.slice(0, 3)))).toBe('taps')
+    expect(code(() => finishPlay(withNow(ctx, T0 + 200), 'pens', taps))).toBe('too-fast')
+    expect(code(() => finishPlay(withNow(ctx, T0 + total + 5000), 'pens', taps))).toBe('accepted')
+  })
+
+  it('takes its turn as the cabinet of the day', () => {
+    const days = Array.from({ length: 6 }, (_, day) => hotCabinet(T0 + day * DAY, DEFAULT_CONFIG))
+    expect(days.filter(cabinet => cabinet === 'pens')).toHaveLength(2)
   })
 })

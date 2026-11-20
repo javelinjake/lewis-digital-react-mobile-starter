@@ -4,6 +4,7 @@ import { SegmentedControl } from '@ld/mobile-ui'
 import { EmptyState, LoadingState } from '@ld/ui'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useReplayMode } from '@/hooks/use-replay-mode'
+import { isCabinet } from '../lib/cabinets'
 import { useClub, useFixtures } from '../queries/use-game'
 import { AlbumScreen } from './AlbumScreen'
 import { ArcadePlay } from './ArcadePlay'
@@ -45,7 +46,7 @@ export function ArcadeTab() {
 
 export function ArcadeCabinetView() {
   const { cabinet } = useParams()
-  return <WithClub>{game => (cabinet === 'kick' || cabinet === 'keepy' ? <ArcadePlay game={game} cabinet={cabinet} /> : <EmptyState title="No such cabinet" />)}</WithClub>
+  return <WithClub>{game => (isCabinet(cabinet) ? <ArcadePlay game={game} cabinet={cabinet} /> : <EmptyState title="No such cabinet" />)}</WithClub>
 }
 
 export function PacksTab() {

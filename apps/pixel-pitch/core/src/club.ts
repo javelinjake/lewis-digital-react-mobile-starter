@@ -112,7 +112,14 @@ export function setLineup(state: ClubState, formation: string, lineup: ReadonlyA
 
 /** Every alert time for the club: the idle timers and the next kick-off ("full time" fires when it has been played). */
 export function clubNotificationTimes(state: ClubState, config: GameConfig, now: number) {
-  return { ...notificationTimes(state.idle, config, now), nextKickoffAt: state.league.nextKickoffAt }
+  const times = notificationTimes(state.idle, config, now)
+  // The arcade is ready when the energy is full or the tray is, whichever comes first (the tray alone if energy is full).
+  const energyFullAt = state.energy.fullAt > now ? state.energy.fullAt : null
+  return {
+    ...times,
+    arcadeReadyAt: energyFullAt === null ? times.traysFullAt : Math.min(energyFullAt, times.traysFullAt),
+    nextKickoffAt: state.league.nextKickoffAt,
+  }
 }
 
 /** A card the rules have just made. The api replaces `id` with the database id once it is stored. */

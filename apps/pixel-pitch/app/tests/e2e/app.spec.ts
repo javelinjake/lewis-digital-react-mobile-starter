@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { advanceClock, expect, foundClub, guest, HOUR, tab, test, weakDevice } from './helpers'
+import { advanceClock, expect, foundClub, guest, HOUR, openSettings, tab, test, weakDevice } from './helpers'
 
 test.describe('App smoke @smoke', () => {
   test('login screen renders', async ({ page }) => {
@@ -28,7 +28,7 @@ test.describe('First session @game', () => {
 
     await expect(page).toHaveURL(/\/match\/-1\?debut=1/)
     // The written report is the default view.
-    await expect(page.getByRole('list', { name: 'Match report' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Next moment' })).toBeVisible()
     await page.getByRole('button', { name: 'Skip' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue' }).click()
@@ -42,12 +42,13 @@ test.describe('First session @game', () => {
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
   })
 
-  test('on a weak phone the written report shows at once, with no Skip, and still finishes on the result', async ({ page }) => {
+  test('a weak phone gets the same paced report, not an instant one', async ({ page }) => {
     await weakDevice(page)
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
     await expect(page).toHaveURL(/\/match\/-1/)
-    await expect(page.getByRole('button', { name: 'Skip' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible()
+    await page.getByRole('button', { name: 'Skip' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue' }).click()
     await expect(page).toHaveURL(/\/squad/)
@@ -67,34 +68,71 @@ test.describe('First session @game', () => {
     expect(drawn).toBe(true)
   })
 
-  test('the written report fills in line by line, ends on the final score, and can be switched to the pitch', async ({ page }) => {
+  test('the written report plays a moment at a time on its own, and a few taps take it to the final score', async ({ page }) => {
     test.setTimeout(60_000)
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
-    const report = page.getByRole('list', { name: 'Match report' })
-    const lines = report.getByRole('listitem')
+    const card = page.getByRole('button', { name: 'Next moment' })
+    const earlier = page.getByRole('list', { name: 'Match report' }).getByRole('listitem')
 
-    // It starts with the kick-off and grows as the match goes on.
-    await expect(lines.first()).toContainText(/underway|whistle|kick-off|v .*five|Here we go|no room to hide|tempo/i)
-    await expect.poll(() => lines.count()).toBeGreaterThan(2)
+    // It starts with the kick-off, big, and moves on by itself to the first chance.
+    await expect(card).toContainText(/underway|whistle|kick-off|five a side|Here we go|no room to hide|tempo/i)
+    await expect(earlier.first()).toBeVisible({ timeout: 12_000 })
 
     // The same match on the pitch, and back again.
     await page.getByRole('tab', { name: 'Pitch' }).click()
     await expect(page.getByLabel('Match replay')).toBeVisible()
     await page.getByRole('tab', { name: 'Match report' }).click()
-    await expect(report).toBeVisible()
+    await expect(card).toBeVisible()
 
-    // Left to run, a whole match takes under half a minute.
-    await expect(page.getByText('Full time', { exact: true })).toBeVisible({ timeout: 35_000 })
+    // Tapping goes on sooner: a whole match in a few taps, ending on the full-time whistle and the result.
+    for (let taps = 0; taps < 40 && await card.isVisible(); taps++)
+      await card.click()
+    await expect(page.getByText('Full time', { exact: true })).toBeVisible()
     const header = await page.locator('main [aria-live="polite"]').textContent() ?? ''
     const score = /(\d+)–(\d+)/.exec(header)!
-    await expect(lines.first()).toContainText(`${score[1]}–${score[2]}`)
+    await expect(page.getByRole('status')).toContainText(`${score[1]}–${score[2]}`)
+    await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
+    // A short read: the kick-off, a handful of chances, a little colour, half-time and full-time.
+    expect(await earlier.count()).toBeLessThanOrEqual(12)
+  })
+
+  test('a goal is shown as a setup and then its outcome, with the score changing at the outcome', async ({ page }) => {
+    await guest(page)
+    await page.getByRole('button', { name: 'Found the club' }).click()
+    const card = page.getByRole('button', { name: 'Next moment' })
+    const scoreline = page.locator('main [aria-live="polite"]')
+    // The debut is a win, so there is a goal: tap until the label says so, and the score must not have moved yet.
+    for (let taps = 0; taps < 12; taps++) {
+      await card.click()
+      if (await page.getByText('Chance', { exact: true }).isVisible())
+        break
+    }
+    await expect(page.getByText('Chance', { exact: true })).toBeVisible()
+    const before = await scoreline.textContent()
+    await card.click()
+    await expect(page.getByText(/^(Goal|Saved|Missed)$/)).toBeVisible()
+    if (await page.getByText('Goal', { exact: true }).isVisible())
+      await expect(scoreline).not.toHaveText(before!)
+  })
+
+  test('with reduced motion the report never moves on by itself: Next steps through it', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await guest(page)
+    await page.getByRole('button', { name: 'Found the club' }).click()
+    const next = page.getByRole('button', { name: 'Next', exact: true })
+    await expect(next).toBeVisible()
+    await page.waitForTimeout(3500)
+    await expect(page.getByRole('list', { name: 'Match report' }).getByRole('listitem')).toHaveCount(0)
+    for (let taps = 0; taps < 40 && await next.isVisible(); taps++)
+      await next.click()
+    await expect(page.getByText('Full time', { exact: true })).toBeVisible()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
   })
 
   test('the match view is a setting that is remembered', async ({ page }) => {
     await foundClub(page)
-    await tab(page, 'Settings').click()
+    await openSettings(page)
     await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Written report')
     await page.getByRole('button', { name: /Match view/ }).click()
     await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Pixel pitch')
@@ -155,7 +193,7 @@ test.describe('Packs @game', () => {
     await expect(groups).toHaveCount(3)
     await groups.first().getByRole('radio', { name: /^Sell/ }).click()
     await expect(page.getByText(/Bench after signing: 2\/20/)).toBeVisible()
-    await page.getByRole('button', { name: 'Done' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
 
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
     await expect(page.getByLabel('3 of 10 packs')).toBeVisible()
@@ -191,7 +229,7 @@ test.describe('Packs @game', () => {
     await expect(page.getByText(/3 left today/)).toBeVisible()
     await buy.click()
     await flipAll(page)
-    await page.getByRole('button', { name: 'Done' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
     await expect(page.getByText(/2 left today/)).toBeVisible()
     await expect(page.getByRole('button', { name: /^Arcade pack/ })).toBeDisabled()
   })
@@ -235,70 +273,120 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await expect(warmup.getByRole('button', { name: 'Warm up' })).toHaveCount(0)
   })
 
-  test('Kick Timer: five kicks, scored by the server, paying tokens', async ({ page }) => {
+  test('Kick Timer: five kicks, scored by the server, paying tokens, and costing one energy', async ({ page }) => {
     test.setTimeout(60_000)
     await foundClub(page)
     await page.goto('/arcade')
-    await expect(page.getByRole('region', { name: 'Kick Timer' }).getByText(/Tray: 0 tokens/)).toBeVisible()
-    await page.getByRole('region', { name: 'Kick Timer' }).getByRole('link', { name: /Play · 3 free plays left/ }).click()
-    await page.getByRole('button', { name: 'Start' }).click()
+    await expect(page.getByRole('region', { name: 'Token tray' }).getByText(/Tray: 0 tokens/)).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Energy' }).getByText('5 / 5')).toBeVisible()
+    await page.getByRole('region', { name: 'Kick Timer' }).getByRole('link', { name: /Play · 1 energy/ }).click()
+    await page.getByRole('button', { name: /^Start/ }).click()
     for (let kick = 1; kick <= 5; kick++) {
       await expect(page.getByText(`Kick ${kick} of 5`)).toBeVisible()
+      // The last round is always fast, and the screen says so before the kick.
+      if (kick === 5)
+        await expect(page.getByText(/Fast!/)).toBeVisible()
       await page.waitForTimeout(300)
       await page.getByRole('button', { name: 'KICK!' }).click()
-      await expect(page.getByText(/^(Miss|Close|Good|Perfect!)$/)).toBeVisible()
+      await expect(page.getByText(/^(Miss|Close|Good|Perfect!)( ×2)?$/)).toBeVisible()
     }
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 10_000 })
-    await expect(result.getByText(/^\d+ \/ 15$/)).toBeVisible()
-    await result.getByRole('link', { name: 'Back to the arcade' }).click()
-    await expect(page.getByRole('region', { name: 'Kick Timer' }).getByRole('link', { name: /Play · 2 free plays left/ })).toBeVisible()
+    await expect(result.getByText(/^\d+ \/ 27$/)).toBeVisible()
+    // The play is scored against the best so far, and offers another go, with the energy left.
+    await expect(result.getByRole('status')).toHaveText(/best|board|Level|off your/i)
+    await expect(page.getByRole('button', { name: /Play again · 4 energy left/ })).toBeVisible()
+    await page.getByRole('link', { name: 'Back to the arcade' }).click()
+    await expect(page.getByRole('region', { name: 'Energy' }).getByText('4 / 5')).toBeVisible()
+  })
+
+  test('Penalty Shootout: five shots against a keeper, scored by the server, sharing the same energy', async ({ page }) => {
+    test.setTimeout(60_000)
+    await foundClub(page)
+    await page.goto('/arcade')
+    await expect(page.getByRole('region', { name: 'Penalty Shootout' }).getByText(/Not played yet/)).toBeVisible()
+    await page.getByRole('region', { name: 'Penalty Shootout' }).getByRole('link', { name: /Play · 1 energy/ }).click()
+    await page.getByRole('button', { name: /^Start/ }).click()
+    for (let penalty = 1; penalty <= 5; penalty++) {
+      await expect(page.getByText(`Penalty ${penalty} of 5`)).toBeVisible()
+      await page.waitForTimeout(300)
+      await page.getByRole('button', { name: 'SHOOT!' }).click()
+      await expect(page.getByText(/^(Wide!|Saved!|Goal!|Top corner! 2 points)$/)).toBeVisible()
+    }
+    const result = page.getByLabel('Result')
+    await expect(result).toBeVisible({ timeout: 10_000 })
+    await expect(result.getByText(/^\d+ \/ 10$/)).toBeVisible()
+    await page.getByRole('link', { name: 'Back to the arcade' }).click()
+    await expect(page.getByRole('region', { name: 'Energy' }).getByText('4 / 5')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Penalty Shootout' }).getByText(/(Best: \d+ \/ 10|Not played yet)/)).toBeVisible()
   })
 
   test('Keepy-Uppy: the ball drops with no taps, and the server scores the play', async ({ page }) => {
     test.setTimeout(60_000)
     await foundClub(page)
     await page.goto('/arcade/keepy')
-    await page.getByRole('button', { name: 'Start' }).click()
+    await page.getByRole('button', { name: /^Start/ }).click()
     await expect(page.getByLabel('Keepy-Uppy game')).toBeVisible()
+    await expect(page.getByText('30s')).toBeVisible()
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 20_000 })
-    await expect(result.getByText('0 / 50')).toBeVisible()
+    await expect(result.getByText('0 / 33')).toBeVisible()
     await expect(result.getByText(/Nothing this time/)).toBeVisible()
   })
 
-  test('the arcade trays fill while away and are collected into tokens', async ({ page }) => {
+  test('the arcade tray fills while away and is collected into tokens', async ({ page }) => {
     await foundClub(page)
     await advanceClock(page, 5 * HOUR)
     await page.goto('/arcade')
-    const tray = page.getByRole('region', { name: 'Kick Timer' })
-    await expect(tray.getByText(/Tray: 6\d tokens/)).toBeVisible()
+    const tray = page.getByRole('region', { name: 'Token tray' })
+    await expect(tray.getByText(/Tray: 1[12]\d tokens/)).toBeVisible()
     await tray.getByRole('button', { name: 'Collect' }).click()
     await expect(tray.getByText(/Tray: 0 tokens/)).toBeVisible()
-    await expect(page.getByText(/^6\d$/).first()).toBeVisible()
+    await expect(tray.getByText(/You have 1[12]\d\./)).toBeVisible()
   })
 
-  test('free plays run out after three, then an extra play costs gems', async ({ page }) => {
-    test.setTimeout(60_000)
+  test('energy runs out after five plays, comes back one at a time, and an extra play costs gems', async ({ page }) => {
+    test.setTimeout(90_000)
     await foundClub(page)
-    for (let play = 0; play < 3; play++) {
+    for (let play = 0; play < 5; play++) {
       await page.goto('/arcade/keepy')
-      await page.getByRole('button', { name: 'Start' }).click()
+      await page.getByRole('button', { name: /^Start/ }).click()
       await expect(page.getByLabel('Result')).toBeVisible({ timeout: 20_000 })
     }
     await page.goto('/arcade')
+    await expect(page.getByRole('region', { name: 'Energy' }).getByText('0 / 5')).toBeVisible()
     const keepy = page.getByRole('region', { name: 'Keepy-Uppy' })
-    await expect(keepy.getByText('No free plays left today.')).toBeVisible()
+    await expect(keepy.getByText(/Out of energy/)).toBeVisible()
     await expect(keepy.getByRole('link', { name: /Extra play · 20 gems/ })).toBeVisible()
+    // The other game shares the same bar.
+    await expect(page.getByRole('region', { name: 'Kick Timer' }).getByRole('link', { name: /Play · 1 energy/ })).toHaveCount(0)
+
+    // One point comes back after 90 minutes.
+    await advanceClock(page, 90 * 60_000)
+    await page.goto('/arcade')
+    await expect(page.getByRole('region', { name: 'Energy' }).getByText('1 / 5')).toBeVisible()
+    await expect(keepy.getByRole('link', { name: /Play · 1 energy/ })).toBeVisible()
   })
 
-  test('the welcome-back summary mentions the stadium and the trays', async ({ page }) => {
+  test('one game a day pays extra tokens, and each game shows your best', async ({ page }) => {
+    await foundClub(page)
+    await page.goto('/arcade')
+    await expect(page.getByText(/Today \+50% tokens/)).toHaveCount(1)
+    await expect(page.getByRole('region', { name: 'Keepy-Uppy' }).getByText('Not played yet')).toBeVisible()
+    await page.goto('/arcade/keepy')
+    await page.getByRole('button', { name: /^Start/ }).click()
+    await expect(page.getByLabel('Result')).toBeVisible({ timeout: 20_000 })
+    // No kicks scored, so nothing is on the board; a later play with taps would set a best.
+    await expect(page.getByRole('status').filter({ hasText: /Nothing on the board/ })).toBeVisible()
+  })
+
+  test('the welcome-back summary mentions the stadium and the arcade', async ({ page }) => {
     await foundClub(page)
     await advanceClock(page, 6 * HOUR)
     await page.goto('/club')
     const welcome = page.getByRole('dialog', { name: 'Welcome back' })
     await expect(welcome.getByText(/coins waiting in the stadium/)).toBeVisible()
-    await expect(welcome.getByText(/tokens waiting in the arcade trays/)).toBeVisible()
+    await expect(welcome.getByText(/tokens waiting in the arcade/)).toBeVisible()
   })
 })
 

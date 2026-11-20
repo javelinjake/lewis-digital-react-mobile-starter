@@ -7,8 +7,8 @@ export interface IdleState {
   /** Coins in the stadium were last collected at this time; the pile since is derived, never stored. */
   stadiumCollectedAt: number
   stadiumLevel: number
-  /** Token trays, one per cabinet, last emptied at. */
-  trayCollectedAt: { kick: number, keepy: number }
+  /** The arcade's token tray, last emptied at. One tray for every cabinet. */
+  trayCollectedAt: number
   /** Which day (see `dayIndex`) gems were last granted for. */
   gemsGrantedForDay: number
   gems: number
@@ -21,7 +21,7 @@ export function newIdleState(now: number): IdleState {
     shelfClockAt: now,
     stadiumCollectedAt: now,
     stadiumLevel: 1,
-    trayCollectedAt: { kick: now, keepy: now },
+    trayCollectedAt: now,
     gemsGrantedForDay: -1,
     gems: 0,
     hasPass: false,

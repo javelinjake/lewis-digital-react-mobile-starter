@@ -4,7 +4,7 @@ import type { Session } from './harness'
 import { albumSets, DEFAULT_CONFIG, generateCatalogue } from '@ld/pixel-pitch-core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { act, DAY, found, HOUR } from './game-helpers'
-import { boot, guest } from './harness'
+import { boot, call, guest } from './harness'
 
 const config = DEFAULT_CONFIG
 const catalogue = generateCatalogue(config)
@@ -213,5 +213,61 @@ describe('privacy', () => {
 describe('time', () => {
   it('only moves forward in the tests: a day is a day', () => {
     expect(DAY).toBe(24 * HOUR)
+  })
+})
+
+describe('claim all', () => {
+  it('takes everything waiting in one call, pays each thing once with its own ledger rows, and says what the wallet gained', async () => {
+    now += 3 * DAY
+    // Time has passed, so the stadium and the tray are full, and today's calendar day and free pack are waiting.
+    const before = await sync(alice)
+    const key = crypto.randomUUID()
+    const first = await act(alice, 'claim-all', {}, { key, at: now })
+    expect(first.status).toBe(200)
+    const state = first.json.club.state as State
+    expect(first.json.items).toBeGreaterThanOrEqual(4)
+    expect(state.coins - before.coins).toBe(first.json.coins)
+    expect(state.tokens - before.tokens).toBe(first.json.tokens)
+    expect(state.daily.freePackClaimed).toBe(true)
+    expect(state.calendar.lastClaimDay).toBe(Math.floor(now / DAY))
+
+    // The same call again with the same key is a replay: same answer, nothing paid twice.
+    const replay = await act(alice, 'claim-all', {}, { key, at: now })
+    expect(replay.headers.get('idempotent-replay')).toBe('true')
+    expect(replay.json.club.state.coins).toBe(state.coins)
+
+    // A new call finds nothing.
+    const none = await act(alice, 'claim-all', {}, { at: now })
+    expect(none.status).toBe(400)
+    expect(JSON.stringify(none.json)).toContain('nothing')
+
+    // Every change is in the ledger, and it adds up to the wallet.
+    const rows = await payload.find({ collection: 'ledger', where: { and: [{ owner: { equals: alice.user!.id } }, { createdAt: { greater_than: new Date(Date.now() - 60_000).toISOString() } }] }, limit: 500, depth: 0, overrideAccess: true })
+    const total = (currency: string) => rows.docs.filter(row => row.currency === currency && ['stadium', 'tray', 'calendar', 'goal', 'pass', 'album'].includes(String(row.reason))).reduce((sum, row) => sum + Number(row.amount), 0)
+    expect(total('coins')).toBeGreaterThanOrEqual(first.json.coins)
+  })
+
+  it('pays the same however many tabs ask at once: four together make one claim', async () => {
+    now += 2 * DAY
+    const results = await Promise.all([1, 2, 3, 4].map(() => act(bob, 'claim-all', {}, { at: now })))
+    expect(results.filter(result => result.status === 200)).toHaveLength(1)
+    expect(results.filter(result => result.status === 400)).toHaveLength(3)
+  })
+
+  it('touches only the caller\'s club', async () => {
+    now += 2 * DAY
+    const bobBefore = await sync(bob)
+    await act(alice, 'claim-all', {}, { at: now })
+    const bobAfter = await sync(bob)
+    // Bob's own time moved on, but nothing was claimed for him.
+    expect(bobAfter.daily.freePackClaimed).toBe(false)
+    expect(bobAfter.calendar).toEqual(bobBefore.calendar)
+  })
+
+  it('needs a signed-in player and an idempotency key', async () => {
+    const anonymous = await call('POST', '/api/game/claim-all', { body: {} })
+    expect(anonymous.status).toBe(401)
+    const noKey = await alice.post('/api/game/claim-all', {})
+    expect(noKey.status).toBe(400)
   })
 })

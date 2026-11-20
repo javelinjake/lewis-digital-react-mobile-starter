@@ -61,8 +61,8 @@ describe('sprites and labels', () => {
 })
 
 describe('the written match report', () => {
-  it('spreads the lines over about 18 seconds, never closer than half a second', async () => {
-    const { lineTimes, DURATION_MS } = await import('@/features/game/lib/line-times')
+  it('has a beat per setup and outcome, holds each long enough to read, and the whole match comes to about half a minute', async () => {
+    const { beatsOf, totalMs } = await import('@/features/game/lib/beats')
     const { commentate, DEFAULT_CONFIG: config, FORMATIONS } = await import('@ld/pixel-pitch-core')
     const fixture = {
       no: 1,
@@ -76,14 +76,22 @@ describe('the written match report', () => {
       result: 'win' as const,
     }
     expect(FORMATIONS['2-2'].roles).toHaveLength(5)
-    const lines = commentate({ clubName: 'Us', fixture, config, seed: 'x' })
-    const times = lineTimes(lines, config.match.minutes)
-    expect(times).toHaveLength(lines.length)
-    expect(times[0]).toBe(0)
-    for (let i = 1; i < times.length; i++)
-      expect(times[i] - times[i - 1]).toBeGreaterThanOrEqual(450)
-    expect(times.at(-1)!).toBeLessThanOrEqual(DURATION_MS + 450 * lines.length)
-    expect(times.at(-1)!).toBeGreaterThanOrEqual(DURATION_MS - 1)
+    const moments = commentate({ clubName: 'Us', fixture, config, seed: 'x' })
+    const beats = beatsOf(moments)
+    // Two beats for a chance, one for everything else.
+    expect(beats).toHaveLength(moments.reduce((sum, moment) => sum + (moment.outcome === null ? 1 : 2), 0))
+    expect(beats.map(beat => beat.moment)).toEqual([...beats.map(beat => beat.moment)].sort((a, b) => a - b))
+    for (const beat of beats) {
+      expect(beat.ms).toBeGreaterThanOrEqual(1400)
+      expect(beat.ms).toBeLessThanOrEqual(4600)
+    }
+    // A goal's outcome is held longer than a setup, so the finish can be read.
+    const goal = moments.findIndex(moment => moment.kind === 'goal')
+    const [setup, outcome] = beats.filter(beat => beat.moment === goal)
+    expect(setup.part).toBe('setup')
+    expect(outcome.ms).toBeGreaterThan(setup.ms)
+    expect(totalMs(beats)).toBeGreaterThan(12_000)
+    expect(totalMs(beats)).toBeLessThan(45_000)
   })
 })
 
@@ -99,9 +107,9 @@ describe('local notifications', () => {
     const byType = Object.fromEntries(plans.map(plan => [plan.type, plan]))
     expect(Object.keys(byType).sort()).toEqual(['full-time', 'shelf-full', 'trays-full'])
     expect(byType['full-time'].at).toBe(created.club.state.league.nextKickoffAt + 60_000)
-    // Ten packs at 45 minutes each from the start, and 8 hours of trays.
+    // Ten packs at 45 minutes each from the start, and 8 hours of tray (a new club's energy is full, so the tray is next).
     expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + 10 * 45 * 60_000)
-    expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt.kick + 8 * HOUR)
+    expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt + 8 * HOUR)
 
     const full = { ...created, club: { ...created.club, state: { ...created.club.state, idle: { ...created.club.state.idle, shelfPacks: 10 } } } }
     expect(buildNotificationPlans(full, DEFAULT_CONFIG).some(plan => plan.type === 'shelf-full')).toBe(false)

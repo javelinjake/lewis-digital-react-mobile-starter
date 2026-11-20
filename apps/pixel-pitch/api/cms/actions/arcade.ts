@@ -1,5 +1,6 @@
+import type { Cabinet } from '@ld/pixel-pitch-core'
 import { defineAction } from '@ld/backend'
-import { collectStadium, collectTray, finishPlay, finishWarmup, startPlay, startWarmup, upgradeStadium } from '@ld/pixel-pitch-core'
+import { CABINETS, collectStadium, collectTray, finishPlay, finishWarmup, startPlay, startWarmup, upgradeStadium } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { flowContext, mutateClub } from '../game/mutate-club'
 
@@ -9,10 +10,10 @@ import { flowContext, mutateClub } from '../game/mutate-club'
 
 const limits = { rateLimit: { limit: 60, windowMs: 60_000 } }
 
-function cabinetOf(body: Record<string, unknown>) {
-  if (body.cabinet !== 'kick' && body.cabinet !== 'keepy')
-    throw new APIError('Send cabinet: "kick" or "keepy".', 400)
-  return body.cabinet
+function cabinetOf(body: Record<string, unknown>): Cabinet {
+  if (!CABINETS.includes(body.cabinet as Cabinet))
+    throw new APIError(`Send cabinet: one of ${CABINETS.map(name => `"${name}"`).join(', ')}.`, 400)
+  return body.cabinet as Cabinet
 }
 
 export const collectStadiumAction = defineAction({
@@ -30,10 +31,7 @@ export const upgradeStadiumAction = defineAction({
 export const collectTrayAction = defineAction({
   path: '/game/arcade/collect',
   ...limits,
-  handler: async (ctx) => {
-    const cabinet = cabinetOf(ctx.body)
-    return { body: await mutateClub(ctx, input => collectTray(flowContext(input), cabinet)) }
-  },
+  handler: async ctx => ({ body: await mutateClub(ctx, input => collectTray(flowContext(input))) }),
 })
 
 export const startPlayAction = defineAction({

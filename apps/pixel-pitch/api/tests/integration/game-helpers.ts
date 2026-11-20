@@ -1,7 +1,7 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { Session } from './harness'
 import { randomUUID } from 'node:crypto'
-import { DEFAULT_CONFIG, kickRounds, markerAt, newKeepy, stepKeepy, warmupBar } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, kickRounds, markerAt, newKeepy, penaltyRounds, penaltyShot, stepKeepy, targetAt, warmupBar } from '@ld/pixel-pitch-core'
 
 export const HOUR = 60 * 60 * 1000
 export const DAY = 24 * HOUR
@@ -34,10 +34,21 @@ export function perfectKickTaps(seed: string) {
   return kickRounds(seed, config).map((bar) => {
     let best = 150
     for (let ms = 150; ms < 4000; ms++) {
-      if (Math.abs(markerAt(bar, ms) - bar.centre) < Math.abs(markerAt(bar, best) - bar.centre))
+      if (Math.abs(markerAt(bar, ms) - targetAt(bar, ms)) < Math.abs(markerAt(bar, best) - targetAt(bar, best)))
         best = ms
     }
     return best
+  })
+}
+
+/** The millisecond in each penalty at which a shot goes in the corner, so a perfect shootout can be played. */
+export function perfectPenaltyTaps(seed: string) {
+  return penaltyRounds(seed, config).map((round) => {
+    for (let ms = 150; ms < 12_000; ms++) {
+      if (penaltyShot(round, ms, config).outcome === 'corner')
+        return ms
+    }
+    throw new Error('No corner shot in 12 seconds: the keeper covers it.')
   })
 }
 
@@ -50,7 +61,7 @@ export function perfectKeepyTaps(seed: string) {
   while (!sim.over && sim.step < 7200) {
     const inReach = sim.vy < 0 && sim.y <= config.minigames.keepy.reach
     if (inReach && !was)
-      wait = 6
+      wait = 1
     was = inReach
     let tap = false
     if (wait === 0) {

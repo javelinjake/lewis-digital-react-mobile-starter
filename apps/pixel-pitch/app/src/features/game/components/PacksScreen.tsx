@@ -142,7 +142,16 @@ export function PacksScreen({ game }: { game: GameResponse }) {
         <span className="text-muted">{`A Star or better is guaranteed within ${config.packs.pityPlayers} players. ${toGo} to go.`}</span>
       </section>
 
-      {revealing && waiting ? <PackReveal game={game} onClose={() => setRevealing(false)} /> : null}
+      {revealing && waiting
+        ? (
+            <PackReveal
+              game={game}
+              onClose={() => setRevealing(false)}
+              // Straight on to the next one: a Star pack first if there is one, then the shelf.
+              onNext={() => open.mutate(state.starPacks > 0 ? 'star' : 'shelf', reveal)}
+            />
+          )
+        : null}
     </div>
   )
 }

@@ -2,8 +2,8 @@ import { createBrowserRouter } from 'react-router'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { GuestOnly, RequireAuth } from '@/components/layout/guards'
 import { StackLayout } from '@/components/layout/StackLayout'
-import { TabsLayout } from '@/components/layout/TabsLayout'
 import { ClubGate, NoClubGate } from '@/features/game/components/ClubGate'
+import { GameTabs } from '@/features/game/components/GameTabs'
 import { HomeRedirect } from '@/pages/HomeRedirect'
 import { RootLayout } from '@/routes/root-layout'
 import { pages } from './pages'
@@ -37,14 +37,14 @@ export const router = createBrowserRouter([
             Component: ClubGate,
             children: [
               {
-                Component: TabsLayout,
+                Component: GameTabs,
                 children: [
                   { path: '/', Component: HomeRedirect },
                   { path: '/club', lazy: pages.club, handle: { title: 'Club' } },
                   { path: '/packs', lazy: pages.packs, handle: { title: 'Packs' } },
                   { path: '/squad', lazy: pages.squad, handle: { title: 'Squad' } },
+                  { path: '/arcade', lazy: pages.arcade, handle: { title: 'Arcade' } },
                   { path: '/league', lazy: pages.league, handle: { title: 'League' } },
-                  { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
                 ],
               },
               {
@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
                   { path: '/goals', lazy: pages.goals, handle: { title: 'Goals' } },
                   { path: '/pass', lazy: pages.pass, handle: { title: 'League Pass' } },
                   { path: '/album', lazy: pages.album, handle: { title: 'Album' } },
-                  { path: '/arcade', lazy: pages.arcade, handle: { title: 'Arcade' } },
+                  { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
                   { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade' } },
                 ],
               },

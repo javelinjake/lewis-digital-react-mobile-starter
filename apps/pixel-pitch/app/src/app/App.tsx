@@ -3,7 +3,7 @@ import { hideSplashScreen, isNativePlatform, setStatusBarAppearance } from '@ld/
 import { useAppState, useBackButton, useDeepLinks } from '@ld/native/react'
 import { ReloadPrompt, useServiceWorker } from '@ld/pwa'
 import { ToastProvider } from '@ld/ui'
-import { useQueryClient } from '@tanstack/react-query'
+import { useIsRestoring, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
@@ -41,10 +41,13 @@ export function NativeRuntime() {
   useBackButton({ onBack: () => navigate(-1) })
 
   // Opening or coming back to the app is when the most has happened: catch the club up straight away, even when the
-  // cached club is only seconds old.
+  // cached club is only seconds old. Only once the saved copy has been restored: asking before then finds nothing to
+  // refresh, and the copy that arrives a moment later would be treated as fresh.
+  const restoring = useIsRestoring()
   useEffect(() => {
-    void client.invalidateQueries({ queryKey: gameKeys.all })
-  }, [client])
+    if (!restoring)
+      void client.invalidateQueries({ queryKey: gameKeys.all })
+  }, [client, restoring])
   useEffect(() => onResume(() => {
     void client.invalidateQueries({ queryKey: gameKeys.all })
   }), [onResume, client])

@@ -5,9 +5,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { claimable } from '../lib/claimable'
 import { kitOf, leagueName, nextRival, serverOffset } from '../lib/club'
+import { claimCount, readyItems } from '../lib/ready-now'
+import { useClaimAll } from '../mutations/use-claim-all'
 import { gameKeys } from '../queries/game.keys'
 import { useCatalogue, useFixtures, useGameConfig } from '../queries/use-game'
 import { Countdown } from './Countdown'
+import { ReadyNow } from './ReadyNow'
 import { Crest, Icon } from './sprites'
 import { StadiumCard } from './StadiumCard'
 import { WarmupCard } from './WarmupCard'
@@ -32,6 +35,8 @@ export function ClubHub({ game }: { game: GameResponse }) {
   const last = fixtures.data?.[0]
   const { data: catalogue } = useCatalogue()
   const waiting = claimable(game, config, albumSets(catalogue ?? [], config))
+  const { claim, pending, pop } = useClaimAll()
+  const claims = claimCount(readyItems(game, config, catalogue ?? []))
 
   const [seen, setSeen] = useState(() => Number(sessionStorage.getItem(SEEN_KEY) ?? 0))
   const news = newsOf(game)
@@ -70,6 +75,8 @@ export function ClubHub({ game }: { game: GameResponse }) {
         </span>
       </section>
 
+      <ReadyNow game={game} claim={() => claim()} pending={pending} />
+
       <section className="flex flex-col items-center gap-2 border-2 border-slate bg-base-100 p-4" aria-label="Next match">
         <span className="text-muted">Next match</span>
         <span className="text-xl">{`v ${rival.name}`}</span>
@@ -84,7 +91,6 @@ export function ClubHub({ game }: { game: GameResponse }) {
 
       <nav className="grid grid-cols-2 gap-2" aria-label="More to do">
         {[
-          { to: '/arcade', label: 'Arcade', note: 'Earn tokens', icon: 'icons/currency_token.png', count: 0 },
           { to: '/goals', label: 'Goals', note: 'Daily and calendar', icon: 'icons/ui_check.png', count: waiting.goals },
           { to: '/pass', label: 'League Pass', note: 'Season rewards', icon: 'icons/currency_trophy.png', count: waiting.pass },
           { to: '/album', label: 'Album', note: 'Collect sets', icon: 'icons/currency_star.png', count: waiting.album },
@@ -117,6 +123,12 @@ export function ClubHub({ game }: { game: GameResponse }) {
             <WelcomeBack
               game={game}
               events={news}
+              claims={claims}
+              claiming={pending}
+              onClaimAll={() => claim(() => {
+                sessionStorage.setItem(SEEN_KEY, String(game.now))
+                setSeen(game.now)
+              })}
               onClose={() => {
                 sessionStorage.setItem(SEEN_KEY, String(game.now))
                 setSeen(game.now)
@@ -124,6 +136,7 @@ export function ClubHub({ game }: { game: GameResponse }) {
             />
           )
         : null}
+      {pop}
     </div>
   )
 }

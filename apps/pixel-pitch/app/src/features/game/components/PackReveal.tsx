@@ -28,7 +28,7 @@ const STING_COLOUR: Record<Player['rarity'], string> = {
  * The pack opening: tear the pack, turn each card over, then sign or sell. The three players were rolled by the
  * server when the pack was opened, so leaving halfway only pauses it: the pack is still waiting next time.
  */
-export function PackReveal({ game, onClose }: { game: GameResponse, onClose: () => void }) {
+export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onClose: () => void, onNext?: () => void }) {
   const config = useGameConfig()
   const { lookup } = useCatalogue()
   const toast = useToast()
@@ -61,6 +61,8 @@ export function PackReveal({ game, onClose }: { game: GameResponse, onClose: () 
   const signing = decisions.filter(choice => choice === 'sign').length
   const sellTotal = decisions.reduce((sum, choice, position) => sum + (choice === 'sell' ? config.cards.sellValue[players[position].rarity] : 0), 0)
   const overfull = signing > room
+  /** Packs still to open once this one is decided. */
+  const more = state.idle.shelfPacks + state.starPacks
 
   if (!pending || players.length === 0)
     return null
@@ -117,9 +119,15 @@ export function PackReveal({ game, onClose }: { game: GameResponse, onClose: () 
                         <span className="text-xl">{player.name}</span>
                         {pending.guaranteed[index] ? <span className="text-muted">The Star guarantee</span> : null}
                         <button type="button" className="btn btn-primary mt-2 min-h-11 w-48 font-display text-xs" onClick={next}>{index + 1 < players.length ? 'Next' : 'Sign or sell'}</button>
+                        {index + 1 < players.length ? <button type="button" className="btn btn-ghost min-h-11 w-48" onClick={() => setPhase('decide')}>Reveal all</button> : null}
                       </div>
                     )
-                  : <span className="text-muted">Tap the card to turn it over</span>}
+                  : (
+                      <>
+                        <span className="text-muted">Tap the card to turn it over</span>
+                        <button type="button" className="btn btn-ghost min-h-11 w-48" onClick={() => setPhase('decide')}>Reveal all</button>
+                      </>
+                    )}
               </>
             )
           : null}
@@ -165,6 +173,21 @@ export function PackReveal({ game, onClose }: { game: GameResponse, onClose: () 
                 >
                   {decide.isPending ? 'Saving…' : 'Done'}
                 </button>
+                {onNext && more > 0
+                  ? (
+                      <button
+                        type="button"
+                        className="btn btn-outline min-h-12 w-full"
+                        disabled={overfull || decide.isPending}
+                        onClick={() => decide.mutate(decisions, { onSuccess: () => {
+                          onClose()
+                          onNext()
+                        }, onError: error => toast.push(formatError(error), 'error') })}
+                      >
+                        {`Done and open the next pack (${more} left)`}
+                      </button>
+                    )
+                  : null}
               </>
             )
           : null}

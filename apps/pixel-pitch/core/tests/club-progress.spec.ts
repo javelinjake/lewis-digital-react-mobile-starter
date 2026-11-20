@@ -101,7 +101,23 @@ describe('upgradeState', () => {
     expect(upgraded).toMatchObject({ formation: '3-1', pity: 12, coins: 500, tokens: 3, packsOpened: 0, pendingPack: null, starPacks: 0 })
     expect(upgraded.pass.season).toBe(-1)
     expect(upgraded.album).toEqual({ collected: [], completed: 0, claimed: [] })
-    expect(upgraded.cabinetPlays.kick).toEqual({ day: -1, count: 0 })
+    expect(upgraded.energy).toEqual({ fullAt: 0 })
+    expect(upgraded.arcade.best).toEqual({ kick: 0, keepy: 0, pens: 0 })
     expect(setLineup(upgraded, '2-2', [null, null, null, null, null], []).formation).toBe('2-2')
+  })
+
+  it('turns the two old token trays into one, emptied at the earlier time, and the daily plays into full energy', () => {
+    const fresh = newClubState(T0, config)
+    const old = {
+      ...fresh,
+      idle: { ...fresh.idle, trayCollectedAt: { kick: T0 + 2 * 3_600_000, keepy: T0 + 5 * 3_600_000 } },
+      cabinetPlays: { kick: { day: 3, count: 3 }, keepy: { day: 3, count: 1 } },
+    } as never
+    const upgraded = upgradeState(old, config)
+    expect(upgraded.idle.trayCollectedAt).toBe(T0 + 2 * 3_600_000)
+    expect(upgraded).not.toHaveProperty('cabinetPlays')
+    expect(upgraded.energy).toEqual({ fullAt: 0 })
+    // A club already on the new shape is left as it is.
+    expect(upgradeState(upgraded, config)).toEqual(upgraded)
   })
 })

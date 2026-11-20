@@ -60,16 +60,22 @@ export const gameConfigSchema = z.object({
   }),
 
   cabinets: z.object({
-    /** Tokens per hour while idle, per cabinet. PLACEHOLDER. */
+    /** Tokens per hour while idle, for the arcade's one tray. PLACEHOLDER. */
     tokensPerHour: positive,
     trayCapHours: positive,
     trayCapHoursWithPass: positive,
-    freePlaysPerDay: count,
-    freePlaysPerDayWithPass: count,
+    /** The arcade's stamina: one bar for every game, one point back every `regenMinutes`. PLACEHOLDERS. */
+    energy: z.object({
+      max: z.number().int().positive(),
+      maxWithPass: z.number().int().positive(),
+      regenMinutes: positive,
+    }).default({ max: 5, maxWithPass: 6, regenMinutes: 90 }),
+    /** Extra tokens a play pays in the cabinet of the day, as a fraction (0.5 is +50%). */
+    hotBonus: z.number().min(0).max(2).default(0.5),
     arcadePackTokens: count,
     /** Most tokens one play can pay, at a perfect score. PLACEHOLDER. */
     playMaxTokens: count,
-    /** Gems for an extra play once the free ones are used. It pays coins and Pass XP, never tokens (tokens buy random packs). */
+    /** Gems for an extra play once the energy is used. It pays coins and Pass XP, never tokens (tokens buy random packs). */
     gemPlayCost: count,
     gemPlayCoins: count,
   }),
@@ -89,7 +95,27 @@ export const gameConfigSchema = z.object({
       perfect: positive,
       good: positive,
       ok: positive,
+      /** A fast round: the marker is this many times quicker. */
+      fastFactor: positive.default(1.4),
+      /** A narrow round: the zones are this fraction of their usual width. */
+      narrowZone: positive.default(0.6),
+      /** A moving round: the target swings this far either side of its middle, as a fraction of the bar. */
+      drift: z.number().min(0).max(0.3).default(0.14),
     }),
+    /** Penalty Shootout: five penalties, an aim sweeping across the goal and a keeper shuffling along the line. */
+    pens: z.object({
+      rounds: z.number().int().positive(),
+      aimMinSpeed: positive,
+      aimMaxSpeed: positive,
+      keeperMinSpeed: positive,
+      keeperMaxSpeed: positive,
+      /** The posts: an aim closer to the edge than this (a fraction of the width) is wide. */
+      post: z.number().min(0).max(0.3),
+      /** An aim this close to a post is in the corner, worth 2. */
+      corner: z.number().min(0).max(0.5),
+      /** The keeper saves anything within this of where they stand. */
+      reach: positive,
+    }).default({ rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 }),
     keepy: z.object({
       /** Gravity at the start, in pitch units a second squared; the ball is 100 units from the ground up to the top. */
       gravity: positive,
@@ -104,6 +130,10 @@ export const gameConfigSchema = z.object({
       stumbleSteps: z.number().int().nonnegative(),
       /** The game ends at this many kicks. */
       maxKicks: z.number().int().positive(),
+      /** And at this many seconds, whatever the score: a play is short. */
+      maxSeconds: positive.default(30),
+      /** Every this-many-th kick is a golden ball and counts double. */
+      goldenEvery: z.number().int().positive().default(10),
     }),
     warmup: z.object({
       minSpeed: positive,
@@ -146,6 +176,15 @@ export const gameConfigSchema = z.object({
     maxXg: positive,
     /** Match length in minutes: two 20-minute halves, as in 5-a-side. Events and the replay clock run to this. */
     minutes: z.number().int().min(10),
+    /** The written report keeps the big moments, not every event. Defaults keep an older saved config valid. */
+    report: z.object({
+      /** Goals, saves and misses shown (every goal always is; the rest fill what is left of this). */
+      maxMoments: z.number().int().min(1).max(20),
+      /** A quiet match is topped up to this many with saves and misses that change nothing on the scoreboard. */
+      minChances: z.number().int().min(0).max(20),
+      /** Colour moments with no effect on the score, at most this many a match. */
+      incidents: z.number().int().min(0).max(5),
+    }).default({ maxMoments: 6, minChances: 4, incidents: 2 }),
     /** Pre-match kick: how much of the team's ATT the next match gets. */
     warmupGold: z.number().min(0).max(0.5),
     warmupGreen: z.number().min(0).max(0.5),
@@ -255,7 +294,7 @@ function passTiers() {
 }
 
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 3,
+  version: 4,
   shelf: {
     intervalMinutes: 45,
     capacity: 10,
@@ -274,11 +313,11 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     capHoursWithPass: 12,
   },
   cabinets: {
-    tokensPerHour: 12,
+    tokensPerHour: 24,
     trayCapHours: 8,
     trayCapHoursWithPass: 12,
-    freePlaysPerDay: 3,
-    freePlaysPerDayWithPass: 4,
+    energy: { max: 5, maxWithPass: 6, regenMinutes: 90 },
+    hotBonus: 0.5,
     arcadePackTokens: 300,
     playMaxTokens: 60,
     gemPlayCost: 20,
@@ -299,7 +338,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     rivalSpread: 4,
     maxCatchUpMatches: 56,
   },
-  match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
+  match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.
     edges: [
@@ -342,8 +381,9 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   minigames: {
     minTapGapMs: 120,
     clockSlack: 0.85,
-    kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2 },
-    keepy: { gravity: 110, ramp: 0.04, minPeak: 40, maxPeak: 54, reach: 32, stumbleSteps: 30, maxKicks: 50 },
+    kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14 },
+    pens: { rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 },
+    keepy: { gravity: 110, ramp: 0.18, minPeak: 40, maxPeak: 54, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10 },
     warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
   },
   daily: {
@@ -384,6 +424,8 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
 /** Throws a readable error if a config from the admin is unusable (for example, upgrade costs for the wrong number of levels). */
 export function parseConfig(raw: unknown): GameConfig {
   const config = gameConfigSchema.parse(raw)
+  if (config.match.report.minChances > config.match.report.maxMoments)
+    throw new Error('match.report.minChances is more than match.report.maxMoments.')
   if (config.stadium.upgradeCost.length !== config.stadium.coinsPerHour.length - 1)
     throw new Error('stadium.upgradeCost needs one entry per level after the first.')
   for (const [league, row] of config.packs.oddsByLeague.entries()) {

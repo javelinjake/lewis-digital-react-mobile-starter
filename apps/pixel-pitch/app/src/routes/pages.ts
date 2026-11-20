@@ -27,8 +27,8 @@ export function preloadTabScreens() {
     void pages.club()
     void pages.packs()
     void pages.squad()
+    void pages.arcade()
     void pages.league()
-    void pages.settings()
   }
 
   if ('requestIdleCallback' in window) {

@@ -1,13 +1,15 @@
+import type { TabBarItem } from '@ld/mobile-ui'
+import type { ReactNode } from 'react'
 import { AppBar, BottomTabBar, MobileShell, OfflineBanner } from '@ld/mobile-ui'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
-import { tabItems } from '@/config/nav.config'
 import { useConnectivity } from '@/hooks/use-connectivity'
 import { useRouteTitle } from '@/hooks/use-route-title'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
 import { preloadTabScreens } from '@/routes/pages'
 
-export function TabsLayout() {
+/** The screen around the tab screens: the header, the tab bar and the offline banner. The app says what the tabs are. */
+export function TabsLayout({ items, end }: { items: TabBarItem[], end?: ReactNode }) {
   const title = useRouteTitle('Club')
   const { offline } = useConnectivity()
 
@@ -20,11 +22,11 @@ export function TabsLayout() {
       footer={(
         <>
           <OfflineBanner offline={offline && !isPlaytestBuild} pendingCount={0} />
-          <BottomTabBar items={tabItems} />
+          <BottomTabBar items={items} />
         </>
       )}
     >
-      <AppBar title={title} />
+      <AppBar title={title} end={end} />
       <Outlet />
     </MobileShell>
   )

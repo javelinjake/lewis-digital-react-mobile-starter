@@ -6,11 +6,11 @@ import { useGameConfig } from '../queries/use-game'
 import { Icon } from './sprites'
 
 /** What happened while the player was away. Shown once per sync that had news. */
-export function WelcomeBack({ game, events, onClose }: { game: GameResponse, events: WelcomeBackEvent[], onClose: () => void }) {
+export function WelcomeBack({ game, events, claims, claiming, onClaimAll, onClose }: { game: GameResponse, events: WelcomeBackEvent[], claims: number, claiming: boolean, onClaimAll: () => void, onClose: () => void }) {
   const config = useGameConfig()
   const { idle } = game.club.state
   const stadium = pendingStadiumCoins(idle, config, game.now)
-  const trays = pendingTrayTokens(idle, config, 'kick', game.now) + pendingTrayTokens(idle, config, 'keepy', game.now)
+  const trays = pendingTrayTokens(idle, config, game.now)
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-label="Welcome back">
       <div className="flex w-full max-w-sm flex-col items-center gap-4 border-2 border-primary bg-base-100 p-5">
@@ -28,7 +28,7 @@ export function WelcomeBack({ game, events, onClose }: { game: GameResponse, eve
             ? (
                 <li>
                   <Icon path="icons/currency_token.png" />
-                  {` ${trays} tokens waiting in the arcade trays`}
+                  {` ${trays} tokens waiting in the arcade`}
                 </li>
               )
             : null}
@@ -79,7 +79,14 @@ export function WelcomeBack({ game, events, onClose }: { game: GameResponse, eve
             )
           })}
         </ul>
-        <button type="button" className="btn btn-primary min-h-11 w-full font-display text-xs" onClick={onClose}>Let's go</button>
+        {claims > 0
+          ? (
+              <>
+                <button type="button" className="btn btn-primary min-h-12 w-full font-display text-xs" disabled={claiming} onClick={onClaimAll}>{claims === 1 ? 'Claim it' : `Claim all (${claims})`}</button>
+                <button type="button" className="btn btn-ghost min-h-11 w-full" onClick={onClose}>Let's go</button>
+              </>
+            )
+          : <button type="button" className="btn btn-primary min-h-11 w-full font-display text-xs" onClick={onClose}>Let's go</button>}
       </div>
     </div>
   )

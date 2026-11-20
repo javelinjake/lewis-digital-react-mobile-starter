@@ -58,3 +58,9 @@ export async function advanceClock(page: Page, ms: number) {
 }
 
 export const tab = (page: Page, name: string) => page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name })
+
+/** Settings is behind the button in the header of the tab screens, not a tab of its own. */
+export async function openSettings(page: Page) {
+  await page.getByRole('link', { name: 'Settings' }).click()
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+}
