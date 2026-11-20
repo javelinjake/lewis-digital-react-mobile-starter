@@ -28,7 +28,7 @@ test.describe('First session @game', () => {
 
     await expect(page).toHaveURL(/\/match\/-1\?debut=1/)
     // The written report is the default view.
-    await expect(page.getByRole('list', { name: 'Match report' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Next moment' })).toBeVisible()
     await page.getByRole('button', { name: 'Skip' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue' }).click()
@@ -42,12 +42,13 @@ test.describe('First session @game', () => {
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
   })
 
-  test('on a weak phone the written report shows at once, with no Skip, and still finishes on the result', async ({ page }) => {
+  test('a weak phone gets the same paced report, not an instant one', async ({ page }) => {
     await weakDevice(page)
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
     await expect(page).toHaveURL(/\/match\/-1/)
-    await expect(page.getByRole('button', { name: 'Skip' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible()
+    await page.getByRole('button', { name: 'Skip' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue' }).click()
     await expect(page).toHaveURL(/\/squad/)
@@ -67,28 +68,65 @@ test.describe('First session @game', () => {
     expect(drawn).toBe(true)
   })
 
-  test('the written report fills in line by line, ends on the final score, and can be switched to the pitch', async ({ page }) => {
+  test('the written report plays a moment at a time on its own, and a few taps take it to the final score', async ({ page }) => {
     test.setTimeout(60_000)
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
-    const report = page.getByRole('list', { name: 'Match report' })
-    const lines = report.getByRole('listitem')
+    const card = page.getByRole('button', { name: 'Next moment' })
+    const earlier = page.getByRole('list', { name: 'Match report' }).getByRole('listitem')
 
-    // It starts with the kick-off and grows as the match goes on.
-    await expect(lines.first()).toContainText(/underway|whistle|kick-off|v .*five|Here we go|no room to hide|tempo/i)
-    await expect.poll(() => lines.count()).toBeGreaterThan(2)
+    // It starts with the kick-off, big, and moves on by itself to the first chance.
+    await expect(card).toContainText(/underway|whistle|kick-off|five a side|Here we go|no room to hide|tempo/i)
+    await expect(earlier.first()).toBeVisible({ timeout: 12_000 })
 
     // The same match on the pitch, and back again.
     await page.getByRole('tab', { name: 'Pitch' }).click()
     await expect(page.getByLabel('Match replay')).toBeVisible()
     await page.getByRole('tab', { name: 'Match report' }).click()
-    await expect(report).toBeVisible()
+    await expect(card).toBeVisible()
 
-    // Left to run, a whole match takes under half a minute.
-    await expect(page.getByText('Full time', { exact: true })).toBeVisible({ timeout: 35_000 })
+    // Tapping goes on sooner: a whole match in a few taps, ending on the full-time whistle and the result.
+    for (let taps = 0; taps < 40 && await card.isVisible(); taps++)
+      await card.click()
+    await expect(page.getByText('Full time', { exact: true })).toBeVisible()
     const header = await page.locator('main [aria-live="polite"]').textContent() ?? ''
     const score = /(\d+)–(\d+)/.exec(header)!
-    await expect(lines.first()).toContainText(`${score[1]}–${score[2]}`)
+    await expect(page.getByRole('status')).toContainText(`${score[1]}–${score[2]}`)
+    await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
+    // A short read: the kick-off, a handful of chances, a little colour, half-time and full-time.
+    expect(await earlier.count()).toBeLessThanOrEqual(12)
+  })
+
+  test('a goal is shown as a setup and then its outcome, with the score changing at the outcome', async ({ page }) => {
+    await guest(page)
+    await page.getByRole('button', { name: 'Found the club' }).click()
+    const card = page.getByRole('button', { name: 'Next moment' })
+    const scoreline = page.locator('main [aria-live="polite"]')
+    // The debut is a win, so there is a goal: tap until the label says so, and the score must not have moved yet.
+    for (let taps = 0; taps < 12; taps++) {
+      await card.click()
+      if (await page.getByText('Chance', { exact: true }).isVisible())
+        break
+    }
+    await expect(page.getByText('Chance', { exact: true })).toBeVisible()
+    const before = await scoreline.textContent()
+    await card.click()
+    await expect(page.getByText(/^(Goal|Saved|Missed)$/)).toBeVisible()
+    if (await page.getByText('Goal', { exact: true }).isVisible())
+      await expect(scoreline).not.toHaveText(before!)
+  })
+
+  test('with reduced motion the report never moves on by itself: Next steps through it', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await guest(page)
+    await page.getByRole('button', { name: 'Found the club' }).click()
+    const next = page.getByRole('button', { name: 'Next', exact: true })
+    await expect(next).toBeVisible()
+    await page.waitForTimeout(3500)
+    await expect(page.getByRole('list', { name: 'Match report' }).getByRole('listitem')).toHaveCount(0)
+    for (let taps = 0; taps < 40 && await next.isVisible(); taps++)
+      await next.click()
+    await expect(page.getByText('Full time', { exact: true })).toBeVisible()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
   })
 

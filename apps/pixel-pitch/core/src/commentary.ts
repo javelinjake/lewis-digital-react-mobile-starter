@@ -5,16 +5,21 @@ import type { Position } from './positions'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
 import { FORMATIONS } from './positions'
 
-export type CommentaryKind = 'kickoff' | 'build' | 'save' | 'miss' | 'goal' | 'halftime' | 'fulltime'
+export type MomentKind = 'kickoff' | 'goal' | 'save' | 'miss' | 'incident' | 'halftime' | 'fulltime'
 
-export interface CommentaryLine {
+/**
+ * One moment of the written report. A chance has two beats: the `setup` (what is happening) and then the `outcome`
+ * (what came of it). Kick-off, half-time, full-time and incidents have only a `setup`.
+ */
+export interface MatchMoment {
   /** Match minute. 0 is the kick-off. */
   minute: number
-  text: string
-  kind: CommentaryKind
+  kind: MomentKind
   /** Whose moment it is: our side ('for'), theirs ('against') or neither. */
   side: MatchSide | null
-  /** The score once this line has happened, ours first. */
+  setup: string
+  outcome: string | null
+  /** The score once this moment has happened, ours first. */
   score: [number, number]
 }
 
@@ -25,6 +30,8 @@ interface Vars {
   q: string
   /** The goalkeeper defending against `p`. */
   gk: string
+  /** The attacking side's own goalkeeper. */
+  own: string
   /** An opposing outfield player. */
   d: string
   /** The side attacking. */
@@ -41,125 +48,283 @@ function fill(template: string, vars: Vars) {
 }
 
 // Everything below is written for 5-a-side: a small pitch, no offside, kick-ins instead of throw-ins, a keeper who
-// rushes out and throws or rolls it to start moves, quick free kicks and constant pressing. Several lines per type,
-// so a match report is rarely the same twice.
+// rushes out and rolls it to start moves, quick free kicks and constant pressing. A chance is a TYPE (a curler, a
+// rebound, a smothering save...) with a few lead-ins and a few finishes that all fit it, so any lead-in can meet any
+// finish of its type and the report is rarely the same twice. It is presentation only: the goals, saves and misses
+// themselves come from the match, so the report always agrees with the result.
 
-const GOAL_OPENERS = ['GOAL!', 'Goal!', 'It\'s in!', 'Back of the net!', 'What a finish!', 'That\'s gone in!', 'They\'ve scored!']
+interface Play {
+  setup: readonly string[]
+  outcome: readonly string[]
+}
 
-const GOAL_SOLO: Record<'FWD' | 'MID' | 'DEF', string[]> = {
-  FWD: [
-    '{p} drops a shoulder, takes one touch and drills it low past {gk}.',
-    '{p} gets half a yard on {d} and slots it into the corner.',
-    '{p} spins in the tight space and finishes first time.',
-    'Cheeky nutmeg on {d}, and {p} rolls it home.',
-    '{p} lifts it over the advancing {gk}. Lovely chip.',
-    '{p} takes it on the turn and fires into the top corner.',
-    'No backlift from {p}, and it flies in at the near post.',
-    '{p} pounces on a loose ball and pokes it past {gk}.',
-    '{p} wins it back high up the pitch, goes straight through and finishes calmly.',
-    '{p} cuts inside {d} and bends it round {gk}.',
-    '{gk} parries it but only into {p}\'s path, and the rebound is tapped in.',
-    '{p} makes a run across {d} that nobody tracks, takes the pass in stride and finishes.',
+type GoalType = 'tapIn' | 'curler' | 'toePoke' | 'volley' | 'solo' | 'rebound' | 'deflection' | 'freeKick' | 'penalty' | 'keeperError' | 'longShot' | 'chip' | 'backHeel' | 'corner'
+
+const GOAL_OPENERS_FOR = ['GOAL!', 'Goal!', 'It\'s in!', 'Back of the net!', 'That\'s in!', 'Yes!', 'Scored!']
+const GOAL_OPENERS_AGAINST = ['Goal for {team}.', 'They\'ve scored.', '{team} score.', 'That\'s in at the other end.', 'Ouch. Conceded.', '{team} have it.']
+
+const GOALS: Record<GoalType, Play> = {
+  tapIn: {
+    setup: [
+      '{q} wins it high up and drives at the {opp} defence.',
+      '{q} gets to the byline and looks up.',
+      '{team} are swarming forward, with {q} on the ball out wide.',
+    ],
+    outcome: [
+      '{q} cuts it back and {p} taps in from a yard.',
+      '{q} squares it across the face of goal, and {p} cannot miss.',
+      '{p} gets ahead of {d} and pokes {q}\'s pass over the line.',
+    ],
+  },
+  curler: {
+    setup: [
+      '{p} picks up the ball on the edge of the area.',
+      '{p} takes it on the turn, with a yard of space.',
+      '{d} backs off and {p} sizes up the shot.',
+    ],
+    outcome: [
+      '{p} bends it round {gk} into the far corner.',
+      '{p} curls it in off the inside of the post.',
+      '{gk} dives, but it is arcing away from them. In the top corner.',
+    ],
+  },
+  toePoke: {
+    setup: [
+      'A scramble in the area, the ball bobbling loose.',
+      '{gk} makes a mess of a bouncing ball.',
+      'A deflected shot drops in the area, and everybody is waiting for it.',
+    ],
+    outcome: [
+      '{p} gets a toe to it and it dribbles over the line.',
+      '{p} stabs it in from close range. Ugly, but it counts.',
+      '{p} gets there first and pokes it past a stranded {gk}.',
+    ],
+  },
+  volley: {
+    setup: [
+      '{q} sends in a looping cross.',
+      'The ball drops invitingly at the edge of the area.',
+      'A long ball forward is knocked down by {q}.',
+    ],
+    outcome: [
+      '{p} meets it on the volley and it flies past {gk}.',
+      '{p} swings a boot, and the half-volley is unstoppable.',
+      '{p} hits it first time. Into the roof of the net.',
+    ],
+  },
+  solo: {
+    setup: [
+      '{p} gets the ball in their own half and sets off.',
+      '{p} takes it off {d} and drives forward.',
+      'A loose pass, and {p} is in on the break.',
+    ],
+    outcome: [
+      '{p} goes past {d}, then {gk}, and rolls it into the empty net.',
+      '{p} beats two players and slots it home.',
+      '{p} shows real pace, rounds the keeper and finishes.',
+    ],
+  },
+  rebound: {
+    setup: [
+      '{p} lets fly and {gk} gets a hand to it.',
+      '{q} shoots from distance and {gk} parries.',
+      '{gk} saves the first one but cannot hold on.',
+    ],
+    outcome: [
+      '{p} is first to the rebound and puts it away.',
+      'The loose ball sits up for {p}, who finishes at the second attempt.',
+      'It falls to {p}, and the follow-up is calm.',
+    ],
+  },
+  deflection: {
+    setup: [
+      '{p} tries their luck from distance.',
+      '{q} slides it to {p} on the edge of the area.',
+      'A shot comes in from {p}, heading just wide.',
+    ],
+    outcome: [
+      'It takes a wicked deflection off {d} and loops over {gk}.',
+      '{d} sticks out a leg, and it spins into the corner.',
+      'A huge deflection! {gk} is wrong-footed.',
+    ],
+  },
+  freeKick: {
+    setup: [
+      'The referee gives {team} a free kick close to the area.',
+      '{d} clips {q}, and it is a free kick in a dangerous spot.',
+      'A foul by {d}. {p} stands over the ball.',
+    ],
+    outcome: [
+      '{p} curls it over the wall and in.',
+      '{p} takes it quickly and catches {gk} out at the near post.',
+      '{p} drills it low through the wall. {gk} is beaten.',
+    ],
+  },
+  penalty: {
+    setup: [
+      '{d} brings down {q} in the area. Penalty!',
+      'Handball by {d}! The referee points to the mark.',
+      '{q} is bundled over in the box. Penalty to {team}.',
+    ],
+    outcome: [
+      '{p} sends {gk} the wrong way and rolls it in.',
+      '{p} blasts it down the middle. No chance.',
+      '{p} steps up and sweeps it into the bottom corner.',
+    ],
+  },
+  keeperError: {
+    setup: [
+      '{q} tries a speculative shot from halfway.',
+      'A loose pass back towards {gk}, and {p} is lurking.',
+      '{p} chases down a long clearance.',
+    ],
+    outcome: [
+      '{gk} fumbles it, and {p} gleefully tucks it in.',
+      '{gk} lets it squirm under their body. {p} says thank you.',
+      '{gk} misjudges the bounce, and {p} pounces for an easy finish.',
+    ],
+  },
+  longShot: {
+    setup: [
+      '{p} spots {gk} off their line.',
+      '{p} gets space in the middle, with no one closing down.',
+      'There is nobody near {p} on halfway.',
+    ],
+    outcome: [
+      '{p} lets fly from distance, and it dips under the bar.',
+      '{p} hits it from nowhere and {gk} is beaten.',
+      'A thunderbolt from {p}. {gk} had no chance.',
+    ],
+  },
+  chip: {
+    setup: [
+      '{gk} races out to close down {p}.',
+      '{p} is through, one on one.',
+      '{q} slips {p} in behind the defence.',
+    ],
+    outcome: [
+      '{p} waits, waits, then lifts it over the stranded {gk}.',
+      'A cheeky chip from {p} sails over {gk} and drops in.',
+      '{p} dinks it over the keeper with the coolest of touches.',
+    ],
+  },
+  backHeel: {
+    setup: [
+      '{q} plays it into a crowd in the area.',
+      'A scramble at the near post, with the ball bouncing about.',
+      'A short corner is worked to {q}.',
+    ],
+    outcome: [
+      '{p} back-heels it past {gk}. Outrageous.',
+      '{p} flicks it with the heel and it creeps in.',
+      '{p} improvises a backheel, and {gk} is wrong-footed.',
+    ],
+  },
+  corner: {
+    setup: [
+      'Corner to {team}. {q} takes it short to {p}.',
+      'A corner for {team}, with {q} swinging it in.',
+      '{team} have a corner, and {q} plays it back to {p} on the edge.',
+    ],
+    outcome: [
+      '{p} lashes it into the bottom corner from the edge of the area.',
+      'The routine comes off. {p} turns it in at the near post.',
+      'The ball ricochets through the crowd, and {p} bundles it over the line.',
+    ],
+  },
+}
+
+// A rare one that does not depend on who scored.
+const OWN_GOAL: Play = {
+  setup: [
+    '{q} whips a dangerous ball across the area.',
+    '{p} drives at the defence and shoots.',
+    'A low cross comes in from {q}.',
   ],
-  MID: [
-    '{p} drives forward, nobody picks them up, and the shot beats {gk} at the far post.',
-    '{p} arrives late at the edge of the area and thumps a half-volley in.',
-    '{p} curls one in from the edge of the area.',
-    'A rasping drive from {p}, and {gk} gets nowhere near it.',
-    '{p} picks up the loose ball and fires through {gk}\'s legs.',
-    '{p} sidesteps {d} and steers it in off the inside of the post.',
-    'The kick-in routine works, and {p} lets fly first time.',
-    '{p} lofts it over {gk}, who was off the line, and it drops in.',
-    '{p} shapes up, shifts it onto the left foot and hits it into the bottom corner.',
-    '{p} wins the second ball and strikes it sweetly. In off the post.',
-  ],
-  DEF: [
-    '{p} pushes up from the back and powers a shot in at the near post.',
-    '{p} wanders forward, gets the ball and crashes it in from distance.',
-    '{p} steps out of defence, takes it past {d} and finishes.',
-    'A long-range effort from {p} deflects off {d} and loops over {gk}.',
-    'Nobody expected that from {p}: a low drive into the bottom corner.',
-    '{p} follows their own pass forward and gets away with a speculative shot. In!',
+  outcome: [
+    '{d} tries to clear it and puts it into their own net! An own goal.',
+    '{d} gets a touch and only diverts it past {gk}. An own goal.',
+    '{d} slides in, and it flies into their own net. Unlucky.',
   ],
 }
 
-const GOAL_ASSISTED = [
-  'Quick one-two between {p} and {q}, and {p} slots it into the corner.',
-  '{q} squares it across the face of goal and {p} taps in from a yard.',
-  '{q} threads a pass through the tight defence and {p} finishes calmly.',
-  '{q} plays it into the channel, {p} runs on and drills it past {gk}.',
-  '{q} drags {d} out of position and rolls it into {p}\'s path. Easy finish.',
-  'A neat give-and-go between {q} and {p}, who is free to hit it first time.',
-  '{q} delivers a long ball from the back, {p} brings it down and volleys home.',
-  'From the kick-in, {q} finds {p} at the far post, who steers it in.',
-  '{q} whips a corner in and {p} bundles it over the line.',
-  '{q}\'s shot is saved by {gk}, but {p} is following up and puts the rebound away.',
-  '{q} slips a lovely reverse pass through for {p}, who slides it under {gk}.',
-  '{gk} rolls it out to {q}, who is caught by a quick press. {p} picks up the pieces and scores.',
-  '{q} wins the ball back on halfway and slips {p} in. One-on-one, and there is only one outcome.',
-  'Short corner from {q}, back to {p}, and a low shot nestles in.',
-  '{q} pulls it back from the byline and {p} sweeps it in first time.',
-]
+/** What each kind of player tends to score. Weights, not rules. */
+const GOAL_WEIGHTS: Record<'FWD' | 'MID' | 'DEF', Partial<Record<GoalType, number>>> = {
+  FWD: { tapIn: 3, curler: 2, toePoke: 2, volley: 2, solo: 2, rebound: 2, chip: 2, backHeel: 1, deflection: 1, penalty: 1, keeperError: 1, corner: 1 },
+  MID: { curler: 3, longShot: 3, volley: 2, freeKick: 2, corner: 2, deflection: 2, tapIn: 1, solo: 1, rebound: 1, penalty: 1, keeperError: 1 },
+  DEF: { longShot: 3, corner: 3, freeKick: 2, deflection: 2, volley: 2, penalty: 1, solo: 1, keeperError: 1 },
+}
 
-const SAVES = [
-  '{p} tries their luck from distance, but {gk} gets down to save.',
-  '{gk} stands tall and smothers {p}\'s effort at the near post.',
-  'Good stop! {gk} sticks out a leg to keep out {p}.',
-  '{p} is through one-on-one, but {gk} spreads themselves and blocks.',
-  '{gk} tips {p}\'s curler round the post.',
-  '{p} hits it first time and {gk} reacts brilliantly.',
-  '{gk} rushes off the line and gets a hand to {p}\'s shot.',
-  '{p}\'s volley is straight at {gk}, who holds on comfortably.',
-  'Corner. {gk} palms {p}\'s drive behind.',
-  '{gk} denies {p} with a superb reflex stop.',
-  '{p} meets the cross but {gk} is equal to the header.',
-  '{p} curls one at the far corner and {gk} flies across to push it away.',
-]
+type SaveType = 'dive' | 'fingertip' | 'double' | 'smother' | 'claim'
 
-const MISSES = [
-  '{p} blazes over from close range.',
-  '{p}\'s shot skids wide of the far post.',
-  'Off the post! {p} can\'t believe it.',
-  '{p} drags it just wide with only {gk} to beat.',
-  '{d} gets a block in on {p}\'s shot.',
-  '{p} slips as they shoot and it trickles wide.',
-  '{p} sees the shot cannon off the crossbar!',
-  'Close! {p}\'s curler clips the outside of the post.',
-  '{d} throws a body in the way and {p}\'s shot is blocked.',
-  '{p} snatches at it and fires into the side netting.',
-  '{p} should have squared it, but goes alone and the angle closes.',
-  'A scramble in the area, {p} gets a toe to it, and it rolls just the wrong side of the post.',
-]
+const SAVES: Record<SaveType, Play> = {
+  dive: {
+    setup: ['{p} lines up a shot from the edge of the area.', '{p} cuts in from the left and shoots.', '{q} lays it off, and {p} hits it hard.'],
+    outcome: ['{gk} dives full length and tips it round the post.', 'A brilliant save! {gk} pushes it away at full stretch.', '{gk} gets down low and turns it behind for a corner.'],
+  },
+  fingertip: {
+    setup: ['{p} curls one towards the top corner.', '{p} gets the ball out of their feet and fires at the far post.', '{p} unleashes a rocket from distance.'],
+    outcome: ['{gk} just gets a fingertip to it. Corner!', '{gk} claws it away at full stretch, just under the bar.', '{gk} tips it onto the post and it bounces clear.'],
+  },
+  double: {
+    setup: ['{p} has a shot blocked, and the ball falls to {q}.', '{p} shoots from close range.', 'A flurry in the area, with shots coming from everywhere.'],
+    outcome: ['{gk} saves once, then saves again from the rebound. Two great stops!', '{gk} gets down twice in two seconds to keep it out.', '{gk} blocks the first with their legs and smothers the second.'],
+  },
+  smother: {
+    setup: ['{p} is clean through on goal.', '{q} lays it off for {p} in space.', '{p} nips in behind the defence.'],
+    outcome: ['{gk} rushes out and smothers it at the feet of {p}.', '{gk} spreads themselves big and blocks it with the body.', '{gk} gets there first and gathers at {p}\'s feet.'],
+  },
+  claim: {
+    setup: ['{q} swings a cross in from the left.', 'A high ball comes in towards {p}.', '{team} send a free kick into the box.'],
+    outcome: ['{gk} rises and claims it above {p}.', '{gk} plucks it out of the air and rolls it out to restart.', '{gk} comes for it and holds on comfortably.'],
+  },
+}
 
-const BUILD = [
-  '{p} and {q} pass it around in the tight space, looking for an opening.',
-  '{team} keep the ball well on the small pitch.',
-  '{d} makes a firm tackle to stop the break.',
-  '{gk} launches it long and {team} win the second ball.',
-  'Kick-in for {team}: a short routine, back to {p}.',
-  '{p} dribbles into the channel but runs out of room.',
-  'Corner to {team}. {q} floats it in and it is cleared.',
-  'There is no time to breathe in this format: {team} win it back straight away.',
-  '{p} plays a quick one-two with {q} but the final pass is overhit.',
-  'Free kick to {team} after {d} clips {p}. Taken quickly.',
-  '{opp} press high and force a mistake, but {team} recover.',
-  '{gk} throws it out to {p} and {team} start building again.',
-  'The pace is relentless, both sides pushing numbers forward.',
-  '{p} shows good feet to get away from {d}, but the move breaks down.',
-  'A scramble in the area, and {d} hacks it clear.',
-  '{team} work a neat triangle between {p}, {q} and the keeper.',
-  '{p} tries a speculative effort from halfway. It dips just over.',
+type MissType = 'wide' | 'over' | 'post' | 'bar' | 'blocked' | 'scuffed' | 'rounded'
+
+const MISSES: Record<MissType, Play> = {
+  wide: {
+    setup: ['{p} gets into a shooting position.', '{q} lays it off to {p}.', '{p} has a sight of goal.'],
+    outcome: ['{p} drags it just wide of the far post.', '{p} sees the shot skid past the post.', 'Wide! {p} should have hit the target.'],
+  },
+  over: {
+    setup: ['{p} has a clear sight of goal from distance.', '{q} drops the ball into the path of {p}.', '{p} meets a loose ball just inside the area.'],
+    outcome: ['{p} blazes it over the bar.', 'Over the top! {p} gets underneath it.', 'Over from {p}. Too much power, not enough control.'],
+  },
+  post: {
+    setup: ['{p} turns and shoots.', '{p} shoots from the edge of the area.', '{p} bends one towards the corner.'],
+    outcome: ['Off the post! {p} cannot believe it.', 'It rattles the woodwork. {gk} was beaten.', '{p} clips the inside of the post and it spins out.'],
+  },
+  bar: {
+    setup: ['{p} lets fly from range.', '{p} takes aim from just outside the area.', '{q} rolls it back to {p}, who shoots first time.'],
+    outcome: ['The crossbar! {p} hits it so cleanly, and it bounces back down.', 'Off the bar! {gk} could only watch.', 'It cannons off the crossbar and away to safety.'],
+  },
+  blocked: {
+    setup: ['{p} shapes to shoot.', '{p} gets the ball onto the left foot.', '{p} winds up for the shot.'],
+    outcome: ['{d} gets in the way and blocks it.', '{d} throws a body in the way, and the shot is charged down.', '{d} slides in and gets a crucial block.'],
+  },
+  scuffed: {
+    setup: ['{p} finds space in the area.', '{q} rolls it into the path of {p}.', 'The ball sits up nicely for {p}.'],
+    outcome: ['{p} scuffs the shot and it dribbles wide.', '{p} slices it, and it rolls out for a kick-in.', '{p} mis-hits it completely. Not a clean contact.'],
+  },
+  rounded: {
+    setup: ['{p} is through and goes round {gk}.', '{p} takes the ball past the onrushing {gk}.', '{p} has the keeper beaten and an open goal in sight.'],
+    outcome: ['{p} rounds {gk}, but the angle is gone, and it rolls wide.', '{p} takes it past the keeper but puts it into the side netting.', '{p} somehow puts it wide of the empty goal.'],
+  },
+}
+
+// Colour: no effect on the score. `{team}` is the side the moment is about.
+const INCIDENTS = [
+  '{d} is sent to the sin bin for two minutes. {team} have the extra player.',
+  'A quick kick-in from {q} catches {opp} off guard, but {p} cannot make it count.',
+  '{p} goes down after a heavy challenge, needs a moment, and is up and running again.',
+  '{own} rolls it out quickly and {team} are away on the counter, but it comes to nothing.',
   'A word from the referee for {d} after another late challenge.',
-  'A bobbling ball catches out {p} on the touch.',
-  '{q} sets {p} up on the edge of the area, but {d} gets across.',
-  '{team} switch play quickly. {q} to {p}, then back again, looking for the gap.',
-  'The ball runs out for a kick-in. {opp} take it short.',
-  '{p} nudges it past {d} but the keeper {gk} comes out to gather.',
-  'Hardly a pause for breath. It is end to end on this small pitch.',
-  '{gk} claims a cross with confidence and rolls it out to start another attack.',
-  '{opp} keep a compact shape and {team} cannot find a way through.',
-  '{p} tries a rabona on the touchline. It does not quite come off.',
-  '{team} are camped in the opposition half, passing it around quickly.',
+  '{team} make a tactical switch, with {q} pushing up to join {p} in attack.',
+  'Both sides trade possession in the middle with no real chances. The intensity is high.',
+  '{opp} press high and force a mistake, but {team} recover.',
+  '{q} and {p} swap wings, and {opp} have to rethink their marking.',
+  'The ball runs out for a kick-in. {team} take it short.',
 ]
 
 const KICKOFFS = [
@@ -193,21 +358,26 @@ export interface CommentaryInput {
   clubName: string
   fixture: Pick<FixtureResult, 'events' | 'goalsFor' | 'goalsAgainst' | 'result' | 'formation' | 'rival' | 'squads'>
   config: Pick<GameConfig, 'match'>
-  /** Fixes which lines are chosen. The same seed always gives the same report. */
+  /** Fixes which moments and lines are chosen. The same seed always gives the same report. */
   seed: string | number
 }
 
+/** The chance of an own goal instead of the usual finish, when a goal is scored. */
+const OWN_GOAL_CHANCE = 0.04
+
 /**
- * Turns a match's events into a minute-by-minute report in the voice of a 5-a-side commentator. The scorers, saves and
- * misses are exactly those in `events`, so the report always agrees with the result; what is added is colour (build-up
- * play, assists, who was beaten) chosen from a pool of lines with a seed, so two reports rarely read alike.
+ * Turns a match's events into a short report of its big moments, in the voice of a 5-a-side commentator: the kick-off,
+ * every goal, a handful of the best saves and misses (the match has more; the report keeps what is worth reading),
+ * a little colour, half-time and full-time. The goals, and the score after each, are exactly those of the match. A
+ * quiet match is topped up to `minChances` with saves and misses, which change nothing on the scoreboard.
  */
-export function commentate(input: CommentaryInput): CommentaryLine[] {
+export function commentate(input: CommentaryInput): MatchMoment[] {
   const { clubName, fixture, config } = input
   const rng = createRng(hashSeed('commentary', input.seed))
   const minutes = config.match.minutes
   const half = Math.floor(minutes / 2)
   const opp = fixture.rival.name
+  const report = config.match.report
 
   const used = new Set<string>()
   const choose = (pool: readonly string[]): string => {
@@ -226,44 +396,73 @@ export function commentate(input: CommentaryInput): CommentaryLine[] {
     return rng.pick(slots.length > 0 ? slots : outfield(side))
   }
 
-  const varsFor = (side: MatchSide, scorer?: number, mate?: number): Vars & { pSlot: number } => {
+  const varsFor = (side: MatchSide, scorer?: number): Vars => {
     const pSlot = scorer ?? pickOutfield(side)
-    const qSlot = mate ?? pickOutfield(side, pSlot)
+    const qSlot = pickOutfield(side, pSlot)
     return {
-      pSlot,
       p: squadOf(side)[pSlot],
       q: squadOf(side)[qSlot],
       gk: keeper(other(side)),
+      own: keeper(side),
       d: squadOf(other(side))[pickOutfield(other(side))],
       team: side === 'for' ? clubName : opp,
       opp: side === 'for' ? opp : clubName,
     }
   }
 
-  const lines: CommentaryLine[] = []
+  const moments: MatchMoment[] = []
   let score: [number, number] = [0, 0]
-  const add = (minute: number, text: string, kind: CommentaryKind, side: MatchSide | null) =>
-    lines.push({ minute, text, kind, side, score: [score[0], score[1]] })
+  const add = (minute: number, kind: MomentKind, side: MatchSide | null, setup: string, outcome: string | null = null) =>
+    moments.push({ minute, kind, side, setup, outcome, score: [score[0], score[1]] })
   const scoreText = (ours: number, theirs: number) => `${ours}–${theirs}`
 
-  add(0, fill(choose(KICKOFFS), { ...varsFor('for'), team: clubName, opp, half: String(half) }), 'kickoff', null)
+  add(0, 'kickoff', null, fill(choose(KICKOFFS), { ...varsFor('for'), team: clubName, opp, half: String(half) }))
 
+  // Which events become moments: every goal, then the chances that matter most (near a goal, late, ours) up to the budget.
   const events = [...fixture.events].sort((a, b) => a.minute - b.minute)
-  const ourShare = (events.filter(event => event.side === 'for').length + 1) / (events.length + 2)
+  const goals = events.filter(event => event.kind === 'goal')
+  const spare = Math.max(0, report.maxMoments - goals.length)
+  const ranked = events
+    .filter(event => event.kind !== 'goal')
+    .map(event => ({
+      event,
+      weight: rng.next()
+        + (goals.some(goal => Math.abs(goal.minute - event.minute) <= 1) ? 0.6 : 0)
+        + (event.minute >= minutes - 5 ? 0.4 : 0)
+        + (event.side === 'for' ? 0.2 : 0),
+    }))
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, spare)
+    .map(entry => entry.event)
+  const chosen = new Set<MatchEvent>([...goals, ...ranked])
 
-  // Quiet stretches get a line of build-up play every two to three minutes.
-  const busy = new Set(events.flatMap(event => [event.minute - 1, event.minute, event.minute + 1]))
-  const fillers: number[] = []
-  for (let minute = rng.int(2, 3); minute < minutes; minute += rng.int(2, 3)) {
-    if (!busy.has(minute) && Math.abs(minute - half) > 0)
-      fillers.push(minute)
+  const ourShare = (events.filter(event => event.side === 'for').length + 1) / (events.length + 2)
+  type Item = { minute: number } & ({ event: MatchEvent } | { incident: MatchSide })
+  const timeline: Item[] = events.filter(event => chosen.has(event)).map(event => ({ minute: event.minute, event }))
+  const crowded = new Set(timeline.flatMap(item => [item.minute - 1, item.minute, item.minute + 1]))
+
+  // A quiet match still gets a few chances worth reading: saves and misses that change nothing on the scoreboard.
+  for (let tries = 0; timeline.length < report.minChances && tries < 40; tries++) {
+    const minute = rng.int(2, minutes - 2)
+    if (crowded.has(minute) || Math.abs(minute - half) <= 1)
+      continue
+    const side: MatchSide = rng.next() < ourShare ? 'for' : 'against'
+    const extra: MatchEvent = { minute, side, kind: rng.next() < 0.5 ? 'save' : 'miss', slot: pickOutfield(side) }
+    chosen.add(extra)
+    crowded.add(minute - 1).add(minute).add(minute + 1)
+    timeline.push({ minute, event: extra })
   }
 
-  type Item = { minute: number } & ({ event: MatchEvent } | { filler: true })
-  const timeline: Item[] = [
-    ...events.map(event => ({ minute: event.minute, event })),
-    ...fillers.map(minute => ({ minute, filler: true as const })),
-  ].sort((a, b) => a.minute - b.minute)
+  // A little colour in the quiet spells: at most `incidents`, never next to a chance or the break.
+  for (let incident = rng.int(0, report.incidents), tries = 0; incident > 0 && tries < 20; tries++) {
+    const minute = rng.int(2, minutes - 2)
+    if (crowded.has(minute) || Math.abs(minute - half) <= 1)
+      continue
+    crowded.add(minute - 1).add(minute).add(minute + 1)
+    timeline.push({ minute, incident: rng.next() < ourShare ? 'for' : 'against' })
+    incident--
+  }
+  timeline.sort((a, b) => a.minute - b.minute)
 
   let halfTimeDone = false
   const halfTime = () => {
@@ -272,31 +471,32 @@ export function commentate(input: CommentaryInput): CommentaryLine[] {
     halfTimeDone = true
     const [ours, theirs] = score
     const kind = ours + theirs === 0 ? 'scoreless' : ours > theirs ? 'leading' : ours < theirs ? 'trailing' : 'level'
-    add(half, fill(choose(HALF_TIMES[kind]), { ...varsFor('for'), team: clubName, opp, score: scoreText(ours, theirs), half: String(half) }), 'halftime', null)
+    add(half, 'halftime', null, fill(choose(HALF_TIMES[kind]), { ...varsFor('for'), team: clubName, opp, score: scoreText(ours, theirs), half: String(half) }))
   }
 
   for (const item of timeline) {
     if (item.minute > half)
       halfTime()
 
-    if ('filler' in item) {
-      const side: MatchSide = rng.next() < ourShare ? 'for' : 'against'
-      add(item.minute, fill(choose(BUILD), varsFor(side)), 'build', side)
+    if ('incident' in item) {
+      add(item.minute, 'incident', item.incident, fill(choose(INCIDENTS), varsFor(item.incident)))
       continue
     }
 
     const { event } = item
     const side = event.side
     const attackers = outfield(side)
-    // The engine picks a scorer by slot; a goalkeeper is never picked, but stay safe if a lineup had none.
+    // The engine picks a shooter by slot; a goalkeeper is never picked, but stay safe if a lineup had none.
     const slot = attackers.includes(event.slot) ? event.slot : attackers[0]
     const vars = varsFor(side, slot)
 
     if (event.kind === 'save') {
-      add(event.minute, fill(choose(SAVES), vars), 'save', side)
+      const play = SAVES[rng.pick(Object.keys(SAVES) as SaveType[])]
+      add(event.minute, 'save', side, fill(choose(play.setup), vars), fill(choose(play.outcome), vars))
     }
     else if (event.kind === 'miss') {
-      add(event.minute, fill(choose(MISSES), vars), 'miss', side)
+      const play = MISSES[rng.pick(Object.keys(MISSES) as MissType[])]
+      add(event.minute, 'miss', side, fill(choose(play.setup), vars), fill(choose(play.outcome), vars))
     }
     else {
       const before = score[0] - score[1]
@@ -305,9 +505,15 @@ export function commentate(input: CommentaryInput): CommentaryLine[] {
       const lead = side === 'for' ? after : -after
       const wasLead = side === 'for' ? before : -before
 
-      const role = rolesOf(side, fixture)[slot] as 'FWD' | 'MID' | 'DEF'
-      const assisted = rng.next() < 0.65
-      const body = fill(choose(assisted ? GOAL_ASSISTED : GOAL_SOLO[role] ?? GOAL_SOLO.FWD), vars)
+      let play: Play
+      if (rng.next() < OWN_GOAL_CHANCE) {
+        play = OWN_GOAL
+      }
+      else {
+        const weights = GOAL_WEIGHTS[rolesOf(side, fixture)[slot] as 'FWD' | 'MID' | 'DEF'] ?? GOAL_WEIGHTS.FWD
+        const types = Object.keys(weights) as GoalType[]
+        play = GOALS[types[rng.weighted(types.map(type => weights[type] ?? 0))]]
+      }
 
       const total = score[0] + score[1]
       const context
@@ -317,9 +523,10 @@ export function commentate(input: CommentaryInput): CommentaryLine[] {
               : total === 1 ? 'The opener.'
                 : wasLead < 0 ? 'A goal back. Game on.'
                   : lead >= 3 ? `That is ${lead} in front now.`
-                    : event.minute >= minutes - 3 ? 'Late drama!'
-                      : ''
-      add(event.minute, `${rng.pick(GOAL_OPENERS)} ${body}${context ? ` ${context}` : ''} (${scoreText(score[0], score[1])})`, 'goal', side)
+                    : event.minute >= minutes - 3 ? 'Late drama!' : ''
+      const opener = fill(rng.pick(side === 'for' ? GOAL_OPENERS_FOR : GOAL_OPENERS_AGAINST), vars)
+      const finish = fill(choose(play.outcome), vars)
+      add(event.minute, 'goal', side, fill(choose(play.setup), vars), `${opener} ${finish}${context ? ` ${context}` : ''} (${scoreText(score[0], score[1])})`)
     }
   }
   halfTime()
@@ -327,8 +534,7 @@ export function commentate(input: CommentaryInput): CommentaryLine[] {
   const [ours, theirs] = score
   const margin = ours - theirs
   const kind = ours === 0 && theirs === 0 ? 'scorelessDraw' : margin >= 3 ? 'bigWin' : margin > 0 ? 'win' : margin === 0 ? 'draw' : margin <= -3 ? 'bigLoss' : 'loss'
-  add(minutes, fill(choose(FULL_TIMES[kind]), { ...varsFor('for'), team: clubName, opp, score: scoreText(ours, theirs) }), 'fulltime', null)
+  add(minutes, 'fulltime', null, fill(choose(FULL_TIMES[kind]), { ...varsFor('for'), team: clubName, opp, score: scoreText(ours, theirs) }))
 
-  return lines
+  return moments
 }
-

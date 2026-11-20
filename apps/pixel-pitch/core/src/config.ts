@@ -146,6 +146,15 @@ export const gameConfigSchema = z.object({
     maxXg: positive,
     /** Match length in minutes: two 20-minute halves, as in 5-a-side. Events and the replay clock run to this. */
     minutes: z.number().int().min(10),
+    /** The written report keeps the big moments, not every event. Defaults keep an older saved config valid. */
+    report: z.object({
+      /** Goals, saves and misses shown (every goal always is; the rest fill what is left of this). */
+      maxMoments: z.number().int().min(1).max(20),
+      /** A quiet match is topped up to this many with saves and misses that change nothing on the scoreboard. */
+      minChances: z.number().int().min(0).max(20),
+      /** Colour moments with no effect on the score, at most this many a match. */
+      incidents: z.number().int().min(0).max(5),
+    }).default({ maxMoments: 6, minChances: 4, incidents: 2 }),
     /** Pre-match kick: how much of the team's ATT the next match gets. */
     warmupGold: z.number().min(0).max(0.5),
     warmupGreen: z.number().min(0).max(0.5),
@@ -255,7 +264,7 @@ function passTiers() {
 }
 
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 3,
+  version: 4,
   shelf: {
     intervalMinutes: 45,
     capacity: 10,
@@ -299,7 +308,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     rivalSpread: 4,
     maxCatchUpMatches: 56,
   },
-  match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
+  match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.
     edges: [
@@ -384,6 +393,8 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
 /** Throws a readable error if a config from the admin is unusable (for example, upgrade costs for the wrong number of levels). */
 export function parseConfig(raw: unknown): GameConfig {
   const config = gameConfigSchema.parse(raw)
+  if (config.match.report.minChances > config.match.report.maxMoments)
+    throw new Error('match.report.minChances is more than match.report.maxMoments.')
   if (config.stadium.upgradeCost.length !== config.stadium.coinsPerHour.length - 1)
     throw new Error('stadium.upgradeCost needs one entry per level after the first.')
   for (const [league, row] of config.packs.oddsByLeague.entries()) {
