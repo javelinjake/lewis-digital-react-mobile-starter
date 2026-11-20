@@ -5,7 +5,9 @@
   "exports": {
     "./base.json": "./base.json",
     "./node.json": "./node.json",
-    "./react-app.json": "./react-app.json"
+    "./react-app.json": "./react-app.json",
+    "./next-app.json": "./next-app.json",
+    "./backend.json": "./backend.json"
   },
   "scripts": {
     "build": "node -e \"process.exit(0)\"",

@@ -1,0 +1,193 @@
+{
+ "frames": {
+  "banner_goal": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 61,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 19
+   }
+  },
+  "banner_perfect": {
+   "frame": {
+    "x": 170,
+    "y": 0,
+    "w": 97,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 97,
+    "h": 19
+   }
+  },
+  "banner_good": {
+   "frame": {
+    "x": 340,
+    "y": 0,
+    "w": 61,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 19
+   }
+  },
+  "banner_close": {
+   "frame": {
+    "x": 0,
+    "y": 20,
+    "w": 73,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 73,
+    "h": 19
+   }
+  },
+  "banner_win": {
+   "frame": {
+    "x": 170,
+    "y": 20,
+    "w": 55,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 19
+   }
+  },
+  "banner_draw": {
+   "frame": {
+    "x": 340,
+    "y": 20,
+    "w": 55,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 19
+   }
+  },
+  "banner_loss": {
+   "frame": {
+    "x": 0,
+    "y": 40,
+    "w": 49,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 49,
+    "h": 19
+   }
+  },
+  "banner_full_time": {
+   "frame": {
+    "x": 170,
+    "y": 40,
+    "w": 115,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 115,
+    "h": 19
+   }
+  },
+  "banner_kick_off": {
+   "frame": {
+    "x": 340,
+    "y": 40,
+    "w": 109,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 109,
+    "h": 19
+   }
+  },
+  "banner_promoted": {
+   "frame": {
+    "x": 0,
+    "y": 60,
+    "w": 115,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 115,
+    "h": 19
+   }
+  },
+  "banner_new": {
+   "frame": {
+    "x": 170,
+    "y": 60,
+    "w": 55,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 55,
+    "h": 19
+   }
+  },
+  "banner_legend": {
+   "frame": {
+    "x": 340,
+    "y": 60,
+    "w": 85,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 85,
+    "h": 19
+   }
+  },
+  "banner_star": {
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 61,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 61,
+    "h": 19
+   }
+  },
+  "banner_welcome_back": {
+   "frame": {
+    "x": 170,
+    "y": 80,
+    "w": 169,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 169,
+    "h": 19
+   }
+  },
+  "banner_saved": {
+   "frame": {
+    "x": 340,
+    "y": 80,
+    "w": 73,
+    "h": 19
+   },
+   "sourceSize": {
+    "w": 73,
+    "h": 19
+   }
+  }
+ },
+ "meta": {
+  "image": "text_banners.png",
+  "size": {
+   "w": 510,
+   "h": 100
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

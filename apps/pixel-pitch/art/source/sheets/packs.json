@@ -1,0 +1,73 @@
+{
+ "frames": {
+  "pack_bronze": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 52
+   }
+  },
+  "pack_silver": {
+   "frame": {
+    "x": 41,
+    "y": 0,
+    "w": 40,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 52
+   }
+  },
+  "pack_gold": {
+   "frame": {
+    "x": 82,
+    "y": 0,
+    "w": 40,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 52
+   }
+  },
+  "pack_holo": {
+   "frame": {
+    "x": 123,
+    "y": 0,
+    "w": 40,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 52
+   }
+  },
+  "pack_legend": {
+   "frame": {
+    "x": 164,
+    "y": 0,
+    "w": 40,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 52
+   }
+  }
+ },
+ "meta": {
+  "image": "packs.png",
+  "size": {
+   "w": 205,
+   "h": 53
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

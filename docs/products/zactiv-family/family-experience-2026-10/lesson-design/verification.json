@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "Three activities from lesson JSON",
+    "Diagram opens and closes with Escape",
+    "Teaching view toggles",
+    "Five PDF preview images load",
+    "PDF returns HTTP 200",
+    "Mobile has no horizontal overflow",
+    "No browser JS errors"
+  ],
+  "passed": 7
+}

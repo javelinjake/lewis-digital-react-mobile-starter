@@ -78,17 +78,21 @@ function FieldShell({ label, error, children }: { label: string, error?: string,
   )
 }
 
+interface InputProps<T extends FieldValues> {
+  name: FieldPath<T>
+  label: string
+  control: Control<T>
+  /** Hint for browsers and password managers, e.g. `new-password` on sign-up and reset screens. */
+  autoComplete?: string
+}
+
 function TextControl<T extends FieldValues>({
   name,
   label,
   control,
   type,
-}: {
-  name: FieldPath<T>
-  label: string
-  control: Control<T>
-  type: 'text' | 'email' | 'password' | 'textarea'
-}) {
+  autoComplete,
+}: InputProps<T> & { type: 'text' | 'email' | 'password' | 'textarea' }) {
   return (
     <Controller
       name={name}
@@ -102,7 +106,7 @@ function TextControl<T extends FieldValues>({
                   {...field}
                   type={type}
                   className="input input-bordered w-full"
-                  autoComplete={type === 'password' ? 'current-password' : type === 'email' ? 'username' : 'off'}
+                  autoComplete={autoComplete ?? (type === 'password' ? 'current-password' : type === 'email' ? 'username' : 'off')}
                 />
               )}
         </FieldShell>
@@ -111,19 +115,19 @@ function TextControl<T extends FieldValues>({
   )
 }
 
-export function TextInput<T extends FieldValues>(props: { name: FieldPath<T>, label: string, control: Control<T> }) {
+export function TextInput<T extends FieldValues>(props: InputProps<T>) {
   return <TextControl {...props} type="text" />
 }
 
-export function TextareaInput<T extends FieldValues>(props: { name: FieldPath<T>, label: string, control: Control<T> }) {
+export function TextareaInput<T extends FieldValues>(props: InputProps<T>) {
   return <TextControl {...props} type="textarea" />
 }
 
-export function EmailInput<T extends FieldValues>(props: { name: FieldPath<T>, label: string, control: Control<T> }) {
+export function EmailInput<T extends FieldValues>(props: InputProps<T>) {
   return <TextControl {...props} type="email" />
 }
 
-export function PasswordInput<T extends FieldValues>(props: { name: FieldPath<T>, label: string, control: Control<T> }) {
+export function PasswordInput<T extends FieldValues>(props: InputProps<T>) {
   return <TextControl {...props} type="password" />
 }
 

@@ -1,0 +1,28 @@
+{
+  "runs": 3,
+  "minimumScores": {
+    "performance": 90,
+    "accessibility": 95,
+    "best-practices": 90,
+    "seo": 90
+  },
+  "paths": {
+    "default": [
+      "/login",
+      "/home?mock-user=ada",
+      "/notes?mock-user=ada"
+    ],
+    "@ld/app-pixel-pitch": [
+      "/login",
+      "/onboarding?mock-user=ada",
+      "/club?mock-user=ada&mock-club=1",
+      "/packs?mock-user=ada&mock-club=1",
+      "/squad?mock-user=ada&mock-club=1",
+      "/league?mock-user=ada&mock-club=1",
+      "/arcade?mock-user=ada&mock-club=1",
+      "/goals?mock-user=ada&mock-club=1",
+      "/pass?mock-user=ada&mock-club=1",
+      "/album?mock-user=ada&mock-club=1"
+    ]
+  }
+}

@@ -2,7 +2,7 @@ node_modules
 
 dist
 dist-ssr
-apps/*/dist
+apps/*/*/dist
 packages/*/dist
 .turbo
 
@@ -30,32 +30,40 @@ Thumbs.db
 
 *.tsbuildinfo
 
-apps/*/dev-dist
+apps/*/*/dev-dist
 
-apps/*/ios/App/Pods
-apps/*/ios/App/App/public
-apps/*/ios/App/App/capacitor.config.json
-apps/*/ios/App/build
-apps/*/ios/App/*.xcworkspace/xcuserdata
-apps/*/ios/App/*.xcodeproj/xcuserdata
-apps/*/ios/App/*.xcodeproj/project.xcworkspace/xcuserdata
-apps/*/ios/DerivedData
-apps/*/android/.gradle
-apps/*/android/.idea
-apps/*/android/build
-apps/*/android/app/build
-apps/*/android/app/src/main/assets/public
-apps/*/android/app/src/main/assets/capacitor.config.json
-apps/*/android/app/src/main/assets/capacitor.plugins.json
-apps/*/android/local.properties
-apps/*/android/*.iml
-apps/*/android/app/*.iml
-apps/*/android/captures
+apps/*/*/ios/App/Pods
+apps/*/*/ios/App/App/public
+apps/*/*/ios/App/App/capacitor.config.json
+apps/*/*/ios/App/build
+apps/*/*/ios/App/*.xcworkspace/xcuserdata
+apps/*/*/ios/App/*.xcodeproj/xcuserdata
+apps/*/*/ios/App/*.xcodeproj/project.xcworkspace/xcuserdata
+apps/*/*/ios/DerivedData
+apps/*/*/android/.gradle
+apps/*/*/android/.idea
+apps/*/*/android/build
+apps/*/*/android/app/build
+apps/*/*/android/app/src/main/assets/public
+apps/*/*/android/app/src/main/assets/capacitor.config.json
+apps/*/*/android/app/src/main/assets/capacitor.plugins.json
+apps/*/*/android/local.properties
+apps/*/*/android/*.iml
+apps/*/*/android/app/*.iml
+apps/*/*/android/captures
 
 *.keystore
 *.jks
 *.p12
 *.mobileprovision
-apps/*/android/keystore.properties
+apps/*/*/android/keystore.properties
 
-apps/*/.trapeze
+apps/*/*/.trapeze
+
+# Local-only leftovers from removed apps (build output, .env). Never committed.
+.local-archive
+
+# Next.js / Payload api apps
+.next
+next-env.d.ts
+.data/

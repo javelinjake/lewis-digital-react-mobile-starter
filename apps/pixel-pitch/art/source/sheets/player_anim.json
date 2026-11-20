@@ -1,0 +1,61 @@
+{
+ "frames": {
+  "idle_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 17
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 17
+   }
+  },
+  "idle_1": {
+   "frame": {
+    "x": 13,
+    "y": 0,
+    "w": 12,
+    "h": 17
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 17
+   }
+  },
+  "celebrate_0": {
+   "frame": {
+    "x": 26,
+    "y": 0,
+    "w": 12,
+    "h": 17
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 17
+   }
+  },
+  "celebrate_1": {
+   "frame": {
+    "x": 39,
+    "y": 0,
+    "w": 12,
+    "h": 17
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 17
+   }
+  }
+ },
+ "meta": {
+  "image": "player_anim.png",
+  "size": {
+   "w": 52,
+   "h": 18
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

@@ -1,0 +1,1442 @@
+{
+ "name": "Pixel Pitch V1 assets",
+ "pixelScale": "Draw at integer scale (2x-4x), image-rendering: pixelated",
+ "assets": [
+  {
+   "file": "sprites/players/body/body_skin1.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player body layer (head, hands, legs, outline)"
+  },
+  {
+   "file": "sprites/players/body/body_skin2.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player body layer (head, hands, legs, outline)"
+  },
+  {
+   "file": "sprites/players/body/body_skin3.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player body layer (head, hands, legs, outline)"
+  },
+  {
+   "file": "sprites/players/body/body_skin4.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player body layer (head, hands, legs, outline)"
+  },
+  {
+   "file": "sprites/players/body/body_skin5.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player body layer (head, hands, legs, outline)"
+  },
+  {
+   "file": "sprites/players/hair/hair_short_black.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_short_dark.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_short_brown.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_short_ginger.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_short_blonde.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_short_silver.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_buzz_black.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_buzz_dark.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_buzz_brown.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_buzz_ginger.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_buzz_blonde.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_buzz_silver.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_fringe_black.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_fringe_dark.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_fringe_brown.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_fringe_ginger.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_fringe_blonde.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_fringe_silver.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_afro_black.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_afro_dark.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_afro_brown.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_afro_ginger.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_afro_blonde.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_afro_silver.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_mohawk_black.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_mohawk_dark.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_mohawk_brown.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_mohawk_ginger.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_mohawk_blonde.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_mohawk_silver.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_long_black.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_long_dark.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_long_brown.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_long_ginger.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_long_blonde.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_long_silver.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_topknot_black.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_topknot_dark.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_topknot_brown.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_topknot_ginger.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_topknot_blonde.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/hair/hair_topknot_silver.png",
+   "w": 12,
+   "h": 16,
+   "use": "Player hair layer, 12x16, draw over body"
+  },
+  {
+   "file": "sprites/players/kit/kit_plain_template.png",
+   "w": 12,
+   "h": 16,
+   "use": "Shirt template: palette-swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/players/kit/kit_stripes_template.png",
+   "w": 12,
+   "h": 16,
+   "use": "Shirt template: palette-swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/players/kit/kit_hoops_template.png",
+   "w": 12,
+   "h": 16,
+   "use": "Shirt template: palette-swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/players/kit/kit_halves_template.png",
+   "w": 12,
+   "h": 16,
+   "use": "Shirt template: palette-swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/players/kit/kit_sash_template.png",
+   "w": 12,
+   "h": 16,
+   "use": "Shirt template: palette-swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/players/kit/shorts_template.png",
+   "w": 12,
+   "h": 16,
+   "use": "Shorts template: swap #ff0000"
+  },
+  {
+   "file": "sprites/players/kit/socks_template.png",
+   "w": 12,
+   "h": 16,
+   "use": "Socks template: swap #ff0000 (use shirt primary)"
+  },
+  {
+   "file": "sprites/players/kit/boots.png",
+   "w": 12,
+   "h": 16,
+   "use": "Boots layer"
+  },
+  {
+   "file": "sprites/players/kit/gk_gloves.png",
+   "w": 12,
+   "h": 16,
+   "use": "Goalkeeper gloves overlay"
+  },
+  {
+   "file": "sheets/player_anim.png",
+   "w": 52,
+   "h": 18,
+   "use": "Player idle (2 frames) and celebrate (2 frames), 12x17"
+  },
+  {
+   "file": "sheets/player_anim.json",
+   "use": "Frame atlas for player_anim.png"
+  },
+  {
+   "file": "sheets/players_examples.png",
+   "w": 104,
+   "h": 68,
+   "use": "Example composed players (32) for reference and placeholder use"
+  },
+  {
+   "file": "sheets/players_examples.json",
+   "use": "Frame atlas for players_examples.png"
+  },
+  {
+   "file": "sprites/cards/card_grassroots.png",
+   "w": 48,
+   "h": 64,
+   "use": "Player card frame 48x64: portrait window at (4,12) 40x28, name/rating below line y=43"
+  },
+  {
+   "file": "sprites/cards/card_semipro.png",
+   "w": 48,
+   "h": 64,
+   "use": "Player card frame 48x64: portrait window at (4,12) 40x28, name/rating below line y=43"
+  },
+  {
+   "file": "sprites/cards/card_pro.png",
+   "w": 48,
+   "h": 64,
+   "use": "Player card frame 48x64: portrait window at (4,12) 40x28, name/rating below line y=43"
+  },
+  {
+   "file": "sprites/cards/card_star.png",
+   "w": 48,
+   "h": 64,
+   "use": "Player card frame 48x64: portrait window at (4,12) 40x28, name/rating below line y=43"
+  },
+  {
+   "file": "sprites/cards/card_legend.png",
+   "w": 48,
+   "h": 64,
+   "use": "Player card frame 48x64: portrait window at (4,12) 40x28, name/rating below line y=43"
+  },
+  {
+   "file": "sprites/cards/card_back.png",
+   "w": 48,
+   "h": 64,
+   "use": "Player card frame 48x64: portrait window at (4,12) 40x28, name/rating below line y=43"
+  },
+  {
+   "file": "sprites/cards/card_glow_star.png",
+   "w": 56,
+   "h": 72,
+   "use": "Glow ring behind Star/Legend cards on reveal (tint for Legend)"
+  },
+  {
+   "file": "sheets/cards.png",
+   "w": 294,
+   "h": 65,
+   "use": "All card frames + back"
+  },
+  {
+   "file": "sheets/cards.json",
+   "use": "Frame atlas for cards.png"
+  },
+  {
+   "file": "sprites/packs/pack_bronze.png",
+   "w": 40,
+   "h": 52,
+   "use": "League 5 pack (40x52)"
+  },
+  {
+   "file": "sprites/packs/pack_bronze_top.png",
+   "w": 40,
+   "h": 10,
+   "use": "Tear-off strip above the perforation, for the rip animation"
+  },
+  {
+   "file": "sprites/packs/pack_bronze_bottom.png",
+   "w": 40,
+   "h": 42,
+   "use": "Pack body below the perforation"
+  },
+  {
+   "file": "sprites/packs/pack_silver.png",
+   "w": 40,
+   "h": 52,
+   "use": "League 4 pack (40x52)"
+  },
+  {
+   "file": "sprites/packs/pack_silver_top.png",
+   "w": 40,
+   "h": 10,
+   "use": "Tear-off strip above the perforation, for the rip animation"
+  },
+  {
+   "file": "sprites/packs/pack_silver_bottom.png",
+   "w": 40,
+   "h": 42,
+   "use": "Pack body below the perforation"
+  },
+  {
+   "file": "sprites/packs/pack_gold.png",
+   "w": 40,
+   "h": 52,
+   "use": "League 3 pack (40x52)"
+  },
+  {
+   "file": "sprites/packs/pack_gold_top.png",
+   "w": 40,
+   "h": 10,
+   "use": "Tear-off strip above the perforation, for the rip animation"
+  },
+  {
+   "file": "sprites/packs/pack_gold_bottom.png",
+   "w": 40,
+   "h": 42,
+   "use": "Pack body below the perforation"
+  },
+  {
+   "file": "sprites/packs/pack_holo.png",
+   "w": 40,
+   "h": 52,
+   "use": "League 2 pack (40x52)"
+  },
+  {
+   "file": "sprites/packs/pack_holo_top.png",
+   "w": 40,
+   "h": 10,
+   "use": "Tear-off strip above the perforation, for the rip animation"
+  },
+  {
+   "file": "sprites/packs/pack_holo_bottom.png",
+   "w": 40,
+   "h": 42,
+   "use": "Pack body below the perforation"
+  },
+  {
+   "file": "sprites/packs/pack_legend.png",
+   "w": 40,
+   "h": 52,
+   "use": "League 1 pack (40x52)"
+  },
+  {
+   "file": "sprites/packs/pack_legend_top.png",
+   "w": 40,
+   "h": 10,
+   "use": "Tear-off strip above the perforation, for the rip animation"
+  },
+  {
+   "file": "sprites/packs/pack_legend_bottom.png",
+   "w": 40,
+   "h": 42,
+   "use": "Pack body below the perforation"
+  },
+  {
+   "file": "sheets/pack_rip.png",
+   "w": 244,
+   "h": 73,
+   "use": "Pack rip animation, 4 frames (60x72), ~80ms each"
+  },
+  {
+   "file": "sheets/pack_rip.json",
+   "use": "Frame atlas for pack_rip.png"
+  },
+  {
+   "file": "sheets/packs.png",
+   "w": 205,
+   "h": 53,
+   "use": "All league packs"
+  },
+  {
+   "file": "sheets/packs.json",
+   "use": "Frame atlas for packs.png"
+  },
+  {
+   "file": "sprites/icons/currency_coin.png",
+   "w": 12,
+   "h": 12,
+   "use": "Currency/reward icon 12x12"
+  },
+  {
+   "file": "sprites/icons/currency_gem.png",
+   "w": 12,
+   "h": 12,
+   "use": "Currency/reward icon 12x12"
+  },
+  {
+   "file": "sprites/icons/currency_token.png",
+   "w": 12,
+   "h": 12,
+   "use": "Currency/reward icon 12x12"
+  },
+  {
+   "file": "sprites/icons/currency_pack.png",
+   "w": 12,
+   "h": 12,
+   "use": "Currency/reward icon 12x12"
+  },
+  {
+   "file": "sprites/icons/currency_trophy.png",
+   "w": 12,
+   "h": 12,
+   "use": "Currency/reward icon 12x12"
+  },
+  {
+   "file": "sprites/icons/currency_star.png",
+   "w": 12,
+   "h": 12,
+   "use": "Currency/reward icon 12x12"
+  },
+  {
+   "file": "sprites/icons/currency_points.png",
+   "w": 12,
+   "h": 12,
+   "use": "Currency/reward icon 12x12"
+  },
+  {
+   "file": "sheets/currency.png",
+   "w": 91,
+   "h": 13,
+   "use": "Currency icons"
+  },
+  {
+   "file": "sheets/currency.json",
+   "use": "Frame atlas for currency.png"
+  },
+  {
+   "file": "sprites/icons/ui_club.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_packs.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_squad.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_league.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_shop.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_settings.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_lock.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_sound_on.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_sound_off.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_music.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_haptics.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_bell.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_close.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_back.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_info.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_check.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_plus.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_arrow_up.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_arrow_down.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_clock.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_refresh.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_share.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_swap.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sprites/icons/ui_whistle.png",
+   "w": 12,
+   "h": 12,
+   "use": "UI icon 12x12, white: tint in CSS (mask-image) or canvas"
+  },
+  {
+   "file": "sheets/ui_icons.png",
+   "w": 104,
+   "h": 39,
+   "use": "UI icons (white, tintable)"
+  },
+  {
+   "file": "sheets/ui_icons.json",
+   "use": "Frame atlas for ui_icons.png"
+  },
+  {
+   "file": "sprites/badges/pos_gk.png",
+   "w": 13,
+   "h": 9,
+   "use": "Position badge"
+  },
+  {
+   "file": "sprites/badges/pos_def.png",
+   "w": 17,
+   "h": 9,
+   "use": "Position badge"
+  },
+  {
+   "file": "sprites/badges/pos_mid.png",
+   "w": 19,
+   "h": 9,
+   "use": "Position badge"
+  },
+  {
+   "file": "sprites/badges/pos_fwd.png",
+   "w": 19,
+   "h": 9,
+   "use": "Position badge"
+  },
+  {
+   "file": "sprites/badges/tag_100pct.png",
+   "w": 21,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_90pct.png",
+   "w": 17,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_75pct.png",
+   "w": 17,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_55pct.png",
+   "w": 17,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_30pct.png",
+   "w": 17,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_new.png",
+   "w": 19,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_upgrade.png",
+   "w": 33,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_dupe.png",
+   "w": 21,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_sold.png",
+   "w": 21,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sprites/badges/tag_locked.png",
+   "w": 29,
+   "h": 9,
+   "use": "Status / fit tag"
+  },
+  {
+   "file": "sheets/badges.png",
+   "w": 238,
+   "h": 20,
+   "use": "Position badges and status tags"
+  },
+  {
+   "file": "sheets/badges.json",
+   "use": "Frame atlas for badges.png"
+  },
+  {
+   "file": "sprites/crests/base_shield_template.png",
+   "w": 16,
+   "h": 18,
+   "use": "Crest base 16x18: swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/crests/base_round_template.png",
+   "w": 16,
+   "h": 18,
+   "use": "Crest base 16x18: swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/crests/base_square_template.png",
+   "w": 16,
+   "h": 18,
+   "use": "Crest base 16x18: swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/crests/base_pennant_template.png",
+   "w": 16,
+   "h": 18,
+   "use": "Crest base 16x18: swap #ff0000 = primary, #00ff00 = secondary"
+  },
+  {
+   "file": "sprites/crests/emblem_ball.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sprites/crests/emblem_star.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sprites/crests/emblem_bolt.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sprites/crests/emblem_crown.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sprites/crests/emblem_flame.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sprites/crests/emblem_wave.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sprites/crests/emblem_tree.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sprites/crests/emblem_wings.png",
+   "w": 8,
+   "h": 8,
+   "use": "Crest emblem 8x8, centre on the base at (4,4)"
+  },
+  {
+   "file": "sheets/crests_examples.png",
+   "w": 136,
+   "h": 57,
+   "use": "Example composed crests (bases x emblems x colours)"
+  },
+  {
+   "file": "sheets/crests_examples.json",
+   "use": "Frame atlas for crests_examples.png"
+  },
+  {
+   "file": "sprites/flags/flag_northvale.png",
+   "w": 14,
+   "h": 10,
+   "use": "Nation flag 14x10 (with outline)"
+  },
+  {
+   "file": "sprites/flags/flag_solaria.png",
+   "w": 14,
+   "h": 10,
+   "use": "Nation flag 14x10 (with outline)"
+  },
+  {
+   "file": "sprites/flags/flag_emberland.png",
+   "w": 14,
+   "h": 10,
+   "use": "Nation flag 14x10 (with outline)"
+  },
+  {
+   "file": "sprites/flags/flag_greenmoor.png",
+   "w": 14,
+   "h": 10,
+   "use": "Nation flag 14x10 (with outline)"
+  },
+  {
+   "file": "sprites/pitch/grass_tile.png",
+   "w": 32,
+   "h": 32,
+   "use": "Repeating grass tile 32x32 (two stripes)"
+  },
+  {
+   "file": "sprites/pitch/pitch_squad_176x130.png",
+   "w": 176,
+   "h": 130,
+   "use": "Squad screen half-pitch (own half, attacking up). Draw at 2x = 352x260"
+  },
+  {
+   "file": "sprites/pitch/pitch_match_176x76.png",
+   "w": 176,
+   "h": 76,
+   "use": "Match replay full pitch, side view. Draw at 2x"
+  },
+  {
+   "file": "sheets/ball.png",
+   "w": 45,
+   "h": 9,
+   "use": "Ball spin (4 frames, 8x8) + shadow"
+  },
+  {
+   "file": "sheets/ball.json",
+   "use": "Frame atlas for ball.png"
+  },
+  {
+   "file": "sprites/pitch/ball_0.png",
+   "w": 8,
+   "h": 8,
+   "use": "Ball"
+  },
+  {
+   "file": "sprites/pitch/ball_1.png",
+   "w": 8,
+   "h": 8,
+   "use": "Ball"
+  },
+  {
+   "file": "sprites/pitch/ball_2.png",
+   "w": 8,
+   "h": 8,
+   "use": "Ball"
+  },
+  {
+   "file": "sprites/pitch/ball_3.png",
+   "w": 8,
+   "h": 8,
+   "use": "Ball"
+  },
+  {
+   "file": "sprites/pitch/ball_shadow.png",
+   "w": 8,
+   "h": 3,
+   "use": "Ball"
+  },
+  {
+   "file": "sheets/crowd_fans.png",
+   "w": 40,
+   "h": 6,
+   "use": "Crowd fans 4x5: 4 shirt colours x 2 frames (sit / cheer)"
+  },
+  {
+   "file": "sheets/crowd_fans.json",
+   "use": "Frame atlas for crowd_fans.png"
+  },
+  {
+   "file": "sprites/pitch/crowd_strip_tile.png",
+   "w": 64,
+   "h": 16,
+   "use": "Repeating crowd stand tile 64x16 (static frame; swap fan frames to animate)"
+  },
+  {
+   "file": "sprites/club/stadium_lv1.png",
+   "w": 48,
+   "h": 28,
+   "use": "Stadium illustration 48x28 (levels 1-3, 4-7, 8-10)"
+  },
+  {
+   "file": "sprites/club/stadium_lv2.png",
+   "w": 48,
+   "h": 28,
+   "use": "Stadium illustration 48x28 (levels 1-3, 4-7, 8-10)"
+  },
+  {
+   "file": "sprites/club/stadium_lv3.png",
+   "w": 48,
+   "h": 28,
+   "use": "Stadium illustration 48x28 (levels 1-3, 4-7, 8-10)"
+  },
+  {
+   "file": "sheets/fx.png",
+   "w": 216,
+   "h": 18,
+   "use": "Confetti pieces, sparkle (4 frames), star burst (3 frames)"
+  },
+  {
+   "file": "sheets/fx.json",
+   "use": "Frame atlas for fx.png"
+  },
+  {
+   "file": "sprites/text/banner_goal.png",
+   "w": 61,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_perfect.png",
+   "w": 97,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_good.png",
+   "w": 61,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_close.png",
+   "w": 73,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_win.png",
+   "w": 55,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_draw.png",
+   "w": 55,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_loss.png",
+   "w": 49,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_full_time.png",
+   "w": 115,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_kick_off.png",
+   "w": 109,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_promoted.png",
+   "w": 115,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_new.png",
+   "w": 55,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_legend.png",
+   "w": 85,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_star.png",
+   "w": 61,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_welcome_back.png",
+   "w": 169,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sprites/text/banner_saved.png",
+   "w": 73,
+   "h": 19,
+   "use": "Pixel text banner, outlined + drop shadow"
+  },
+  {
+   "file": "sheets/text_banners.png",
+   "w": 510,
+   "h": 100,
+   "use": "Pixel text banners"
+  },
+  {
+   "file": "sheets/text_banners.json",
+   "use": "Frame atlas for text_banners.png"
+  },
+  {
+   "file": "sprites/ui/button_yellow_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Button 12x12, 9-slice insets 4px (border-image: url() 4 fill)"
+  },
+  {
+   "file": "sprites/ui/button_lime_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Button 12x12, 9-slice insets 4px (border-image: url() 4 fill)"
+  },
+  {
+   "file": "sprites/ui/button_pink_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Button 12x12, 9-slice insets 4px (border-image: url() 4 fill)"
+  },
+  {
+   "file": "sprites/ui/button_blue_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Button 12x12, 9-slice insets 4px (border-image: url() 4 fill)"
+  },
+  {
+   "file": "sprites/ui/button_grey_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Button 12x12, 9-slice insets 4px (border-image: url() 4 fill)"
+  },
+  {
+   "file": "sprites/ui/button_disabled_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Button 12x12, 9-slice insets 4px (border-image: url() 4 fill)"
+  },
+  {
+   "file": "sprites/ui/panel_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Panel 12x12, 9-slice insets 3px"
+  },
+  {
+   "file": "sprites/ui/panel_dark_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Panel 12x12, 9-slice insets 3px"
+  },
+  {
+   "file": "sprites/ui/panel_black_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Panel 12x12, 9-slice insets 3px"
+  },
+  {
+   "file": "sprites/ui/slot_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Pitch slot frame, 9-slice insets 3px"
+  },
+  {
+   "file": "sprites/ui/slot_selected_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Pitch slot frame, 9-slice insets 3px"
+  },
+  {
+   "file": "sprites/ui/slot_warning_9slice.png",
+   "w": 12,
+   "h": 12,
+   "use": "Pitch slot frame, 9-slice insets 3px"
+  },
+  {
+   "file": "sprites/ui/progress_track_9slice.png",
+   "w": 12,
+   "h": 8,
+   "use": "Progress bar track, 9-slice insets 3px"
+  },
+  {
+   "file": "sprites/ui/progress_fill_yellow.png",
+   "w": 4,
+   "h": 4,
+   "use": "Progress fill, stretch horizontally"
+  },
+  {
+   "file": "sprites/ui/progress_fill_lime.png",
+   "w": 4,
+   "h": 4,
+   "use": "Progress fill, stretch horizontally"
+  },
+  {
+   "file": "sprites/ui/progress_fill_blue.png",
+   "w": 4,
+   "h": 4,
+   "use": "Progress fill, stretch horizontally"
+  },
+  {
+   "file": "sprites/ui/progress_fill_pink.png",
+   "w": 4,
+   "h": 4,
+   "use": "Progress fill, stretch horizontally"
+  },
+  {
+   "file": "sprites/ui/timing_bar_100x10.png",
+   "w": 100,
+   "h": 10,
+   "use": "Warm-up kick timing bar: green 25-68%, gold 68-88%"
+  },
+  {
+   "file": "sprites/ui/timing_marker.png",
+   "w": 4,
+   "h": 16,
+   "use": "Warm-up kick marker"
+  },
+  {
+   "file": "sprites/ui/shelf_slot_empty.png",
+   "w": 8,
+   "h": 10,
+   "use": "Pack shelf slot, empty"
+  },
+  {
+   "file": "sprites/ui/shelf_slot_full.png",
+   "w": 8,
+   "h": 10,
+   "use": "Pack shelf slot, filled"
+  },
+  {
+   "file": "app/icon_1024.png",
+   "w": 1024,
+   "h": 1024,
+   "use": "App Store / Play icon 1024x1024 (no alpha). Generate smaller sizes with @capacitor/assets"
+  },
+  {
+   "file": "app/icon_android_foreground_432.png",
+   "w": 432,
+   "h": 432,
+   "use": "Android adaptive icon foreground (safe zone centred), background = #1b1f3b"
+  },
+  {
+   "file": "app/splash_1170x2532.png",
+   "w": 1170,
+   "h": 2532,
+   "use": "Splash / launch screen (iPhone). Centre-crop for other sizes; background #1b1f3b"
+  },
+  {
+   "file": "app/splash_logical_195x422.png",
+   "w": 195,
+   "h": 422,
+   "use": "Splash at 1x for web/dev"
+  },
+  {
+   "file": "app/logo_pixel_pitch.png",
+   "w": 103,
+   "h": 64,
+   "use": "Wordmark (working title) at 1x, scale by integers"
+  },
+  {
+   "file": "palette/pixel-pitch.gpl",
+   "use": "Palette for Aseprite / GIMP"
+  },
+  {
+   "file": "palette/palette.json",
+   "use": "Palette tokens for CSS/TS"
+  },
+  {
+   "file": "audio/sfx/tap.wav",
+   "use": "Button tap",
+   "seconds": 0.05
+  },
+  {
+   "file": "audio/sfx/back.wav",
+   "use": "Back / close",
+   "seconds": 0.07
+  },
+  {
+   "file": "audio/sfx/error.wav",
+   "use": "Not allowed / not enough coins",
+   "seconds": 0.2
+  },
+  {
+   "file": "audio/sfx/coin.wav",
+   "use": "Single coin",
+   "seconds": 0.23
+  },
+  {
+   "file": "audio/sfx/collect.wav",
+   "use": "Collect stadium coins (rising run)",
+   "seconds": 0.32
+  },
+  {
+   "file": "audio/sfx/pack_rip.wav",
+   "use": "Pack rip",
+   "seconds": 0.35
+  },
+  {
+   "file": "audio/sfx/card_flip.wav",
+   "use": "Card flip",
+   "seconds": 0.08
+  },
+  {
+   "file": "audio/sfx/reveal_common.wav",
+   "use": "Reveal: Grassroots / Semi-Pro",
+   "seconds": 0.2
+  },
+  {
+   "file": "audio/sfx/reveal_pro.wav",
+   "use": "Reveal: Pro",
+   "seconds": 0.33
+  },
+  {
+   "file": "audio/sfx/reveal_star.wav",
+   "use": "Reveal: Star",
+   "seconds": 0.69
+  },
+  {
+   "file": "audio/sfx/reveal_legend.wav",
+   "use": "Reveal: Legend",
+   "seconds": 1.25
+  },
+  {
+   "file": "audio/sfx/sign.wav",
+   "use": "Player signed",
+   "seconds": 0.21
+  },
+  {
+   "file": "audio/sfx/sell.wav",
+   "use": "Player sold (coins)",
+   "seconds": 0.25
+  },
+  {
+   "file": "audio/sfx/swap.wav",
+   "use": "Lineup swap / formation change",
+   "seconds": 0.1
+  },
+  {
+   "file": "audio/sfx/score_up.wav",
+   "use": "Lineup score goes up",
+   "seconds": 0.18
+  },
+  {
+   "file": "audio/sfx/whistle_kickoff.wav",
+   "use": "Kick-off whistle",
+   "seconds": 0.45
+  },
+  {
+   "file": "audio/sfx/whistle_fulltime.wav",
+   "use": "Full-time whistle (three blasts)",
+   "seconds": 1.36
+  },
+  {
+   "file": "audio/sfx/kick.wav",
+   "use": "Ball kick (warm-up, replay)",
+   "seconds": 0.08
+  },
+  {
+   "file": "audio/sfx/goal.wav",
+   "use": "Goal! (crowd + jingle)",
+   "seconds": 1.6
+  },
+  {
+   "file": "audio/sfx/perfect.wav",
+   "use": "Warm-up perfect hit",
+   "seconds": 0.24
+  },
+  {
+   "file": "audio/sfx/upgrade.wav",
+   "use": "Stadium upgrade / level up",
+   "seconds": 0.58
+  },
+  {
+   "file": "audio/sfx/promoted.wav",
+   "use": "Promotion fanfare",
+   "seconds": 2.0
+  },
+  {
+   "file": "audio/sfx/win.wav",
+   "use": "Match won",
+   "seconds": 0.7
+  },
+  {
+   "file": "audio/sfx/draw.wav",
+   "use": "Match drawn",
+   "seconds": 0.42
+  },
+  {
+   "file": "audio/sfx/loss.wav",
+   "use": "Match lost (gentle)",
+   "seconds": 0.59
+  },
+  {
+   "file": "audio/sfx/notification.wav",
+   "use": "Custom push / local notification sound (convert to .caf/.ogg)",
+   "seconds": 0.34
+  },
+  {
+   "file": "audio/sfx/crowd_loop.wav",
+   "use": "Crowd ambience loop for match replay (loops)",
+   "seconds": 4.0
+  },
+  {
+   "file": "audio/music/menu_loop_120bpm.wav",
+   "use": "Chiptune menu loop, 8 bars @120bpm, seamless loop (placeholder until final music)",
+   "seconds": 16.0
+  },
+  {
+   "file": "preview/contact_sheet.png",
+   "w": 1400,
+   "h": 5212,
+   "use": "Overview of the pack at 4x"
+  }
+ ]
+}

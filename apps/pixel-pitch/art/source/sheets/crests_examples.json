@@ -1,0 +1,301 @@
+{
+ "frames": {
+  "crest_shield_ball": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_shield_star": {
+   "frame": {
+    "x": 17,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_shield_bolt": {
+   "frame": {
+    "x": 34,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_shield_crown": {
+   "frame": {
+    "x": 51,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_shield_flame": {
+   "frame": {
+    "x": 68,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_shield_wave": {
+   "frame": {
+    "x": 85,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_round_ball": {
+   "frame": {
+    "x": 102,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_round_star": {
+   "frame": {
+    "x": 119,
+    "y": 0,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_round_bolt": {
+   "frame": {
+    "x": 0,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_round_crown": {
+   "frame": {
+    "x": 17,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_round_flame": {
+   "frame": {
+    "x": 34,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_round_wave": {
+   "frame": {
+    "x": 51,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_square_ball": {
+   "frame": {
+    "x": 68,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_square_star": {
+   "frame": {
+    "x": 85,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_square_bolt": {
+   "frame": {
+    "x": 102,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_square_crown": {
+   "frame": {
+    "x": 119,
+    "y": 19,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_square_flame": {
+   "frame": {
+    "x": 0,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_square_wave": {
+   "frame": {
+    "x": 17,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_pennant_ball": {
+   "frame": {
+    "x": 34,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_pennant_star": {
+   "frame": {
+    "x": 51,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_pennant_bolt": {
+   "frame": {
+    "x": 68,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_pennant_crown": {
+   "frame": {
+    "x": 85,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_pennant_flame": {
+   "frame": {
+    "x": 102,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  },
+  "crest_pennant_wave": {
+   "frame": {
+    "x": 119,
+    "y": 38,
+    "w": 16,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 18
+   }
+  }
+ },
+ "meta": {
+  "image": "crests_examples.png",
+  "size": {
+   "w": 136,
+   "h": 57
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

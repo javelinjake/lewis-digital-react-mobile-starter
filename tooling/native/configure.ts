@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { execSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
+import { resolveIdentity, type IdentityMeta } from '../../packages/config-capacitor/src/identity'
 import { buildTrapezeConfig, deriveBuildNumber } from './lib/build-trapeze-config'
 
 /**
@@ -20,22 +21,24 @@ async function main() {
   if (!existsSync(metaPath))
     throw new Error('Run this from an app directory containing app.meta.ts')
 
-  const { appMeta } = await import(pathToFileURL(metaPath).href) as {
-    appMeta: { appId: string, name: string, hostname?: string }
-  }
+  const { appMeta } = await import(pathToFileURL(metaPath).href) as { appMeta: IdentityMeta }
+  // APP_ENV=dev|staging|prod picks the bundle id and name (default prod).
+  const identity = resolveIdentity(appMeta, process.env.APP_ENV)
   const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version: string }
 
   const buildNumber = process.env.BUILD_NUMBER ? Number(process.env.BUILD_NUMBER) : deriveBuildNumber()
 
   const config = buildTrapezeConfig({
-    appId: appMeta.appId,
-    name: appMeta.name,
+    appId: identity.appId,
+    name: identity.name,
     version: pkg.version,
     buildNumber,
-    hostname: appMeta.hostname,
+    hostname: identity.hostname,
+    orientation: identity.orientation,
+    tablet: identity.tablet,
     usage: {
-      camera: `${appMeta.name} uses the camera to capture photos you attach to your records.`,
-      photos: `${appMeta.name} accesses your photo library so you can attach existing photos.`,
+      camera: `${identity.name} uses the camera to capture photos you attach to your records.`,
+      photos: `${identity.name} accesses your photo library so you can attach existing photos.`,
     },
   })
 
@@ -53,7 +56,7 @@ async function main() {
   if (projects.length === 0)
     throw new Error('No native projects found. Run `pnpm cap add ios` / `pnpm cap add android` first.')
 
-  console.log(`Applying ${appMeta.appId} v${pkg.version} (${buildNumber}) to ${projects.filter(p => !p.startsWith('--')).join(', ')}`)
+  console.log(`Applying ${identity.appId} (${identity.appEnv}) v${pkg.version} (${buildNumber}) to ${projects.filter(p => !p.startsWith('--')).join(', ')}`)
 
   execSync(`npx trapeze run ${resolve(configPath)} ${projects.join(' ')} -y`, {
     cwd: appDir,

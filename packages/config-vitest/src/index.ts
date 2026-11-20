@@ -1,14 +1,16 @@
 import { fileURLToPath, URL } from 'node:url'
 import react from '@vitejs/plugin-react'
-import { defineConfig, type UserConfig } from 'vitest/config'
+import { defineConfig, type ViteUserConfig } from 'vitest/config'
 
 export interface CreateVitestConfigOptions {
   root: string
   setupFiles?: string[]
+  /** `jsdom` for UI code (default), `node` for server and pure-logic packages. */
+  environment?: 'jsdom' | 'node'
 }
 
-export function createVitestConfig(options: CreateVitestConfigOptions): UserConfig {
-  const { root, setupFiles = ['./tests/unit/setup.ts'] } = options
+export function createVitestConfig(options: CreateVitestConfigOptions): ViteUserConfig {
+  const { root, environment = 'jsdom', setupFiles = environment === 'jsdom' ? ['./tests/unit/setup.ts'] : [] } = options
 
   return defineConfig({
     root,
@@ -19,7 +21,7 @@ export function createVitestConfig(options: CreateVitestConfigOptions): UserConf
       },
     },
     test: {
-      environment: 'jsdom',
+      environment,
       include: ['tests/unit/**/*.spec.ts', 'tests/unit/**/*.spec.tsx'],
       setupFiles,
     },

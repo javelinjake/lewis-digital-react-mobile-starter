@@ -3,14 +3,34 @@
     {
       "slug": "template",
       "packageName": "@ld/app-template",
-      "path": "apps/template",
+      "path": "apps/template/app",
+      "api": {
+        "packageName": "@ld/api-template",
+        "path": "apps/template/api"
+      },
+      "web": "pwa",
+      "budget": {
+        "initialJsKb": 170
+      },
       "deployable": false
     },
     {
-      "slug": "zactiv-family",
-      "packageName": "@ld/app-zactiv-family",
-      "path": "apps/zactiv-family",
-      "deployable": true
+      "slug": "pixel-pitch",
+      "packageName": "@ld/app-pixel-pitch",
+      "path": "apps/pixel-pitch/app",
+      "api": {
+        "packageName": "@ld/api-pixel-pitch",
+        "path": "apps/pixel-pitch/api"
+      },
+      "core": {
+        "packageName": "@ld/pixel-pitch-core",
+        "path": "apps/pixel-pitch/core"
+      },
+      "web": "playtest",
+      "budget": {
+        "initialJsKb": 400
+      },
+      "deployable": false
     }
   ]
 }

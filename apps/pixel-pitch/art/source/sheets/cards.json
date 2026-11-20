@@ -1,0 +1,85 @@
+{
+ "frames": {
+  "card_grassroots": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 64
+   }
+  },
+  "card_semipro": {
+   "frame": {
+    "x": 49,
+    "y": 0,
+    "w": 48,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 64
+   }
+  },
+  "card_pro": {
+   "frame": {
+    "x": 98,
+    "y": 0,
+    "w": 48,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 64
+   }
+  },
+  "card_star": {
+   "frame": {
+    "x": 147,
+    "y": 0,
+    "w": 48,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 64
+   }
+  },
+  "card_legend": {
+   "frame": {
+    "x": 196,
+    "y": 0,
+    "w": 48,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 64
+   }
+  },
+  "card_back": {
+   "frame": {
+    "x": 245,
+    "y": 0,
+    "w": 48,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 64
+   }
+  }
+ },
+ "meta": {
+  "image": "cards.png",
+  "size": {
+   "w": 294,
+   "h": 65
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

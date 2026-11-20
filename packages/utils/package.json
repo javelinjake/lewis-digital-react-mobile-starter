@@ -23,7 +23,8 @@
     "./url/create-query-string": "./src/url/create-query-string.ts",
     "./url/join-url": "./src/url/join-url.ts",
     "./validation/is-defined": "./src/validation/is-defined.ts",
-    "./validation/is-non-empty-string": "./src/validation/is-non-empty-string.ts"
+    "./validation/is-non-empty-string": "./src/validation/is-non-empty-string.ts",
+    "./random/rng": "./src/random/rng.ts"
   },
   "scripts": {
     "build": "tsc --noEmit -p tsconfig.json",

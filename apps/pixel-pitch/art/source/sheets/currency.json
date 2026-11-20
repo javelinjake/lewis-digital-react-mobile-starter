@@ -1,0 +1,97 @@
+{
+ "frames": {
+  "coin": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "gem": {
+   "frame": {
+    "x": 13,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "token": {
+   "frame": {
+    "x": 26,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "pack": {
+   "frame": {
+    "x": 39,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "trophy": {
+   "frame": {
+    "x": 52,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "star": {
+   "frame": {
+    "x": 65,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  },
+  "points": {
+   "frame": {
+    "x": 78,
+    "y": 0,
+    "w": 12,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 12
+   }
+  }
+ },
+ "meta": {
+  "image": "currency.png",
+  "size": {
+   "w": 91,
+   "h": 13
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

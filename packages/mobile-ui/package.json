@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./native-feel.css": "./src/native-feel.css"
   },
   "scripts": {
     "build": "tsc --noEmit -p tsconfig.json",

@@ -6,36 +6,62 @@
       "persistent": true
     },
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"],
-      "env": ["VITE_BUILD_TARGET", "VITE_DIRECTUS_URL", "VITE_FRONTEND_URL"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "env": [
+        "APP_ENV",
+        "VITE_*"
+      ]
     },
     "build:native": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"],
-      "env": ["VITE_BUILD_TARGET", "VITE_DIRECTUS_URL", "VITE_FRONTEND_URL"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "env": [
+        "APP_ENV",
+        "VITE_*"
+      ]
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "ts": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test:unit": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test:e2e": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "cache": false
     },
     "architecture:check": {
       "cache": false
     },
     "cap:sync": {
-      "dependsOn": ["build:native"],
+      "dependsOn": [
+        "build:native"
+      ],
       "cache": false
     },
     "native:assets": {
@@ -44,5 +70,9 @@
     "native:configure": {
       "cache": false
     }
-  }
+  },
+  "globalPassThroughEnv": [
+    "VERCEL_*",
+    "CI"
+  ]
 }

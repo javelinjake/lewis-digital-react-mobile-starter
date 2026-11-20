@@ -1,0 +1,54 @@
+{
+  "name": "@ld/backend",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./env": "./src/env.ts",
+    "./origins": "./src/origins.ts",
+    "./auth": "./src/auth/index.ts",
+    "./access": "./src/access.ts",
+    "./owned": "./src/collections/owned.ts",
+    "./next": "./src/next.ts",
+    "./email": "./src/email.ts",
+    "./actions": "./src/actions.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "ts": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "lint": "eslint .",
+    "architecture:check": "bash ../../tooling/architecture-check/architecture-check.sh ."
+  },
+  "peerDependencies": {
+    "graphql": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "dependencies": {
+    "@delmaredigital/payload-better-auth": "catalog:",
+    "@payloadcms/db-postgres": "catalog:",
+    "@payloadcms/email-resend": "catalog:",
+    "@payloadcms/storage-gcs": "catalog:",
+    "better-auth": "catalog:",
+    "payload": "catalog:",
+    "sharp": "catalog:"
+  },
+  "devDependencies": {
+    "@ld/config-eslint": "workspace:*",
+    "@ld/config-typescript": "workspace:*",
+    "@ld/config-vitest": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "eslint": "catalog:",
+    "graphql": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

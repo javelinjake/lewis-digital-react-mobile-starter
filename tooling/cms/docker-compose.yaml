@@ -1,0 +1,23 @@
+# Local Postgres for the api apps. `pnpm db:up` starts it, `pnpm db:down` stops it (data is kept in a volume).
+# Port 54330 so it can run beside the Next starter's database (54329).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ld-mobile-postgres
+    ports:
+      - "54330:5432"
+    environment:
+      POSTGRES_USER: payload
+      POSTGRES_PASSWORD: payload
+      POSTGRES_DB: payload
+    volumes:
+      - ld_mobile_pg:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payload -d payload"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  ld_mobile_pg:

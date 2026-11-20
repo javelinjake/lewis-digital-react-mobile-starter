@@ -1,0 +1,181 @@
+{
+ "frames": {
+  "pos_gk": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 13,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 13,
+    "h": 9
+   }
+  },
+  "pos_def": {
+   "frame": {
+    "x": 34,
+    "y": 0,
+    "w": 17,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 9
+   }
+  },
+  "pos_mid": {
+   "frame": {
+    "x": 68,
+    "y": 0,
+    "w": 19,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 19,
+    "h": 9
+   }
+  },
+  "pos_fwd": {
+   "frame": {
+    "x": 102,
+    "y": 0,
+    "w": 19,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 19,
+    "h": 9
+   }
+  },
+  "tag_100pct": {
+   "frame": {
+    "x": 136,
+    "y": 0,
+    "w": 21,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 21,
+    "h": 9
+   }
+  },
+  "tag_90pct": {
+   "frame": {
+    "x": 170,
+    "y": 0,
+    "w": 17,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 9
+   }
+  },
+  "tag_75pct": {
+   "frame": {
+    "x": 204,
+    "y": 0,
+    "w": 17,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 9
+   }
+  },
+  "tag_55pct": {
+   "frame": {
+    "x": 0,
+    "y": 10,
+    "w": 17,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 9
+   }
+  },
+  "tag_30pct": {
+   "frame": {
+    "x": 34,
+    "y": 10,
+    "w": 17,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 9
+   }
+  },
+  "tag_new": {
+   "frame": {
+    "x": 68,
+    "y": 10,
+    "w": 19,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 19,
+    "h": 9
+   }
+  },
+  "tag_upgrade": {
+   "frame": {
+    "x": 102,
+    "y": 10,
+    "w": 33,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 33,
+    "h": 9
+   }
+  },
+  "tag_dupe": {
+   "frame": {
+    "x": 136,
+    "y": 10,
+    "w": 21,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 21,
+    "h": 9
+   }
+  },
+  "tag_sold": {
+   "frame": {
+    "x": 170,
+    "y": 10,
+    "w": 21,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 21,
+    "h": 9
+   }
+  },
+  "tag_locked": {
+   "frame": {
+    "x": 204,
+    "y": 10,
+    "w": 29,
+    "h": 9
+   },
+   "sourceSize": {
+    "w": 29,
+    "h": 9
+   }
+  }
+ },
+ "meta": {
+  "image": "badges.png",
+  "size": {
+   "w": 238,
+   "h": 20
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}

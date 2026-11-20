@@ -1,0 +1,2688 @@
+[
+ {
+  "id": "p001",
+  "name": "Gaspar Marisol",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 5,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p002",
+  "name": "Nils Grimholt",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 1,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p003",
+  "name": "Fenn Blackthorn",
+  "nation": 1,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 6,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p004",
+  "name": "Bryn Thistledown",
+  "nation": 2,
+  "position": "MID",
+  "rarity": "grassroots",
+  "rating": 45,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 2,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p005",
+  "name": "Nils Vennik",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p006",
+  "name": "Elwin Thistledown",
+  "nation": 2,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 49,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 1,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p007",
+  "name": "Idris Blackthorn",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 0,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p008",
+  "name": "Emilio Bellavista",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 51,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 4,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p009",
+  "name": "Bryn Heathcote",
+  "nation": 2,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 6,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p010",
+  "name": "Nico Quintara",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 45,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 3,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p011",
+  "name": "Halden Ellmark",
+  "nation": 0,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 6,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p012",
+  "name": "Nico Bellavista",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p013",
+  "name": "Lorcan Harrowick",
+  "nation": 1,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 44,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 0,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p014",
+  "name": "Cosimo Giralda",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 49,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 2,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p015",
+  "name": "Cael Cinderfield",
+  "nation": 1,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 7,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p016",
+  "name": "Cosimo Zafiro",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 7,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p017",
+  "name": "Hollis Heathcote",
+  "nation": 2,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "grassroots",
+  "rating": 45,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 3,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p018",
+  "name": "Rhys Dunmere",
+  "nation": 1,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "grassroots",
+  "rating": 49,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p019",
+  "name": "Linus Wrenfield",
+  "nation": 2,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 1,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p020",
+  "name": "Jasper Rushworth",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p021",
+  "name": "Cael Harrowick",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 1,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p022",
+  "name": "Dunstan Firthwood",
+  "nation": 1,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 6,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p023",
+  "name": "Rhys Kilbrae",
+  "nation": 1,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 47,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p024",
+  "name": "Mateo Zafiro",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 44,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 5,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p025",
+  "name": "Emilio Marisol",
+  "nation": 3,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "grassroots",
+  "rating": 49,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 2,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p026",
+  "name": "Aldric Hesvik",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 6,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p027",
+  "name": "Dante Castellan",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 7,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p028",
+  "name": "Cosimo Marisol",
+  "nation": 3,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 2,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p029",
+  "name": "Hollis Wrenfield",
+  "nation": 2,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 7,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p030",
+  "name": "Benito Valdora",
+  "nation": 3,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 45,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 6,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p031",
+  "name": "Nils Jarlsen",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p032",
+  "name": "Idris Firthwood",
+  "nation": 1,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 7,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p033",
+  "name": "Alder Heathcote",
+  "nation": 2,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 47,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 3,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p034",
+  "name": "Eskil Ironvale",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 51,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 3,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p035",
+  "name": "Morgan Harrowick",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p036",
+  "name": "Corvin Skarn",
+  "nation": 0,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 2,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p037",
+  "name": "Nico Dorado",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 51,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 3,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p038",
+  "name": "Mateo Castellan",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 0,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p039",
+  "name": "Hollis Mossley",
+  "nation": 2,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 45,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 5,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p040",
+  "name": "Corvin Fjeldan",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 51,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p041",
+  "name": "Dunstan Glenmoss",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 0,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p042",
+  "name": "Cosimo Torrente",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 6,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p043",
+  "name": "Eskil Hesvik",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "grassroots",
+  "rating": 44,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 2,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p044",
+  "name": "Bryn Bramwell",
+  "nation": 2,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 51,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p045",
+  "name": "Bram Halvane",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 3,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p046",
+  "name": "Garrick Emberly",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "grassroots",
+  "rating": 47,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 5,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p047",
+  "name": "Ivar Hesvik",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p048",
+  "name": "Cedric Rushworth",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 48,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 0,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p049",
+  "name": "Orrin Mossley",
+  "nation": 2,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p050",
+  "name": "Bram Hesvik",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 5,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p051",
+  "name": "Fenn Glenmoss",
+  "nation": 1,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 3,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p052",
+  "name": "Ivar Grimholt",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 4,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p053",
+  "name": "Emrys Harrowick",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 1,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p054",
+  "name": "Frode Jarlsen",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p055",
+  "name": "Emrys Emberly",
+  "nation": 1,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 4,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p056",
+  "name": "Orrin Peatley",
+  "nation": 2,
+  "position": "DEF",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 3,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p057",
+  "name": "Finlay Bramwell",
+  "nation": 2,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "grassroots",
+  "rating": 50,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p058",
+  "name": "Alonzo Bellavista",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "grassroots",
+  "rating": 52,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 4,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p059",
+  "name": "Hollis Bracken",
+  "nation": 2,
+  "position": "GK",
+  "rarity": "grassroots",
+  "rating": 44,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 1,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p060",
+  "name": "Kasper Fjeldan",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "grassroots",
+  "rating": 46,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 0,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p061",
+  "name": "Rhys Ashgrove",
+  "nation": 1,
+  "position": "FWD",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 3,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p062",
+  "name": "Garrick Glenmoss",
+  "nation": 1,
+  "position": "FWD",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 4,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p063",
+  "name": "Halden Halvane",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 3,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p064",
+  "name": "Mateo Bellavista",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 56,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 4,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p065",
+  "name": "Livio Bellavista",
+  "nation": 3,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 2,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p066",
+  "name": "Linus Oakhurst",
+  "nation": 2,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p067",
+  "name": "Ivar Fjeldan",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "semipro",
+  "rating": 56,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 5,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p068",
+  "name": "Frode Skarn",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 59,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 4,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p069",
+  "name": "Emrys Firthwood",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 57,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 7,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p070",
+  "name": "Linus Fernwick",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 1,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p071",
+  "name": "Bryn Rushworth",
+  "nation": 2,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p072",
+  "name": "Mateo Valdora",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 57,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 1,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p073",
+  "name": "Ivar Dovrek",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p074",
+  "name": "Linus Rushworth",
+  "nation": 2,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 5,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p075",
+  "name": "Livio Solano",
+  "nation": 3,
+  "position": "FWD",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 3,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p076",
+  "name": "Linus Mossley",
+  "nation": 2,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 7,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p077",
+  "name": "Idris Lochran",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 2,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p078",
+  "name": "Alonzo Marisol",
+  "nation": 3,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p079",
+  "name": "Emrys Blackthorn",
+  "nation": 1,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 58,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p080",
+  "name": "Hollis Peatley",
+  "nation": 2,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 1,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p081",
+  "name": "Emrys Dunmere",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 59,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 7,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p082",
+  "name": "Fausto Dorado",
+  "nation": 3,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 1,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p083",
+  "name": "Kieran Kilbrae",
+  "nation": 1,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p084",
+  "name": "Benito Bellavista",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 56,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 0,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p085",
+  "name": "Cosimo Solano",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 0,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p086",
+  "name": "Bryn Fernwick",
+  "nation": 2,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "semipro",
+  "rating": 58,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p087",
+  "name": "Ivar Halvane",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 59,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 2,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p088",
+  "name": "Dorian Heathcote",
+  "nation": 2,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 60,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 6,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p089",
+  "name": "Cosimo Dorado",
+  "nation": 3,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 59,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 0,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p090",
+  "name": "Kasper Ellmark",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 59,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 1,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p091",
+  "name": "Garrick Cinderfield",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 1,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p092",
+  "name": "Fausto Bellavista",
+  "nation": 3,
+  "position": "FWD",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 6,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p093",
+  "name": "Elwin Wrenfield",
+  "nation": 2,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 56,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p094",
+  "name": "Jasper Bramwell",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 6,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p095",
+  "name": "Orrin Wrenfield",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 7,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p096",
+  "name": "Fenn Emberly",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 57,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 5,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p097",
+  "name": "Alder Oakhurst",
+  "nation": 2,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 59,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 2,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p098",
+  "name": "Nico Giralda",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 56,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 6,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p099",
+  "name": "Cael Glenmoss",
+  "nation": 1,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 3,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p100",
+  "name": "Nils Ironvale",
+  "nation": 0,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p101",
+  "name": "Eskil Ellmark",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 57,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 0,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p102",
+  "name": "Leif Vennik",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 6,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p103",
+  "name": "Dorian Bracken",
+  "nation": 2,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p104",
+  "name": "Alonzo Zafiro",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 58,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 2,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p105",
+  "name": "Rhys Firthwood",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 2,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p106",
+  "name": "Fausto Torrente",
+  "nation": 3,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p107",
+  "name": "Orrin Thistledown",
+  "nation": 2,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 1,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p108",
+  "name": "Livio Dorado",
+  "nation": 3,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 4,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p109",
+  "name": "Frode Vennik",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 6,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p110",
+  "name": "Nico Zafiro",
+  "nation": 3,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 4,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p111",
+  "name": "Bram Skarn",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "semipro",
+  "rating": 57,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 2,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p112",
+  "name": "Dorian Mossley",
+  "nation": 2,
+  "position": "FWD",
+  "rarity": "semipro",
+  "rating": 60,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 5,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p113",
+  "name": "Bram Vennik",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "semipro",
+  "rating": 57,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 7,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p114",
+  "name": "Halden Skarn",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 60,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 6,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p115",
+  "name": "Morgan Firthwood",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 55,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 6,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p116",
+  "name": "Leif Fjeldan",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "semipro",
+  "rating": 56,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 1,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p117",
+  "name": "Rhys Emberly",
+  "nation": 1,
+  "position": "GK",
+  "rarity": "semipro",
+  "rating": 60,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 0,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p118",
+  "name": "Lorcan Dunmere",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "semipro",
+  "rating": 63,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 3,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p119",
+  "name": "Cael Lochran",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 61,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 4,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p120",
+  "name": "Corvin Vennik",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "semipro",
+  "rating": 62,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 6,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p121",
+  "name": "Linus Peatley",
+  "nation": 2,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 65,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p122",
+  "name": "Dante Quintara",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 2,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p123",
+  "name": "Dorian Fernwick",
+  "nation": 2,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 66,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 7,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p124",
+  "name": "Orrin Rushworth",
+  "nation": 2,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 70,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p125",
+  "name": "Cael Dunmere",
+  "nation": 1,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 70,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 5,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p126",
+  "name": "Frode Ellmark",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "pro",
+  "rating": 66,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 1,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p127",
+  "name": "Eskil Halvane",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 72,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 6,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p128",
+  "name": "Bryn Bracken",
+  "nation": 2,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 5,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p129",
+  "name": "Lorcan Emberly",
+  "nation": 1,
+  "position": "GK",
+  "rarity": "pro",
+  "rating": 69,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p130",
+  "name": "Dunstan Harrowick",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 66,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p131",
+  "name": "Nils Fjeldan",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 68,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 6,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p132",
+  "name": "Kieran Dunmere",
+  "nation": 1,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 4,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p133",
+  "name": "Emrys Glenmoss",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 71,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 3,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p134",
+  "name": "Benito Torrente",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 69,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 3,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p135",
+  "name": "Gaspar Bellavista",
+  "nation": 3,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 67,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 0,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p136",
+  "name": "Orrin Fernwick",
+  "nation": 2,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 4,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p137",
+  "name": "Lorcan Blackthorn",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "pro",
+  "rating": 72,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p138",
+  "name": "Emrys Kilbrae",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 70,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 3,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p139",
+  "name": "Finlay Peatley",
+  "nation": 2,
+  "position": "DEF",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 0,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p140",
+  "name": "Benito Giralda",
+  "nation": 3,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "pro",
+  "rating": 66,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 1,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p141",
+  "name": "Corvin Ironvale",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "pro",
+  "rating": 72,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 7,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p142",
+  "name": "Lorcan Cinderfield",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 66,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 4,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p143",
+  "name": "Orrin Bramwell",
+  "nation": 2,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 0,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p144",
+  "name": "Jasper Peatley",
+  "nation": 2,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 6,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p145",
+  "name": "Benito Solano",
+  "nation": 3,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 65,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 4,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p146",
+  "name": "Emilio Giralda",
+  "nation": 3,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 73,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 1,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p147",
+  "name": "Gaspar Solano",
+  "nation": 3,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 69,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 2,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p148",
+  "name": "Fausto Quintara",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 67,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 2,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p149",
+  "name": "Corvin Ellmark",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 72,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 6,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p150",
+  "name": "Cael Firthwood",
+  "nation": 1,
+  "position": "GK",
+  "rarity": "pro",
+  "rating": 68,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p151",
+  "name": "Kasper Ironvale",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 69,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p152",
+  "name": "Halden Jarlsen",
+  "nation": 0,
+  "position": "GK",
+  "rarity": "pro",
+  "rating": 70,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 7,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p153",
+  "name": "Morgan Glenmoss",
+  "nation": 1,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 65,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 2,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p154",
+  "name": "Aldric Vennik",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 65,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p155",
+  "name": "Dante Zafiro",
+  "nation": 3,
+  "position": "MID",
+  "rarity": "pro",
+  "rating": 66,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 2,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p156",
+  "name": "Nico Valdora",
+  "nation": 3,
+  "position": "DEF",
+  "rarity": "pro",
+  "rating": 69,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 3,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p157",
+  "name": "Elwin Oakhurst",
+  "nation": 2,
+  "position": "GK",
+  "rarity": "pro",
+  "rating": 70,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 1,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p158",
+  "name": "Leif Ironvale",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 72,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 0,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p159",
+  "name": "Ivar Skarn",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "pro",
+  "rating": 65,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 4,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p160",
+  "name": "Finlay Heathcote",
+  "nation": 2,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 72,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 6,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p161",
+  "name": "Aldric Skarn",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 72,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 2,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p162",
+  "name": "Frode Halvane",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 65,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 5,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p163",
+  "name": "Alonzo Dorado",
+  "nation": 3,
+  "position": "FWD",
+  "rarity": "pro",
+  "rating": 69,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 5,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p164",
+  "name": "Dorian Wrenfield",
+  "nation": 2,
+  "position": "GK",
+  "rarity": "pro",
+  "rating": 70,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 2,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p165",
+  "name": "Emrys Lochran",
+  "nation": 1,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "pro",
+  "rating": 70,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 3,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p166",
+  "name": "Idris Emberly",
+  "nation": 1,
+  "position": "MID",
+  "rarity": "star",
+  "rating": 84,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 3,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p167",
+  "name": "Livio Castellan",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "star",
+  "rating": 78,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 2,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p168",
+  "name": "Dunstan Ashgrove",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 76,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 2,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p169",
+  "name": "Leif Dovrek",
+  "nation": 0,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "star",
+  "rating": 82,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 6,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p170",
+  "name": "Nico Torrente",
+  "nation": 3,
+  "position": "GK",
+  "rarity": "star",
+  "rating": 84,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 1,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p171",
+  "name": "Halden Dovrek",
+  "nation": 0,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 84,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 6,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p172",
+  "name": "Dunstan Cinderfield",
+  "nation": 1,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 80,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 0,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p173",
+  "name": "Cedric Heathcote",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 78,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 5,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p174",
+  "name": "Garrick Harrowick",
+  "nation": 1,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "star",
+  "rating": 84,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 0,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p175",
+  "name": "Eskil Dovrek",
+  "nation": 0,
+  "position": "GK",
+  "rarity": "star",
+  "rating": 83,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 0,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p176",
+  "name": "Hollis Fernwick",
+  "nation": 2,
+  "position": "GK",
+  "rarity": "star",
+  "rating": 81,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 5,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p177",
+  "name": "Morgan Ashgrove",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "star",
+  "rating": 79,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 3,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p178",
+  "name": "Leif Skarn",
+  "nation": 0,
+  "position": "DEF",
+  "rarity": "star",
+  "rating": 84,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 3,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p179",
+  "name": "Dante Giralda",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 82,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 4,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p180",
+  "name": "Livio Quintara",
+  "nation": 3,
+  "position": "MID",
+  "rarity": "star",
+  "rating": 79,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 0,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p181",
+  "name": "Finlay Rushworth",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 78,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 4,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p182",
+  "name": "Halden Hesvik",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "star",
+  "rating": 82,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 0,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p183",
+  "name": "Benito Quintara",
+  "nation": 3,
+  "position": "DEF",
+  "rarity": "star",
+  "rating": 79,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 1,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p184",
+  "name": "Orrin Heathcote",
+  "nation": 2,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "star",
+  "rating": 81,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 0,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p185",
+  "name": "Cedric Bramwell",
+  "nation": 2,
+  "position": "DEF",
+  "rarity": "star",
+  "rating": 76,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 4,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p186",
+  "name": "Bram Dovrek",
+  "nation": 0,
+  "position": "FWD",
+  "rarity": "star",
+  "rating": 79,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 6,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p187",
+  "name": "Dante Marisol",
+  "nation": 3,
+  "position": "MID",
+  "altPosition": "FWD",
+  "rarity": "star",
+  "rating": 78,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 4,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p188",
+  "name": "Lorcan Ashgrove",
+  "nation": 1,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 77,
+  "sprite": {
+   "skin": 0,
+   "hairStyle": 7,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p189",
+  "name": "Bram Fjeldan",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "star",
+  "rating": 79,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 7,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p190",
+  "name": "Orrin Bracken",
+  "nation": 2,
+  "position": "DEF",
+  "rarity": "star",
+  "rating": 76,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 4,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p191",
+  "name": "Orrin Oakhurst",
+  "nation": 2,
+  "position": "FWD",
+  "altPosition": "MID",
+  "rarity": "legend",
+  "rating": 90,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 2,
+   "hairColour": 1
+  }
+ },
+ {
+  "id": "p192",
+  "name": "Fenn Firthwood",
+  "nation": 1,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "legend",
+  "rating": 88,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 7,
+   "hairColour": 4
+  }
+ },
+ {
+  "id": "p193",
+  "name": "Bram Grimholt",
+  "nation": 0,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "legend",
+  "rating": 88,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 6,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p194",
+  "name": "Idris Harrowick",
+  "nation": 1,
+  "position": "FWD",
+  "rarity": "legend",
+  "rating": 90,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 5,
+   "hairColour": 5
+  }
+ },
+ {
+  "id": "p195",
+  "name": "Nico Marisol",
+  "nation": 3,
+  "position": "MID",
+  "altPosition": "DEF",
+  "rarity": "legend",
+  "rating": 91,
+  "sprite": {
+   "skin": 4,
+   "hairStyle": 0,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p196",
+  "name": "Jasper Thistledown",
+  "nation": 2,
+  "position": "FWD",
+  "rarity": "legend",
+  "rating": 93,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 2,
+   "hairColour": 0
+  }
+ },
+ {
+  "id": "p197",
+  "name": "Corvin Jarlsen",
+  "nation": 0,
+  "position": "MID",
+  "rarity": "legend",
+  "rating": 94,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p198",
+  "name": "Alonzo Solano",
+  "nation": 3,
+  "position": "DEF",
+  "altPosition": "MID",
+  "rarity": "legend",
+  "rating": 86,
+  "sprite": {
+   "skin": 3,
+   "hairStyle": 5,
+   "hairColour": 2
+  }
+ },
+ {
+  "id": "p199",
+  "name": "Dunstan Dunmere",
+  "nation": 1,
+  "position": "DEF",
+  "rarity": "legend",
+  "rating": 90,
+  "sprite": {
+   "skin": 1,
+   "hairStyle": 0,
+   "hairColour": 3
+  }
+ },
+ {
+  "id": "p200",
+  "name": "Frode Fjeldan",
+  "nation": 0,
+  "position": "GK",
+  "rarity": "legend",
+  "rating": 89,
+  "sprite": {
+   "skin": 2,
+   "hairStyle": 7,
+   "hairColour": 1
+  }
+ }
+]

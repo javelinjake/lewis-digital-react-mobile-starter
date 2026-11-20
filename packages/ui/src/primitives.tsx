@@ -43,7 +43,8 @@ export function StatusBadge({ children, pending = false }: { children: ReactNode
 
 export function ThemeToggle({ theme, onToggle }: { theme: string, onToggle: () => void }) {
   return (
-    <button type="button" className="btn btn-ghost btn-sm" onClick={onToggle} aria-label="Toggle theme">
+    // The accessible name must contain the visible text, so voice control ("tap Dark") works.
+    <button type="button" className="btn btn-ghost btn-sm" onClick={onToggle} aria-label={`Switch to ${theme === 'dracula' ? 'light' : 'dark'} theme`}>
       {theme === 'dracula' ? 'Light' : 'Dark'}
     </button>
   )

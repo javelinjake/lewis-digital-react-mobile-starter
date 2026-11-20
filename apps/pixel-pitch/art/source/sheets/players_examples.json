@@ -1,0 +1,397 @@
+{
+ "frames": {
+  "example_00": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_01": {
+   "frame": {
+    "x": 13,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_02": {
+   "frame": {
+    "x": 26,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_03": {
+   "frame": {
+    "x": 39,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_04": {
+   "frame": {
+    "x": 52,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_05": {
+   "frame": {
+    "x": 65,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_06": {
+   "frame": {
+    "x": 78,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_07": {
+   "frame": {
+    "x": 91,
+    "y": 0,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_08": {
+   "frame": {
+    "x": 0,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_09": {
+   "frame": {
+    "x": 13,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_10": {
+   "frame": {
+    "x": 26,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_11": {
+   "frame": {
+    "x": 39,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_12": {
+   "frame": {
+    "x": 52,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_13": {
+   "frame": {
+    "x": 65,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_14": {
+   "frame": {
+    "x": 78,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_15": {
+   "frame": {
+    "x": 91,
+    "y": 17,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_16": {
+   "frame": {
+    "x": 0,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_17": {
+   "frame": {
+    "x": 13,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_18": {
+   "frame": {
+    "x": 26,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_19": {
+   "frame": {
+    "x": 39,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_20": {
+   "frame": {
+    "x": 52,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_21": {
+   "frame": {
+    "x": 65,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_22": {
+   "frame": {
+    "x": 78,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_23": {
+   "frame": {
+    "x": 91,
+    "y": 34,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_24": {
+   "frame": {
+    "x": 0,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_25": {
+   "frame": {
+    "x": 13,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_26": {
+   "frame": {
+    "x": 26,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_27": {
+   "frame": {
+    "x": 39,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_28": {
+   "frame": {
+    "x": 52,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_29": {
+   "frame": {
+    "x": 65,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_30": {
+   "frame": {
+    "x": 78,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  },
+  "example_31": {
+   "frame": {
+    "x": 91,
+    "y": 51,
+    "w": 12,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 16
+   }
+  }
+ },
+ "meta": {
+  "image": "players_examples.png",
+  "size": {
+   "w": 104,
+   "h": 68
+  },
+  "scale": "1",
+  "app": "pixel-pitch-gen"
+ }
+}
