@@ -50,7 +50,7 @@ export function perfectKeepyTaps(seed: string) {
   while (!sim.over && sim.step < 7200) {
     const inReach = sim.vy < 0 && sim.y <= config.minigames.keepy.reach
     if (inReach && !was)
-      wait = 6
+      wait = 1
     was = inReach
     let tap = false
     if (wait === 0) {

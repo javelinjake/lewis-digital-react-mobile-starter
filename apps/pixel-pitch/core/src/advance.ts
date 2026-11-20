@@ -30,7 +30,7 @@ export interface AdvanceResult {
  */
 export function advance(state: IdleState, config: GameConfig, now: number): AdvanceResult {
   const events: WelcomeBackEvent[] = []
-  let next = { ...state, trayCollectedAt: { ...state.trayCollectedAt } }
+  let next = { ...state }
 
   // A clock that goes backwards (a server restart on another node, a manual fix) never un-earns anything.
   const at = Math.max(now, state.shelfClockAt)
@@ -74,10 +74,10 @@ export function pendingStadiumCoins(state: IdleState, config: GameConfig, now: n
   return pile(perHour, state.stadiumCollectedAt, now, capHours)
 }
 
-/** Tokens waiting in one cabinet's tray. */
-export function pendingTrayTokens(state: IdleState, config: GameConfig, cabinet: 'kick' | 'keepy', now: number) {
+/** Tokens waiting in the arcade's tray. Fills at the tray's rate and stops at the cap. */
+export function pendingTrayTokens(state: IdleState, config: GameConfig, now: number) {
   const capHours = state.hasPass ? config.cabinets.trayCapHoursWithPass : config.cabinets.trayCapHours
-  return pile(config.cabinets.tokensPerHour, state.trayCollectedAt[cabinet], now, capHours)
+  return pile(config.cabinets.tokensPerHour, state.trayCollectedAt, now, capHours)
 }
 
 /** When each alert should fire, given what the player has now. The app turns these into local notifications. */
@@ -92,6 +92,6 @@ export function notificationTimes(state: IdleState, config: GameConfig, now: num
     /** Null when the shelf is already full: there is nothing to wait for. */
     shelfFullAt: current.shelfPacks >= capacity ? null : current.shelfClockAt + (capacity - current.shelfPacks) * interval,
     stadiumFullAt: current.stadiumCollectedAt + stadiumCap,
-    traysFullAt: Math.min(current.trayCollectedAt.kick, current.trayCollectedAt.keepy) + trayCap,
+    traysFullAt: current.trayCollectedAt + trayCap,
   }
 }

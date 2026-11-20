@@ -25,7 +25,9 @@ export interface DayCounter {
   count: number
 }
 
-export type Cabinet = 'kick' | 'keepy'
+/** Every arcade game. The hot cabinet of the day follows this order. */
+export const CABINETS = ['kick', 'keepy'] as const
+export type Cabinet = typeof CABINETS[number]
 
 /** One play of an arcade game or the warm-up kick. The server hands it out and checks the result against it. */
 export interface Ticket {
@@ -66,8 +68,10 @@ export interface ClubState {
   /** Packs bought with coins today. */
   extraPacks: DayCounter
 
-  /** Free plays used today, for each arcade game. */
-  cabinetPlays: Record<Cabinet, DayCounter>
+  /** The arcade's stamina: the time at which it is full again (see `energyAt`). */
+  energy: { fullAt: number }
+  /** Best score in each arcade game, for "new best" and "2 off your best". */
+  arcade: { best: Record<Cabinet, number> }
   /** Tickets handed out so far. Seeds each play. */
   ticketsIssued: number
   ticket: Ticket | null
@@ -95,7 +99,8 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     pendingPack: null,
     starPacks: 0,
     extraPacks: { day: -1, count: 0 },
-    cabinetPlays: { kick: { day: -1, count: 0 }, keepy: { day: -1, count: 0 } },
+    energy: { fullAt: 0 },
+    arcade: { best: { kick: 0, keepy: 0 } },
     ticketsIssued: 0,
     ticket: null,
     warmupTriedFor: -1,
@@ -112,10 +117,16 @@ export function newClubState(now: number, config: GameConfig): ClubState {
  */
 export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' | 'league'>, config: GameConfig): ClubState {
   const fresh = newClubState(saved.idle.shelfClockAt, config)
+  // Older clubs had a token tray for each game and a count of free plays a day. The trays become one, emptied at the
+  // earlier of the two times (nothing already earned is lost), and the plays become energy, starting full.
+  const { cabinetPlays: _old, ...rest } = saved as typeof saved & { cabinetPlays?: unknown }
+  const tray = saved.idle.trayCollectedAt as number | { kick: number, keepy: number }
   return {
     ...fresh,
-    ...saved,
-    cabinetPlays: { ...fresh.cabinetPlays, ...saved.cabinetPlays },
+    ...rest,
+    idle: { ...saved.idle, trayCollectedAt: typeof tray === 'number' ? tray : Math.min(tray.kick, tray.keepy) },
+    energy: { ...fresh.energy, ...saved.energy },
+    arcade: { best: { ...fresh.arcade.best, ...saved.arcade?.best } },
     daily: { ...fresh.daily, ...saved.daily },
     calendar: { ...fresh.calendar, ...saved.calendar },
     pass: { ...fresh.pass, ...saved.pass },

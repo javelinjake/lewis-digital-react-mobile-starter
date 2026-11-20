@@ -1,13 +1,18 @@
-import type { GameResponse } from '@ld/pixel-pitch-core'
+import type { Cabinet, GameResponse } from '@ld/pixel-pitch-core'
 import type { Payload } from 'payload'
 import type { Session } from './harness'
-import { DEFAULT_CONFIG } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, hotCabinet, keepyMax, shareOf } from '@ld/pixel-pitch-core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { act, bestWarmupTap, DAY, found, HOUR, perfectKeepyTaps, perfectKickTaps } from './game-helpers'
 import { boot, guest } from './harness'
 
 const config = DEFAULT_CONFIG
 const T0 = Date.UTC(2026, 10, 11, 12)
+
+/** What a free play of `cabinet` pays for `score`, started at `at`: the cabinet of the day pays 50% more. */
+function payout(cabinet: Cabinet, at: number, score: number, max: number) {
+  return Math.floor(shareOf(score, max, config.cabinets.playMaxTokens) * (hotCabinet(at, config) === cabinet ? 1 + config.cabinets.hotBonus : 1))
+}
 
 let payload: Payload
 let alice: Session
@@ -67,18 +72,18 @@ describe('the stadium', () => {
   })
 })
 
-describe('the token trays', () => {
-  it('fill while away at 12 tokens an hour and are emptied once', async () => {
+describe('the token tray', () => {
+  it('fills while away at 24 tokens an hour and is emptied once', async () => {
     now += 5 * HOUR
     const before = (await state(alice)).tokens
-    const response = await act(alice, 'arcade/collect', { cabinet: 'kick' }, { at: now })
+    const response = await act(alice, 'arcade/collect', {}, { at: now })
     expect(response.status).toBe(200)
     // Started filling when the club was founded, and holds at most 8 hours.
-    expect(response.json.tokens).toBe(12 * 8)
-    expect(response.json.club.state.tokens).toBe(before + 96)
-    expect((await act(alice, 'arcade/collect', { cabinet: 'kick' }, { at: now })).status).toBe(400)
-    expect((await act(alice, 'arcade/collect', { cabinet: 'pinball' }, { at: now })).status).toBe(400)
-    expect((await act(alice, 'arcade/collect', { cabinet: 'keepy' }, { at: now })).json.tokens).toBe(96)
+    expect(response.json.tokens).toBe(24 * 8)
+    expect(response.json.club.state.tokens).toBe(before + 192)
+    // Empty now: a second collection is refused, and the tray fills again from this moment.
+    expect((await act(alice, 'arcade/collect', {}, { at: now })).status).toBe(400)
+    expect((await act(alice, 'arcade/collect', {}, { at: now + 2 * HOUR })).json.tokens).toBe(48)
   })
 })
 
@@ -96,9 +101,12 @@ describe('kick Timer', () => {
     const finished = await act(alice, 'arcade/finish', { cabinet: 'kick', taps, score: 999, tokens: 99_999 }, { at: now + taps.reduce((a, b) => a + b, 0) + 3000 })
     expect(finished.status).toBe(200)
     // Whatever score the phone claims is ignored: the server replays the taps.
-    expect(finished.json).toMatchObject({ score: 15, max: 15, tokens: config.cabinets.playMaxTokens })
-    expect(finished.json.club.state.tokens).toBe(before + config.cabinets.playMaxTokens)
+    expect(finished.json).toMatchObject({ score: 15, max: 15, tokens: payout('kick', now, 15, 15) })
+    expect(finished.json.club.state.tokens).toBe(before + payout('kick', now, 15, 15))
     expect(finished.json.club.state.ticket).toBeNull()
+    // The server remembers the best score, for "new best" next time.
+    expect(finished.json).toMatchObject({ previousBest: 0, newBest: true })
+    expect(finished.json.club.state.arcade.best.kick).toBe(15)
   })
 
   it('cannot be finished twice, or without having been started', async () => {
@@ -118,15 +126,20 @@ describe('kick Timer', () => {
     expect(JSON.stringify(late.json)).toContain('expired')
   })
 
-  it('gives three free plays a day and then asks for gems; the next day starts again', async () => {
+  it('spends one energy a play from a bar every cabinet shares, five in all, then asks for gems; one comes back after 90 minutes', async () => {
     now += 2 * DAY
-    for (let play = 0; play < config.cabinets.freePlaysPerDay; play++)
-      expect((await act(alice, 'arcade/start', { cabinet: 'kick' }, { at: now })).status).toBe(200)
-    const none = await act(alice, 'arcade/start', { cabinet: 'kick' }, { at: now })
-    expect(none.status).toBe(400)
-    expect(JSON.stringify(none.json)).toContain('no-plays')
-    expect((await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })).status).toBe(200)
-    now += DAY
+    const games = ['kick', 'keepy', 'kick', 'keepy', 'kick']
+    for (const cabinet of games) {
+      const response = await act(alice, 'arcade/start', { cabinet }, { at: now })
+      expect(response.status).toBe(200)
+    }
+    for (const cabinet of ['kick', 'keepy']) {
+      const none = await act(alice, 'arcade/start', { cabinet }, { at: now })
+      expect(none.status).toBe(400)
+      expect(JSON.stringify(none.json)).toContain('no-energy')
+    }
+    expect((await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now + 89 * 60_000 })).status).toBe(400)
+    now += 90 * 60_000
     expect((await act(alice, 'arcade/start', { cabinet: 'kick' }, { at: now })).status).toBe(200)
   })
 
@@ -155,9 +168,9 @@ describe('keepy-Uppy', () => {
     const started = await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })
     expect(started.status).toBe(200)
     const { taps, steps } = perfectKeepyTaps(started.json.club.state.ticket.seed)
-    const finished = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps }, { at: now + (steps / 60) * 1000 + 1000 })
+    const finished = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps }, { at: now + Math.ceil((steps / 60) * 1000) + 1000 })
     expect(finished.status).toBe(200)
-    expect(finished.json).toMatchObject({ score: 50, max: 50, tokens: config.cabinets.playMaxTokens })
+    expect(finished.json).toMatchObject({ score: keepyMax(config), max: keepyMax(config), tokens: payout('keepy', now, keepyMax(config), keepyMax(config)) })
   })
 
   it('pays for fewer kicks if the taps stop, and refuses taps no person could make', async () => {
@@ -167,8 +180,9 @@ describe('keepy-Uppy', () => {
     const cheat = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: [10, 11, 12, 13] }, { at: now + 60_000 })
     expect(cheat.status).toBe(400)
     const half = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: taps.slice(0, 20) }, { at: now + 60_000 })
-    expect(half.json.score).toBe(20)
-    expect(half.json.tokens).toBe(Math.floor((config.cabinets.playMaxTokens * 20) / 50))
+    // Twenty kicks, the tenth and twentieth golden: 22 points.
+    expect(half.json.score).toBe(22)
+    expect(half.json.tokens).toBe(payout('keepy', now, 22, keepyMax(config)))
   })
 })
 

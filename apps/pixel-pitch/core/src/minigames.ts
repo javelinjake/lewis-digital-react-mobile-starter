@@ -77,8 +77,6 @@ export function warmupZone(seed: string, tapMs: number, config: Pick<GameConfig,
 /** The game runs at 60 steps a second whatever the phone's frame rate. */
 export const KEEPY_STEPS_PER_SECOND = 60
 const DT = 1 / KEEPY_STEPS_PER_SECOND
-/** A play that has not ended after this long is stopped (the ticket's life). */
-export const KEEPY_MAX_STEPS = KEEPY_STEPS_PER_SECOND * 120
 
 export interface KeepySim {
   seed: string
@@ -90,12 +88,14 @@ export interface KeepySim {
   /** Steps left in which a tap does nothing, after one badly timed. */
   stumble: number
   dropped: boolean
-  /** The game is over: the ball dropped or the player reached the cap. */
+  /** The game is over: the ball dropped, the player reached the kick cap, or the clock ran out. */
   over: boolean
+  /** The clock ran out with the ball still up. */
+  timeUp: boolean
 }
 
 export function newKeepy(seed: string): KeepySim {
-  return { seed, y: 60, vy: 0, step: 0, kicks: 0, stumble: 0, dropped: false, over: false }
+  return { seed, y: 60, vy: 0, step: 0, kicks: 0, stumble: 0, dropped: false, over: false, timeUp: false }
 }
 
 const gravityAt = (kicks: number, config: Pick<GameConfig, 'minigames'>) => config.minigames.keepy.gravity * (1 + config.minigames.keepy.ramp * kicks)
@@ -104,7 +104,7 @@ const gravityAt = (kicks: number, config: Pick<GameConfig, 'minigames'>) => conf
 export function stepKeepy(sim: KeepySim, tap: boolean, config: Pick<GameConfig, 'minigames'>): KeepySim {
   if (sim.over)
     return sim
-  const { reach, stumbleSteps, minPeak, maxPeak, maxKicks } = config.minigames.keepy
+  const { reach, stumbleSteps, minPeak, maxPeak, maxKicks, maxSeconds } = config.minigames.keepy
   let { y, vy, kicks, stumble } = sim
 
   if (stumble > 0)
@@ -124,22 +124,43 @@ export function stepKeepy(sim: KeepySim, tap: boolean, config: Pick<GameConfig, 
   vy -= gravityAt(kicks, config) * DT
   y += vy * DT
   const dropped = y <= 0
-  return { ...sim, y: Math.max(0, y), vy, step: sim.step + 1, kicks, stumble, dropped, over: dropped || kicks >= maxKicks }
+  const step = sim.step + 1
+  const timeUp = !dropped && step >= maxSeconds * KEEPY_STEPS_PER_SECOND
+  return { ...sim, y: Math.max(0, y), vy, step, kicks, stumble, dropped, timeUp, over: dropped || timeUp || kicks >= maxKicks }
 }
 
 export interface KeepyResult {
   kicks: number
+  /** The score: the kicks, with every golden ball counting twice. */
+  score: number
   steps: number
   dropped: boolean
+}
+
+/** Every `goldenEvery`-th kick is golden and scores 2. */
+export function keepyScore(kicks: number, config: Pick<GameConfig, 'minigames'>) {
+  return kicks + Math.floor(kicks / config.minigames.keepy.goldenEvery)
+}
+
+/** The score of a perfect play. */
+export function keepyMax(config: Pick<GameConfig, 'minigames'>) {
+  return keepyScore(config.minigames.keepy.maxKicks, config)
+}
+
+/** Whether the next kick is a golden ball, so the game can draw it gold. */
+export function nextKickGolden(kicks: number, config: Pick<GameConfig, 'minigames'>) {
+  return (kicks + 1) % config.minigames.keepy.goldenEvery === 0
 }
 
 /** Replays a Keepy-Uppy play from the steps (0, 1, 2…) at which the player tapped. */
 export function runKeepy(seed: string, tapSteps: readonly number[], config: Pick<GameConfig, 'minigames'>): KeepyResult {
   const taps = new Set(tapSteps)
   let sim = newKeepy(seed)
-  while (!sim.over && sim.step < KEEPY_MAX_STEPS)
+  // The clock ends every play, so this always finishes; the bound is only a guard against a bad config.
+  const bound = (config.minigames.keepy.maxSeconds + 1) * KEEPY_STEPS_PER_SECOND
+  while (!sim.over && sim.step < bound)
     sim = stepKeepy(sim, taps.has(sim.step), config)
-  return { kicks: sim.kicks, steps: sim.step, dropped: sim.dropped }
+  return { kicks: sim.kicks, score: keepyScore(sim.kicks, config), steps: sim.step, dropped: sim.dropped }
 }
 
 // ---- Rewards ----

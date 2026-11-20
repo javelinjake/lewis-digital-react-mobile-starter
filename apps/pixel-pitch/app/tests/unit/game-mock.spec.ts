@@ -107,9 +107,9 @@ describe('local notifications', () => {
     const byType = Object.fromEntries(plans.map(plan => [plan.type, plan]))
     expect(Object.keys(byType).sort()).toEqual(['full-time', 'shelf-full', 'trays-full'])
     expect(byType['full-time'].at).toBe(created.club.state.league.nextKickoffAt + 60_000)
-    // Ten packs at 45 minutes each from the start, and 8 hours of trays.
+    // Ten packs at 45 minutes each from the start, and 8 hours of tray (a new club's energy is full, so the tray is next).
     expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + 10 * 45 * 60_000)
-    expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt.kick + 8 * HOUR)
+    expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt + 8 * HOUR)
 
     const full = { ...created, club: { ...created.club, state: { ...created.club.state, idle: { ...created.club.state.idle, shelfPacks: 10 } } } }
     expect(buildNotificationPlans(full, DEFAULT_CONFIG).some(plan => plan.type === 'shelf-full')).toBe(false)

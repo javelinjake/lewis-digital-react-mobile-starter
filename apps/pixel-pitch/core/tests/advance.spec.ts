@@ -115,10 +115,11 @@ describe('stadium and trays', () => {
     expect(pendingStadiumCoins(start(), config, T0 - HOUR)).toBe(0)
   })
 
-  it('fills each cabinet tray on its own timer', () => {
-    const state = start({ trayCollectedAt: { kick: T0, keepy: T0 + 2 * HOUR } })
-    expect(pendingTrayTokens(state, config, 'kick', T0 + 3 * HOUR)).toBe(36)
-    expect(pendingTrayTokens(state, config, 'keepy', T0 + 3 * HOUR)).toBe(12)
+  it('fills the arcade\'s one tray at 24 tokens an hour, and stops at the cap', () => {
+    const state = start({ trayCollectedAt: T0 + 2 * HOUR })
+    expect(pendingTrayTokens(state, config, T0 + 3 * HOUR)).toBe(24)
+    expect(pendingTrayTokens(state, config, T0 + 5 * 24 * HOUR)).toBe(192)
+    expect(pendingTrayTokens(state, config, T0)).toBe(0)
   })
 })
 
@@ -137,10 +138,10 @@ describe('notificationTimes', () => {
     expect(times.shelfFullAt).toBe(T0 + 10 * 45 * MINUTE)
   })
 
-  it('says when the stadium and the earliest tray will be full', () => {
-    const times = notificationTimes(start({ trayCollectedAt: { kick: T0 + HOUR, keepy: T0 } }), config, T0)
+  it('says when the stadium and the tray will be full', () => {
+    const times = notificationTimes(start({ trayCollectedAt: T0 + HOUR }), config, T0)
     expect(times.stadiumFullAt).toBe(T0 + 8 * HOUR)
-    expect(times.traysFullAt).toBe(T0 + 8 * HOUR)
+    expect(times.traysFullAt).toBe(T0 + 9 * HOUR)
   })
 })
 
@@ -148,7 +149,7 @@ describe('config', () => {
   it('ships the spec\'s numbers and keeps paid random items off', () => {
     expect(config.shelf).toMatchObject({ intervalMinutes: 45, capacity: 10, capacityWithPass: 16, playersPerPack: 3, extraPackCoins: 2000, extraPacksPerDay: 3, gemRefillEnabled: false })
     expect(config.league).toMatchObject({ matchIntervalHours: 3, pointsToPromote: 30, lossPoints: 1, lossCoins: 250 })
-    expect(config.cabinets).toMatchObject({ freePlaysPerDay: 3, freePlaysPerDayWithPass: 4, arcadePackTokens: 300 })
+    expect(config.cabinets).toMatchObject({ energy: { max: 5, maxWithPass: 6, regenMinutes: 90 }, arcadePackTokens: 300 })
     expect(config.stadium.coinsPerHour).toHaveLength(10)
   })
 

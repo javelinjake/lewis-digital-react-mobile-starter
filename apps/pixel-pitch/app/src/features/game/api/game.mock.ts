@@ -161,7 +161,7 @@ export const gameApi: GameApi = {
   decidePack: decisions => respond((_mock, _at, ctx) => wrap(() => decidePack(ctx, decisions))),
   collectStadium: () => respond((_mock, _at, ctx) => wrap(() => collectStadium(ctx))),
   upgradeStadium: () => respond((_mock, _at, ctx) => wrap(() => upgradeStadium(ctx))),
-  collectTray: cabinet => respond((_mock, _at, ctx) => wrap(() => collectTray(ctx, cabinet))),
+  collectTray: () => respond((_mock, _at, ctx) => wrap(() => collectTray(ctx))),
   startPlay: (cabinet, paid) => respond((_mock, _at, ctx) => wrap(() => startPlay(ctx, cabinet, paid))),
   finishPlay: (cabinet, taps) => respond((_mock, _at, ctx) => wrap(() => finishPlay(ctx, cabinet, taps))),
   startWarmup: () => respond((_mock, _at, ctx) => wrap(() => startWarmup(ctx))),

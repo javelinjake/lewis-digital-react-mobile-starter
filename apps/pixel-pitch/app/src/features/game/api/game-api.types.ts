@@ -16,7 +16,8 @@ export interface GameApi {
   decidePack: (decisions: Array<'sign' | 'sell'>) => Promise<GameResponse>
   collectStadium: () => Promise<GameResponse & { coins: number }>
   upgradeStadium: () => Promise<GameResponse & { level: number, cost: number }>
-  collectTray: (cabinet: Cabinet) => Promise<GameResponse & { tokens: number }>
+  /** Empties the arcade's one token tray. */
+  collectTray: () => Promise<GameResponse & { tokens: number }>
   /** Starts a play: the ticket (with the game's seed) is in the answer's club state. `paid` spends gems for an extra play. */
   startPlay: (cabinet: Cabinet, paid: boolean) => Promise<GameResponse>
   /** Sends the taps the game recorded; the server replays them and answers with the score and pay. */

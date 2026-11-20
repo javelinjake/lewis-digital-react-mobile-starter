@@ -60,16 +60,22 @@ export const gameConfigSchema = z.object({
   }),
 
   cabinets: z.object({
-    /** Tokens per hour while idle, per cabinet. PLACEHOLDER. */
+    /** Tokens per hour while idle, for the arcade's one tray. PLACEHOLDER. */
     tokensPerHour: positive,
     trayCapHours: positive,
     trayCapHoursWithPass: positive,
-    freePlaysPerDay: count,
-    freePlaysPerDayWithPass: count,
+    /** The arcade's stamina: one bar for every game, one point back every `regenMinutes`. PLACEHOLDERS. */
+    energy: z.object({
+      max: z.number().int().positive(),
+      maxWithPass: z.number().int().positive(),
+      regenMinutes: positive,
+    }).default({ max: 5, maxWithPass: 6, regenMinutes: 90 }),
+    /** Extra tokens a play pays in the cabinet of the day, as a fraction (0.5 is +50%). */
+    hotBonus: z.number().min(0).max(2).default(0.5),
     arcadePackTokens: count,
     /** Most tokens one play can pay, at a perfect score. PLACEHOLDER. */
     playMaxTokens: count,
-    /** Gems for an extra play once the free ones are used. It pays coins and Pass XP, never tokens (tokens buy random packs). */
+    /** Gems for an extra play once the energy is used. It pays coins and Pass XP, never tokens (tokens buy random packs). */
     gemPlayCost: count,
     gemPlayCoins: count,
   }),
@@ -104,6 +110,10 @@ export const gameConfigSchema = z.object({
       stumbleSteps: z.number().int().nonnegative(),
       /** The game ends at this many kicks. */
       maxKicks: z.number().int().positive(),
+      /** And at this many seconds, whatever the score: a play is short. */
+      maxSeconds: positive.default(30),
+      /** Every this-many-th kick is a golden ball and counts double. */
+      goldenEvery: z.number().int().positive().default(10),
     }),
     warmup: z.object({
       minSpeed: positive,
@@ -283,11 +293,11 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     capHoursWithPass: 12,
   },
   cabinets: {
-    tokensPerHour: 12,
+    tokensPerHour: 24,
     trayCapHours: 8,
     trayCapHoursWithPass: 12,
-    freePlaysPerDay: 3,
-    freePlaysPerDayWithPass: 4,
+    energy: { max: 5, maxWithPass: 6, regenMinutes: 90 },
+    hotBonus: 0.5,
     arcadePackTokens: 300,
     playMaxTokens: 60,
     gemPlayCost: 20,
@@ -352,7 +362,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     minTapGapMs: 120,
     clockSlack: 0.85,
     kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2 },
-    keepy: { gravity: 110, ramp: 0.04, minPeak: 40, maxPeak: 54, reach: 32, stumbleSteps: 30, maxKicks: 50 },
+    keepy: { gravity: 110, ramp: 0.18, minPeak: 40, maxPeak: 54, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10 },
     warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
   },
   daily: {

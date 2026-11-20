@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CONFIG, kickRounds, markerAt, newKeepy, runKeepy, scoreKick, shareOf, stepKeepy, warmupBar, warmupZone } from '../src'
+import { DEFAULT_CONFIG, KEEPY_STEPS_PER_SECOND, keepyMax, keepyScore, kickRounds, markerAt, newKeepy, nextKickGolden, runKeepy, scoreKick, shareOf, stepKeepy, warmupBar, warmupZone } from '../src'
 
 const config = DEFAULT_CONFIG
 const { reach } = config.minigames.keepy
@@ -14,16 +14,20 @@ function perfectTap(bar: { speed: number, phase: number, centre: number }, from 
   return best
 }
 
-/** Plays Keepy-Uppy like a player who taps `delay` steps after the ball reaches the foot, recording the taps. */
-function playKeepy(seed: string, delay: number) {
+/**
+ * Plays Keepy-Uppy like a player who taps `delay` steps after the ball reaches the foot, recording the taps. A real
+ * player wobbles: `jitter` makes each kick a little early or late, by up to about 2 steps at 2, the same every run.
+ */
+function playKeepy(seed: string, delay: number, jitter = 0) {
   let sim = newKeepy(seed)
   const taps: number[] = []
   let was = false
   let wait = -1
+  let kick = 0
   while (!sim.over && sim.step < 7200) {
     const inReach = sim.vy < 0 && sim.y <= reach
     if (inReach && !was)
-      wait = delay
+      wait = Math.max(0, delay + Math.round(((((kick++ * 7919 + seed.length * 31) % 7) - 3) / 3) * jitter))
     was = inReach
     let tap = false
     if (wait === 0) {
@@ -120,44 +124,91 @@ describe('the warm-up kick', () => {
 })
 
 describe('Keepy-Uppy', () => {
+  const keepy = config.minigames.keepy
+
   it('is played the same way every time: the same seed and taps always end in the same place', () => {
     const { taps, sim } = playKeepy('club:keepy:1', 4)
     const again = runKeepy('club:keepy:1', taps, config)
-    expect(again).toEqual({ kicks: sim.kicks, steps: sim.step, dropped: sim.dropped })
+    expect(again).toEqual({ kicks: sim.kicks, score: keepyScore(sim.kicks, config), steps: sim.step, dropped: sim.dropped })
     expect(runKeepy('club:keepy:1', taps, config)).toEqual(again)
   })
 
   it('ends at once for a player who never taps: the ball drops with no kicks', () => {
-    expect(runKeepy('club:keepy:2', [], config)).toMatchObject({ kicks: 0, dropped: true })
+    expect(runKeepy('club:keepy:2', [], config)).toMatchObject({ kicks: 0, score: 0, dropped: true })
   })
 
-  it('can be played to the end by a player who times it well, and the server replay agrees', () => {
+  it('can be played to the end by a player who times it very well, and the server replay agrees', () => {
     for (let club = 0; club < 10; club++) {
-      const { taps, sim } = playKeepy(`club:keepy:${club}`, 6)
-      expect(sim.kicks).toBe(config.minigames.keepy.maxKicks)
+      const { taps, sim } = playKeepy(`club:keepy:${club}`, 2)
+      expect(sim.kicks).toBe(keepy.maxKicks)
       expect(sim.dropped).toBe(false)
-      expect(runKeepy(`club:keepy:${club}`, taps, config).kicks).toBe(config.minigames.keepy.maxKicks)
+      expect(runKeepy(`club:keepy:${club}`, taps, config).kicks).toBe(keepy.maxKicks)
     }
   })
 
-  it('gets harder: a player who is slow to react does worse than one who is quick', () => {
-    const average = (delay: number) => Array.from({ length: 20 }, (_, club) => playKeepy(`club:keepy:${club}`, delay).sim.kicks).reduce((a, b) => a + b, 0) / 20
-    expect(average(6)).toBeGreaterThan(average(14))
-    expect(average(14)).toBeGreaterThan(average(30))
+  it('is short: a perfect play ends in about 20 seconds and no play lasts past the clock', () => {
+    for (let club = 0; club < 20; club++) {
+      for (const delay of [0, 2, 6, 9, 14, 30]) {
+        const { sim } = playKeepy(`club:keepy:${club}`, delay)
+        expect(sim.step / KEEPY_STEPS_PER_SECOND).toBeLessThanOrEqual(keepy.maxSeconds)
+      }
+    }
+    const perfect = Array.from({ length: 10 }, (_, club) => playKeepy(`club:keepy:${club}`, 1).sim.step / KEEPY_STEPS_PER_SECOND)
+    expect(Math.max(...perfect)).toBeLessThan(26)
+    expect(Math.min(...perfect)).toBeGreaterThan(15)
+  })
+
+  it('stops on the clock when the ball is still up, and says so', () => {
+    // Slow the ball right down so a play outlasts the clock.
+    const slow = { minigames: { ...config.minigames, keepy: { ...keepy, ramp: 0, gravity: 40, maxKicks: 1000, maxSeconds: 5 } } }
+    let sim = newKeepy('club:keepy:9')
+    let was = false
+    let wait = -1
+    while (!sim.over && sim.step < 7200) {
+      const inReach = sim.vy < 0 && sim.y <= keepy.reach
+      if (inReach && !was)
+        wait = 1
+      was = inReach
+      const tap = wait === 0
+      wait = tap ? -1 : wait > 0 ? wait - 1 : wait
+      sim = stepKeepy(sim, tap, slow)
+    }
+    expect(sim.timeUp).toBe(true)
+    expect(sim.dropped).toBe(false)
+    expect(sim.step).toBe(5 * KEEPY_STEPS_PER_SECOND)
+  })
+
+  it('is steeply graded: a quick player gets about 30, a steady one about 20, a slow one fewer than 12', () => {
+    const median = (delay: number) => Array.from({ length: 31 }, (_, club) => playKeepy(`club:keepy:${club}`, delay, 2).sim.kicks).sort((a, b) => a - b)[15]
+    expect(median(3)).toBeGreaterThanOrEqual(27)
+    expect(median(6)).toBeGreaterThanOrEqual(15)
+    expect(median(6)).toBeLessThanOrEqual(28)
+    expect(median(12)).toBeLessThan(12)
+    expect(median(3)).toBeGreaterThan(median(6))
+    expect(median(6)).toBeGreaterThan(median(9))
+    expect(median(9)).toBeGreaterThan(median(12))
+  })
+
+  it('scores the kicks, with every tenth a golden ball that counts twice', () => {
+    expect([0, 1, 9, 10, 11, 19, 20, 30].map(kicks => keepyScore(kicks, config))).toEqual([0, 1, 9, 11, 12, 20, 22, 33])
+    expect(keepyMax(config)).toBe(33)
+    expect(nextKickGolden(9, config)).toBe(true)
+    expect(nextKickGolden(10, config)).toBe(false)
+    expect(nextKickGolden(19, config)).toBe(true)
   })
 
   it('punishes mashing: tapping as fast as is allowed does far worse than good timing', () => {
     const mash = Array.from({ length: 600 }, (_, index) => index * 8)
     const results = Array.from({ length: 20 }, (_, club) => runKeepy(`club:keepy:${club}`, mash, config).kicks)
     const average = results.reduce((a, b) => a + b, 0) / results.length
-    expect(average).toBeLessThan(config.minigames.keepy.maxKicks / 2)
+    expect(average).toBeLessThan(keepy.maxKicks / 2)
   })
 
   it('ignores a tap while the player is stumbling after a mistimed one', () => {
     let sim = newKeepy('club:keepy:3')
     sim = stepKeepy(sim, true, config)
     expect(sim.kicks).toBe(0)
-    expect(sim.stumble).toBe(config.minigames.keepy.stumbleSteps)
+    expect(sim.stumble).toBe(keepy.stumbleSteps)
     const before = sim.stumble
     sim = stepKeepy(sim, true, config)
     expect(sim.stumble).toBe(before - 1)
