@@ -2,6 +2,7 @@ import type { AuthApi } from './auth-api.types'
 import type { SessionUser } from './session-user'
 import { ApiError } from '@ld/api-client'
 import { sleep } from '@ld/utils/async/sleep'
+import { mockStorage } from '@/lib/platform/mock-storage'
 
 /**
  * In-memory stand-in for the api app, so the template runs with nothing else started and tests are hermetic.
@@ -12,7 +13,7 @@ const SESSION_KEY = 'ld-mock-session'
 
 function readSession(): SessionUser | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
+    const raw = mockStorage().getItem(SESSION_KEY)
     if (raw)
       return JSON.parse(raw) as SessionUser
 
@@ -32,9 +33,9 @@ function readSession(): SessionUser | null {
 
 function writeSession(user: SessionUser | null) {
   if (user)
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(user))
+    mockStorage().setItem(SESSION_KEY, JSON.stringify(user))
   else
-    sessionStorage.removeItem(SESSION_KEY)
+    mockStorage().removeItem(SESSION_KEY)
 }
 
 function userFor(email: string): SessionUser {

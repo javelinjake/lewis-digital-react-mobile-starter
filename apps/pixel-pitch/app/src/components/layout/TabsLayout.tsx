@@ -4,6 +4,7 @@ import { Outlet } from 'react-router'
 import { tabItems } from '@/config/nav.config'
 import { useConnectivity } from '@/hooks/use-connectivity'
 import { useRouteTitle } from '@/hooks/use-route-title'
+import { isPlaytestBuild } from '@/lib/platform/mock-storage'
 import { preloadTabScreens } from '@/routes/pages'
 
 export function TabsLayout() {
@@ -18,7 +19,7 @@ export function TabsLayout() {
       column
       footer={(
         <>
-          <OfflineBanner offline={offline} pendingCount={0} />
+          <OfflineBanner offline={offline && !isPlaytestBuild} pendingCount={0} />
           <BottomTabBar items={tabItems} />
         </>
       )}

@@ -10,6 +10,8 @@ interface ImportMetaEnv {
   readonly VITE_FRONTEND_URL?: string
   readonly VITE_DATA_MODE?: 'mock' | 'live'
   readonly VITE_ALLOW_MOCK_BUILD?: string
+  /** '1': an offline playtest build. Mock data is kept in localStorage and Settings can skip time ahead. */
+  readonly VITE_MOCK_PERSIST?: string
   readonly VITE_BUILD_TARGET?: 'web' | 'native'
   readonly VITE_PWA_DEV?: string
 }

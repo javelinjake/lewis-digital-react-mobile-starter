@@ -25,6 +25,18 @@ APP_ENV=dev pnpm --filter <app> exec cap sync
 - **Android emulator:** run `adb reverse tcp:3001 tcp:3001` so the emulator's `localhost:3001` is the Mac's. Gradle needs Java 21; Android Studio's bundled one works: `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`. Plain http to `localhost` is allowed in debug builds only (`android/app/src/debug/res/xml/network_security_config.xml`); release builds are https-only.
 - Start the api with `ALLOW_TIME_TRAVEL=1` to skip ahead with the `X-Debug-Now` header in tests.
 
+## Offline playtest build (Android)
+
+For trying the game on a phone with no server: the mock data mode runs the same rules from `core` on the device, keeps the club in `localStorage` (`VITE_MOCK_PERSIST=1`), hides the cloud and offline UI, and adds **Skip ahead** controls under Settings → Playtest. Never ship it.
+
+```bash
+APP_ENV=dev VITE_DATA_MODE=mock VITE_ALLOW_MOCK_BUILD=1 VITE_MOCK_PERSIST=1 pnpm --filter <app> build:native
+APP_ENV=dev pnpm --filter <app> exec cap sync android
+cd apps/<slug>/app/android && ./gradlew assembleDebug   # app/build/outputs/apk/debug/app-debug.apk
+```
+
+Install with `adb install -r app-debug.apk`, or copy the file to the phone and open it (allow installs from that app). Installing a newer build with `-r` keeps the club.
+
 ## Workflows
 
 `native.yaml` builds unsigned Android and iOS-simulator apps on every native change. `release-native.yaml` (manual) builds signed apps and uploads to TestFlight and the Play internal track. It has not been run yet: it needs the secrets listed at its top.

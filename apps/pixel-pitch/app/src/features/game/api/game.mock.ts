@@ -1,11 +1,12 @@
 import type { ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
 import { arcadePack, buyPack, claimAlbumSet, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, sellCard, setLineup, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
+import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
 
 // The game rules running in the browser instead of on the server: development, Playwright and Lighthouse use it.
 // It mirrors the api's actions using the same rules from @ld/pixel-pitch-core, and keeps each user's club in
-// sessionStorage. Playwright moves the clock with window.__pixelPitchClock.
+// mockStorage(). Playwright moves the clock with window.__pixelPitchClock.
 
 interface MockClub {
   club: GameResponse['club']
@@ -27,7 +28,7 @@ class MockRuleError extends Error {
 }
 
 function clockOffset() {
-  return Number(sessionStorage.getItem(CLOCK_KEY) ?? 0)
+  return Number(mockStorage().getItem(CLOCK_KEY) ?? 0)
 }
 
 function now() {
@@ -36,7 +37,7 @@ function now() {
 
 if (typeof window !== 'undefined') {
   window.__pixelPitchClock = {
-    advance: (ms: number) => sessionStorage.setItem(CLOCK_KEY, String(clockOffset() + ms)),
+    advance: (ms: number) => mockStorage().setItem(CLOCK_KEY, String(clockOffset() + ms)),
     offset: clockOffset,
     // Tests only: the League Pass is bought in the shop (a later milestone), so this switches its premium track on.
     setPass: (on: boolean) => {
@@ -60,14 +61,14 @@ useAuthStore.subscribe((next, previous) => {
     return
   const from = `pp-mock-club:${previous.userId}`
   const to = `pp-mock-club:${next.userId}`
-  const device = sessionStorage.getItem(from)
-  sessionStorage.removeItem(from)
-  if (device && !sessionStorage.getItem(to))
-    sessionStorage.setItem(to, device)
+  const device = mockStorage().getItem(from)
+  mockStorage().removeItem(from)
+  if (device && !mockStorage().getItem(to))
+    mockStorage().setItem(to, device)
 })
 
 function load(): MockClub | null {
-  const raw = sessionStorage.getItem(storageKey())
+  const raw = mockStorage().getItem(storageKey())
   if (!raw)
     return null
   const saved = JSON.parse(raw) as MockClub
@@ -76,7 +77,7 @@ function load(): MockClub | null {
 }
 
 function save(club: MockClub) {
-  sessionStorage.setItem(storageKey(), JSON.stringify(club))
+  mockStorage().setItem(storageKey(), JSON.stringify(club))
 }
 
 /** Gives new cards real ids and swaps them into the lineup, as the api does. */
