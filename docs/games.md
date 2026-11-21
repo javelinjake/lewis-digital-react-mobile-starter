@@ -48,6 +48,10 @@ There is no sign-in screen. A first launch makes this device its own account (a 
 
 Five tabs: Club, Packs, Squad, Arcade and League, each with a count of what is waiting. Settings is a button in the header. The top of the Club screen is **Ready now**: everything that is waiting, one line each (a line goes to the screen that has it), and one button, **Claim all**, that takes all of it and shows what it paid. With nothing ready it says what is coming and when. The end of a match, an arcade play and a claim each offer the next step, the pack opening has **Reveal all** and **open the next pack**, and Welcome back has Claim all.
 
+### Test games
+
+Settings → Testing → **Test games** (mock data mode only, so the playtest build and development) has five prototype mini-games, each a different skill: Keeper Reflex (reactions), Pass Master (memory), Dribble Dash (dodging), Target Practice (accuracy) and Cone Shuffle (watching). They live in `app/src/features/lab`, cost no energy and pay nothing: a score and a best kept on the device. Their layouts are pure functions of a seed (`lab/lib/rules.ts`), like the arcade's, so one that proves fun can move to `core` and the arcade, where the server replays the taps.
+
 ### Screen sizes
 
 Phones are portrait. On tablets and desktop browsers the whole screen (header, content, tab bar) is a centred column (`MobileShell column`, `max-w-xl`), and on iPad the app rotates, since iPadOS no longer supports portrait-only apps. Android tablets keep the portrait lock below Android 16, which ignores it on large screens; the column handles either.
