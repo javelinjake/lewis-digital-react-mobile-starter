@@ -1,6 +1,6 @@
 import type { ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
-import { arcadePack, buyPack, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, sellCard, setLineup, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
+import { addXp, arcadePack, buyPack, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, sellCard, setLineup, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
 import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -44,6 +44,42 @@ if (typeof window !== 'undefined') {
       const club = load()
       if (club)
         save({ ...club, club: { ...club.club, state: { ...club.club.state, idle: { ...club.club.state.idle, hasPass: on } } } })
+    },
+  }
+}
+
+/** Changes the saved mock club's state in place. Playtest tools only: the rules are not involved. */
+function patchState(change: (state: ClubState) => ClubState) {
+  const club = load()
+  if (club)
+    save({ ...club, club: { ...club.club, state: change(club.club.state) } })
+}
+
+if (typeof window !== 'undefined') {
+  const DAY = 24 * 60 * 60_000
+  window.__pixelPitchPlaytest = {
+    status: () => {
+      const club = load()
+      return { offsetMs: clockOffset(), hasPass: club?.club.state.idle.hasPass ?? false, hasClub: club !== null }
+    },
+    nextDay: () => {
+      const start = config.daily.dayStartOffsetMinutes * 60_000
+      const next = (dayIndex(now(), config) + 1) * DAY + start + 60_000
+      mockStorage().setItem(CLOCK_KEY, String(clockOffset() + (next - now())))
+    },
+    grant: gift => patchState(state => ({
+      ...state,
+      coins: state.coins + (gift.coins ?? 0),
+      tokens: state.tokens + (gift.tokens ?? 0),
+      starPacks: state.starPacks + (gift.starPacks ?? 0),
+      idle: { ...state.idle, gems: state.idle.gems + (gift.gems ?? 0), shelfPacks: state.idle.shelfPacks + (gift.packs ?? 0) },
+    })),
+    refillEnergy: () => patchState(state => ({ ...state, energy: { fullAt: 0 } })),
+    finishGoals: () => patchState(state => ({ ...state, daily: { ...state.daily, goals: state.daily.goals.map(goal => ({ ...goal, progress: goal.target })) } })),
+    addPassXp: xp => patchState(state => addXp(state, xp, config)),
+    reset: () => {
+      mockStorage().removeItem(storageKey())
+      mockStorage().removeItem(CLOCK_KEY)
     },
   }
 }

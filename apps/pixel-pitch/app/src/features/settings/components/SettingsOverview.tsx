@@ -2,7 +2,6 @@ import { ActionSheet, ListGroup, ListItem } from '@ld/mobile-ui'
 import { getPlatform, isNativePlatform } from '@ld/native'
 import { usePushNotifications } from '@ld/native/react'
 import { ConfirmDialog, useToast } from '@ld/ui'
-import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { clearUserData } from '@/app/session-data'
@@ -13,6 +12,7 @@ import { isPlaytestBuild } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
 import { saveJson } from '../lib/save-json'
+import { PlaytestTools } from './PlaytestTools'
 
 export function SettingsOverview() {
   const logout = useAuthStore(state => state.logout)
@@ -25,16 +25,6 @@ export function SettingsOverview() {
   const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const queryClient = useQueryClient()
-  const [skipped, setSkipped] = useState(() => window.__pixelPitchClock?.offset() ?? 0)
-
-  function skipAhead(hours: number) {
-    window.__pixelPitchClock?.advance(hours * 60 * 60 * 1000)
-    setSkipped(window.__pixelPitchClock?.offset() ?? 0)
-    void queryClient.invalidateQueries()
-    toast.push(`Skipped ${hours < 24 ? `${hours}h` : `${hours / 24} day${hours > 24 ? 's' : ''}`} ahead`, 'info')
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <ListGroup label="Settings">
@@ -81,17 +71,7 @@ export function SettingsOverview() {
             </ListGroup>
           )
         : null}
-      {isPlaytestBuild
-        ? (
-            <ListGroup label="Playtest">
-              <ListItem title="Game clock" subtitle={skipped > 0 ? `${Math.round(skipped / 3_600_000)}h ahead of real time` : 'Real time'} />
-              <ListItem title="Skip ahead 1 hour" subtitle="Shelf, trays and the stadium fill" onClick={() => skipAhead(1)} />
-              <ListItem title="Skip ahead 8 hours" subtitle="Plays the league matches due" onClick={() => skipAhead(8)} />
-              <ListItem title="Skip ahead 1 day" subtitle="New goals, calendar day and gems" onClick={() => skipAhead(24)} />
-              <ListItem title="Skip ahead 7 days" subtitle="A week of league and Pass progress" onClick={() => skipAhead(24 * 7)} />
-            </ListGroup>
-          )
-        : null}
+      {isPlaytestBuild ? <PlaytestTools /> : null}
       <ActionSheet
         open={sheetOpen}
         title={user?.isAnonymous ? 'This device' : 'Account'}

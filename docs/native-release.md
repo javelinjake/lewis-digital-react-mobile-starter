@@ -27,7 +27,7 @@ APP_ENV=dev pnpm --filter <app> exec cap sync
 
 ## Offline playtest build (Android)
 
-For trying the game on a phone with no server: the mock data mode runs the same rules from `core` on the device, keeps the club in `localStorage` (`VITE_MOCK_PERSIST=1`), hides the cloud and offline UI, and adds **Skip ahead** controls under Settings → Playtest. Never ship it.
+For trying the game on a phone with no server: the mock data mode runs the same rules from `core` on the device, keeps the club in `localStorage` (`VITE_MOCK_PERSIST=1`), hides the cloud and offline UI, and adds playtest tools to Settings: start the next day or skip ahead, pretend shop purchases (League Pass, gem packs, a starter bundle), top-ups (energy, coins, tokens, packs, goals, Pass XP) and a club reset. Never ship it.
 
 ```bash
 APP_ENV=dev VITE_DATA_MODE=mock VITE_ALLOW_MOCK_BUILD=1 VITE_MOCK_PERSIST=1 pnpm --filter <app> build:native
