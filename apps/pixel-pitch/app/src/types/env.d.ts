@@ -29,6 +29,20 @@ declare global {
       offset: () => number
       setPass: (on: boolean) => void
     }
+    /** Mock data mode only: the playtest tools in Settings. Each changes the saved mock club directly. */
+    __pixelPitchPlaytest?: {
+      status: () => { offsetMs: number, hasPass: boolean, hasClub: boolean }
+      /** Moves the clock to just after the next daily reset: new goals, calendar day, free pack and gems. */
+      nextDay: () => void
+      /** Adds to the wallet, as a shop purchase or a gift would. */
+      grant: (gift: { coins?: number, gems?: number, tokens?: number, packs?: number, starPacks?: number }) => void
+      refillEnergy: () => void
+      /** Marks today's goals as done, ready to claim. */
+      finishGoals: () => void
+      addPassXp: (xp: number) => void
+      /** Deletes the club and puts the clock back to real time: the app starts again at New club. */
+      reset: () => void
+    }
   }
 }
 
