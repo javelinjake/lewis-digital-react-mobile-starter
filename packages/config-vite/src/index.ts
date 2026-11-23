@@ -1,8 +1,9 @@
 import type { PwaConfigOptions } from './pwa.ts'
+import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig, type Plugin, type PluginOption, type UserConfig } from 'vite'
+import { defineConfig, loadEnv, type Plugin, type PluginOption, type UserConfig } from 'vite'
 import { createPwaPlugin } from './pwa.ts'
 
 export type { PwaConfigOptions } from './pwa.ts'
@@ -22,6 +23,13 @@ export interface CreateViteConfigOptions {
   apiProxy?: string
   /** Written into index.html, so the page has a description and a browser colour without a hand-kept copy. */
   meta?: { name: string, description: string, themeColor: string }
+  /**
+   * The api address for this `APP_ENV`, from `app.meta.ts` (`resolveIdentity(appMeta, APP_ENV).apiUrl`). A native
+   * build uses it when `VITE_API_URL` is not set. Web builds ignore it.
+   */
+  nativeApiUrl?: string
+  /** The app's `package.json` version, exposed as `import.meta.env.VITE_APP_VERSION`. */
+  version?: string
 }
 
 /**
@@ -57,9 +65,44 @@ function dataModeGuard(): Plugin {
   }
 }
 
+/**
+ * Build facts the app reads at runtime: the version and build number (for crash reports and live updates) and, for
+ * native, the api address from `app.meta.ts` so it cannot drift from the environment being built. An explicit
+ * `VITE_API_URL` still wins. A live native build with no api address at all fails here instead of on the phone.
+ */
+function buildInfo(root: string, buildTarget: BuildTarget, nativeApiUrl: string | undefined, version: string | undefined): Plugin {
+  return {
+    name: 'ld-build-info',
+    config(_config, { mode, command }) {
+      const env = loadEnv(mode, root, 'VITE_')
+      const define: Record<string, string> = {
+        'import.meta.env.VITE_APP_VERSION': JSON.stringify(version ?? '0.0.0'),
+        // Only from the environment, so a cached build never carries a stale number. The release script sets it.
+        'import.meta.env.VITE_APP_BUILD': JSON.stringify(process.env.BUILD_NUMBER?.trim() ?? ''),
+      }
+
+      if (buildTarget === 'native') {
+        const apiUrl = env.VITE_API_URL?.trim() || nativeApiUrl?.trim() || ''
+        define['import.meta.env.VITE_API_URL'] = JSON.stringify(apiUrl)
+        if (command === 'build' && env.VITE_DATA_MODE === 'live' && !apiUrl) {
+          throw new Error(`A live native build needs an api address. Set environments.${process.env.APP_ENV?.trim() || 'prod'}.apiUrl in app.meta.ts (APP_ENV picks the entry, default prod), or VITE_API_URL.`)
+        }
+      }
+
+      return { define }
+    },
+  }
+}
+
 export function createViteConfig(options: CreateViteConfigOptions): UserConfig {
-  const { root, port = 5173, pwa, buildTarget = 'web', apiProxy, meta } = options
-  const plugins: PluginOption[] = [react(), tailwindcss(), dataModeGuard(), ...(meta ? [htmlMeta(meta)] : [])]
+  const { root, port = 5173, pwa, buildTarget = 'web', apiProxy, meta, nativeApiUrl, version } = options
+  const plugins: PluginOption[] = [
+    react(),
+    tailwindcss(),
+    dataModeGuard(),
+    buildInfo(root, buildTarget, nativeApiUrl, version),
+    ...(meta ? [htmlMeta(meta)] : []),
+  ]
   const proxy = apiProxy ? { '/api': { target: apiProxy, changeOrigin: true } } : undefined
 
   if (buildTarget !== 'native' && pwa)

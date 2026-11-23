@@ -56,6 +56,10 @@ scan() {
 
 echo "Running architecture checks for ${APP_DIR}..."
 
+# A Capacitor plugin import, static, side-effect or dynamic. Covers the scopes plugins ship under plus unscoped
+# `capacitor-*` packages. Only @ld/native may match (and @ld/telemetry for @sentry/capacitor, which this omits).
+PLUGIN_IMPORT="(from |import\\(|import )['\"](@capacitor/|@capacitor-community/|@capacitor-firebase/|@capacitor-mlkit/|@capawesome|@capgo/|@aparajita/|@revenuecat/|capacitor-)"
+
 # ---------------------------------------------------------------------------
 # Client apps (Vite + React + Capacitor): anything with a src/ and a vite.config.ts
 # ---------------------------------------------------------------------------
@@ -93,7 +97,7 @@ if [[ -f vite.config.ts && -d src ]]; then
     "resumePausedMutations|shouldDehydrateMutation|persistMutation" src/features
 
   scan "Capacitor imported directly in app code (use @ld/native instead)" \
-    "from ['\"]@capacitor/|from ['\"]@capacitor-community/|from ['\"]@capawesome|from ['\"]@revenuecat/" src
+    "$PLUGIN_IMPORT" src
 
   { grep -rnE "navigator\.onLine|display-mode: standalone" src "${EXCLUDES[@]}" 2>/dev/null | grep -vE "^src/features/[^/]+/api/" || true; } \
     | report "Raw connectivity check in app code (use useNetworkStatus from @ld/native/react)"
@@ -199,7 +203,7 @@ PKG="$REPO_ROOT/packages"
 
 if [[ -d "$PKG" ]]; then
   report "Capacitor plugin imported outside @ld/native or @ld/config-capacitor" < <(
-  (cd "$PKG" && grep -rnE "from ['\"](@capacitor/|@capacitor-community/|@capawesome|@capgo/|@revenuecat/)" . \
+  (cd "$PKG" && grep -rnE "$PLUGIN_IMPORT" . \
       --include='*.ts' --include='*.tsx' --exclude-dir=node_modules --exclude-dir=dist \
       --exclude-dir=native --exclude-dir=config-capacitor 2>/dev/null || true)
 )

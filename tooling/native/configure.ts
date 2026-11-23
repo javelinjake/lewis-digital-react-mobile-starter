@@ -5,6 +5,7 @@ import { execSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 import { resolveIdentity, type IdentityMeta } from '../../packages/config-capacitor/src/identity'
 import { buildTrapezeConfig, deriveBuildNumber } from './lib/build-trapeze-config'
+import { checkCapabilityPlugins } from './lib/native-features'
 
 /**
  * Applies app identity (name, bundle id, version, build number, link domains)
@@ -24,7 +25,11 @@ async function main() {
   const { appMeta } = await import(pathToFileURL(metaPath).href) as { appMeta: IdentityMeta }
   // APP_ENV=dev|staging|prod picks the bundle id and name (default prod).
   const identity = resolveIdentity(appMeta, process.env.APP_ENV)
-  const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version: string }
+  const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version: string, dependencies?: Record<string, string> }
+
+  const problems = checkCapabilityPlugins(identity.capabilities, pkg.dependencies ?? {})
+  if (problems.length > 0)
+    throw new Error(`app.meta.ts and package.json disagree:\n  - ${problems.join('\n  - ')}`)
 
   const buildNumber = process.env.BUILD_NUMBER ? Number(process.env.BUILD_NUMBER) : deriveBuildNumber()
 
@@ -36,10 +41,8 @@ async function main() {
     hostname: identity.hostname,
     orientation: identity.orientation,
     tablet: identity.tablet,
-    usage: {
-      camera: `${identity.name} uses the camera to capture photos you attach to your records.`,
-      photos: `${identity.name} accesses your photo library so you can attach existing photos.`,
-    },
+    usage: identity.usage,
+    capabilities: identity.capabilities,
   })
 
   const outDir = join(appDir, '.trapeze')

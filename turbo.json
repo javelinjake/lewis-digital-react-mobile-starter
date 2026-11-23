@@ -14,6 +14,7 @@
       ],
       "env": [
         "APP_ENV",
+        "BUILD_NUMBER",
         "VITE_*"
       ]
     },
@@ -26,6 +27,7 @@
       ],
       "env": [
         "APP_ENV",
+        "BUILD_NUMBER",
         "VITE_*"
       ]
     },

@@ -14,6 +14,10 @@ interface ImportMetaEnv {
   readonly VITE_MOCK_PERSIST?: string
   readonly VITE_BUILD_TARGET?: 'web' | 'native'
   readonly VITE_PWA_DEV?: string
+  /** `package.json` version, set by config-vite. */
+  readonly VITE_APP_VERSION: string
+  /** Native build number when built by the release script (`BUILD_NUMBER`), otherwise empty. */
+  readonly VITE_APP_BUILD: string
 }
 
 interface ImportMeta {
