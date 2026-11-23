@@ -102,7 +102,6 @@ describe('buildTrapezeConfig', () => {
     assert.equal(ios(config).entitlements?.[0]?.['aps-environment'], 'development')
     for (const name of ['POST_NOTIFICATIONS', 'ACCESS_FINE_LOCATION', 'USE_BIOMETRIC', 'CAMERA'])
       assert.match(xml, new RegExp(`android\\.permission\\.${name}`))
-    assert.match(xml, /com\.google\.mlkit\.vision\.DEPENDENCIES/)
     assert.match(xml, /android:required="false"/)
   })
 })

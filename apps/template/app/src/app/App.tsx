@@ -1,5 +1,5 @@
 import { useFormDirty } from '@ld/forms'
-import { hideSplashScreen, isNativePlatform, setStatusBarAppearance } from '@ld/native'
+import { finishInBackground, hideSplashScreen, isNativePlatform, setStatusBarAppearance } from '@ld/native'
 import { useAppState, useBackButton, useDeepLinks } from '@ld/native/react'
 import { ReloadPrompt, useServiceWorker } from '@ld/pwa'
 import { ToastProvider } from '@ld/ui'
@@ -35,7 +35,7 @@ export function App() {
 
 export function NativeRuntime() {
   const navigate = useNavigate()
-  const { onResume } = useAppState()
+  const { onResume, onPause } = useAppState()
   const outbox = useOutbox()
   const { theme } = useTheme()
 
@@ -45,6 +45,12 @@ export function NativeRuntime() {
   useEffect(() => onResume(() => {
     void outbox?.flush()
   }), [onResume, outbox])
+
+  // Leaving the app mid-save would otherwise freeze the write until the next launch. The OS gives a few seconds.
+  useEffect(() => onPause(() => {
+    if (outbox)
+      void finishInBackground(() => outbox.flush())
+  }), [onPause, outbox])
 
   useEffect(() => {
     void setStatusBarAppearance({

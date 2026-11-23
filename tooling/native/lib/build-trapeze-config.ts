@@ -86,16 +86,7 @@ function androidNodes(capabilities: Required<NativeCapabilities>, hostname: stri
       optionalFeature('android.hardware.location.gps'),
     ]],
     [capabilities.biometrics, [permission('android.permission.USE_BIOMETRIC')]],
-    [capabilities.barcode, [
-      permission('android.permission.CAMERA'),
-      optionalFeature('android.hardware.camera'),
-      {
-        // Downloads the scanner model with the app from Play, instead of on first scan.
-        match: 'manifest/application/meta-data[@android:name="com.google.mlkit.vision.DEPENDENCIES"]',
-        parent: 'manifest/application',
-        xml: '<meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="barcode_ui" />',
-      },
-    ]],
+    [capabilities.barcode, [permission('android.permission.CAMERA'), optionalFeature('android.hardware.camera')]],
   ]
 
   const appLink: ManagedNode = {

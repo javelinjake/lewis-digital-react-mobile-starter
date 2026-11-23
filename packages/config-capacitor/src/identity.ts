@@ -38,7 +38,7 @@ export interface NativeCapabilities {
   location?: boolean
   /** Face ID / Touch ID / fingerprint to unlock or confirm. */
   biometrics?: boolean
-  /** Barcode and QR scanning with the camera (ML Kit). */
+  /** Barcode and QR scanning with the camera. Raises Android's minimum version to 8.0 (API 26), which the scanner needs. */
   barcode?: boolean
   /** Low-latency sound effects and music. */
   audio?: boolean

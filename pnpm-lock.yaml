@@ -9,9 +9,24 @@ catalogs:
     '@antfu/eslint-config':
       specifier: ^4.16.1
       version: 4.19.0
+    '@aparajita/capacitor-biometric-auth':
+      specifier: 10.0.0
+      version: 10.0.0
     '@aparajita/capacitor-secure-storage':
       specifier: ^8.0.1
       version: 8.0.1
+    '@capacitor-community/in-app-review':
+      specifier: 8.0.0
+      version: 8.0.0
+    '@capacitor-community/keep-awake':
+      specifier: 8.0.1
+      version: 8.0.1
+    '@capacitor-community/native-audio':
+      specifier: 8.0.0
+      version: 8.0.0
+    '@capacitor-firebase/messaging':
+      specifier: 8.6.0
+      version: 8.6.0
     '@capacitor/android':
       specifier: ^8.5.1
       version: 8.5.2
@@ -21,18 +36,33 @@ catalogs:
     '@capacitor/assets':
       specifier: ^3.0.5
       version: 3.0.5
+    '@capacitor/barcode-scanner':
+      specifier: 3.1.3
+      version: 3.1.3
+    '@capacitor/browser':
+      specifier: 8.0.5
+      version: 8.0.5
     '@capacitor/camera':
       specifier: ^8.2.4
       version: 8.2.4
     '@capacitor/cli':
       specifier: ^8.5.1
       version: 8.5.2
+    '@capacitor/clipboard':
+      specifier: 8.0.1
+      version: 8.0.1
     '@capacitor/core':
       specifier: ^8.5.1
       version: 8.5.2
     '@capacitor/device':
       specifier: ^8.0.3
       version: 8.0.3
+    '@capacitor/filesystem':
+      specifier: 8.1.5
+      version: 8.1.5
+    '@capacitor/geolocation':
+      specifier: 8.2.4
+      version: 8.2.4
     '@capacitor/haptics':
       specifier: ^8.0.2
       version: 8.0.2
@@ -66,9 +96,24 @@ catalogs:
     '@capacitor/status-bar':
       specifier: ^8.0.3
       version: 8.0.3
+    '@capawesome/capacitor-app-update':
+      specifier: 8.1.1
+      version: 8.1.1
+    '@capawesome/capacitor-background-task':
+      specifier: 8.0.3
+      version: 8.0.3
+    '@capawesome/capacitor-badge':
+      specifier: 8.0.4
+      version: 8.0.4
+    '@capawesome/capacitor-file-picker':
+      specifier: 8.1.1
+      version: 8.1.1
     '@capgo/capacitor-social-login':
       specifier: ^8.7.7
       version: 8.7.7
+    '@capgo/capacitor-updater':
+      specifier: 8.54.2
+      version: 8.54.2
     '@delmaredigital/payload-better-auth':
       specifier: 0.14.0
       version: 0.14.0
@@ -324,18 +369,33 @@ importers:
       '@aparajita/capacitor-secure-storage':
         specifier: 'catalog:'
         version: 8.0.1
+      '@capacitor-community/in-app-review':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-community/keep-awake':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/app':
         specifier: 'catalog:'
         version: 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/browser':
+        specifier: 'catalog:'
+        version: 8.0.5(@capacitor/core@8.5.2)
       '@capacitor/camera':
         specifier: 'catalog:'
         version: 8.2.4(@capacitor/core@8.5.2)
+      '@capacitor/clipboard':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/core':
         specifier: 'catalog:'
         version: 8.5.2
       '@capacitor/device':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capacitor/filesystem':
+        specifier: 'catalog:'
+        version: 8.1.5(@capacitor/core@8.5.2)
       '@capacitor/haptics':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -366,6 +426,15 @@ importers:
       '@capacitor/status-bar':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-app-update':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-background-task':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-badge':
+        specifier: 'catalog:'
+        version: 8.0.4(@capacitor/core@8.5.2)
       '@capgo/capacitor-social-login':
         specifier: 'catalog:'
         version: 8.7.7(@capacitor/core@8.5.2)
@@ -621,18 +690,33 @@ importers:
       '@aparajita/capacitor-secure-storage':
         specifier: 'catalog:'
         version: 8.0.1
+      '@capacitor-community/in-app-review':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-community/keep-awake':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/app':
         specifier: 'catalog:'
         version: 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/browser':
+        specifier: 'catalog:'
+        version: 8.0.5(@capacitor/core@8.5.2)
       '@capacitor/camera':
         specifier: 'catalog:'
         version: 8.2.4(@capacitor/core@8.5.2)
+      '@capacitor/clipboard':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/core':
         specifier: 'catalog:'
         version: 8.5.2
       '@capacitor/device':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capacitor/filesystem':
+        specifier: 'catalog:'
+        version: 8.1.5(@capacitor/core@8.5.2)
       '@capacitor/haptics':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -663,6 +747,15 @@ importers:
       '@capacitor/status-bar':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-app-update':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-background-task':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-badge':
+        specifier: 'catalog:'
+        version: 8.0.4(@capacitor/core@8.5.2)
       '@capgo/capacitor-social-login':
         specifier: 'catalog:'
         version: 8.7.7(@capacitor/core@8.5.2)
@@ -1039,21 +1132,51 @@ importers:
 
   packages/native:
     devDependencies:
+      '@aparajita/capacitor-biometric-auth':
+        specifier: 'catalog:'
+        version: 10.0.0
       '@aparajita/capacitor-secure-storage':
         specifier: 'catalog:'
         version: 8.0.1
+      '@capacitor-community/in-app-review':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-community/keep-awake':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
+      '@capacitor-community/native-audio':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-firebase/messaging':
+        specifier: 'catalog:'
+        version: 8.6.0(@capacitor/core@8.5.2)
       '@capacitor/app':
         specifier: 'catalog:'
         version: 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/barcode-scanner':
+        specifier: 'catalog:'
+        version: 3.1.3(@capacitor/core@8.5.2)
+      '@capacitor/browser':
+        specifier: 'catalog:'
+        version: 8.0.5(@capacitor/core@8.5.2)
       '@capacitor/camera':
         specifier: 'catalog:'
         version: 8.2.4(@capacitor/core@8.5.2)
+      '@capacitor/clipboard':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/core':
         specifier: 'catalog:'
         version: 8.5.2
       '@capacitor/device':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capacitor/filesystem':
+        specifier: 'catalog:'
+        version: 8.1.5(@capacitor/core@8.5.2)
+      '@capacitor/geolocation':
+        specifier: 'catalog:'
+        version: 8.2.4(@capacitor/core@8.5.2)
       '@capacitor/haptics':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -1084,9 +1207,24 @@ importers:
       '@capacitor/status-bar':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-app-update':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-background-task':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-badge':
+        specifier: 'catalog:'
+        version: 8.0.4(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-file-picker':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
       '@capgo/capacitor-social-login':
         specifier: 'catalog:'
         version: 8.7.7(@capacitor/core@8.5.2)
+      '@capgo/capacitor-updater':
+        specifier: 'catalog:'
+        version: 8.54.2(@capacitor/core@8.5.2)
       '@ld/config-typescript':
         specifier: workspace:*
         version: link:../config-typescript
@@ -1303,6 +1441,10 @@ packages:
 
   '@antfu/install-pkg@1.1.0':
     resolution: {integrity: sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ==}
+
+  '@aparajita/capacitor-biometric-auth@10.0.0':
+    resolution: {integrity: sha512-azjWaRucB8x1/gSzSTp/NxelaOZyg+m765gSzjwUkSQgg30RrZPmPq6pyLeeXVSZNDY3Rxf5Hj8obgZaXirCFQ==}
+    engines: {node: '>=20.0.0'}
 
   '@aparajita/capacitor-secure-storage@8.0.1':
     resolution: {integrity: sha512-NSYIQtH6TyBgL3myumQGcCE3iecq2PtGNFlGxl1fJKEU37Dv5DudzDlwg42cgbVxCm1ay72g4X7rTSAvKULsVg==}
@@ -1913,6 +2055,30 @@ packages:
   '@borewit/text-codec@0.2.3':
     resolution: {integrity: sha512-49CycTz1aAZmvFcwkeFyhud1HUmRIB5Tabf7ALV+VA4Iu85MTfz2cUwzPagMFAdVBvrWdkCxG67I30tUwwpKsw==}
 
+  '@capacitor-community/in-app-review@8.0.0':
+    resolution: {integrity: sha512-AYpEkIjdv27WGS3hnlc7xAQ1BhaBvD2svgQBfHF4P2Olw1N6a7MSCOQC6O4SuxmdBdJ2fM6uFeo1jyNjKLtIPw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor-community/keep-awake@8.0.1':
+    resolution: {integrity: sha512-wTI5A6FWl5gWoMduzJ5euuJ1P73SO+rea0jV6vNdmz5TLbwIDhufelFe/GowNvU9gog6kDYbFhJ2pOp9ua1f3w==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor-community/native-audio@8.0.0':
+    resolution: {integrity: sha512-2y7uZfwmAkwfaz+Sj8ZX0ZWGgBK+0Hbg3IUl8gb1brCkH3UgQLAKkMNoaxVJ6yKP5Ov9vp8wKkeyLxU2KEpNMw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor-firebase/messaging@8.6.0':
+    resolution: {integrity: sha512-DRx4O/naR/tguHAbSlhsm66x/XUKn0IM3KfKcn6lx0pPTGucSfGjJUbSztJmvv5vSwJpUU39tTWUboFe4IVpQA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+      firebase: ^12.6.0
+    peerDependenciesMeta:
+      firebase:
+        optional: true
+
   '@capacitor/android@8.5.2':
     resolution: {integrity: sha512-rtiaz78egCcS+vs29wkWCL3C+RhazKMSygXcjutwWP8NmO6r5UBxOvGf3Wjz5+ahobyQ723tn9gCePwRwcNDZQ==}
     peerDependencies:
@@ -1927,6 +2093,16 @@ packages:
     resolution: {integrity: sha512-ohz/OUq61Y1Fc6aVSt0uDrUdeOA7oTH4pkWDbv/8I3UrPjH7oPkzYhShuDRUjekNp9RBi198VSFdt0CetpEOzw==}
     engines: {node: '>=10.3.0'}
     hasBin: true
+
+  '@capacitor/barcode-scanner@3.1.3':
+    resolution: {integrity: sha512-ZqM+Z6gMdIyjA2g+S5SgR3dyfIdKA6h6lnkV/rwKa+Q/iZ32rGnbuBATvqwb+HwQqvSGpvIZUlOU51Cw/MAIug==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/browser@8.0.5':
+    resolution: {integrity: sha512-qqcEjUqs9kG1naF+tsD8rERuZ3wuIfXzvoIJEERHI4RNWwNSUqAHHduaKhkyb+t01VyVPa0ydx0mZ/eOskk2Ug==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@capacitor/camera@8.2.4':
     resolution: {integrity: sha512-kZIeRkOvtE2dnbq76tEo3ZWKyGfzHFK0txsR56qKAmjAARTg9r86iIUcKZa/y4U1vOHH/gdQae5e3+OAF3wwPQ==}
@@ -1943,11 +2119,26 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
+  '@capacitor/clipboard@8.0.1':
+    resolution: {integrity: sha512-iOlbTi8MojKyLnYE+M27priXid7vHd0PlDwyHohPzkuQ8Rkp6q7ykwZmPEUD+OnU/Ink7Qw/pUOfKgraKmA6Eg==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
   '@capacitor/core@8.5.2':
     resolution: {integrity: sha512-agnQbGdhGw/KZFuLf7H9SY2o+oE7upkr/WPQsYaokXP6f9chaE8iVmbKkfN6SVl4w3pmz7oZ3Ur1hbkmy1hx+w==}
 
   '@capacitor/device@8.0.3':
     resolution: {integrity: sha512-rliPCCZwxtjU6200jJNDAsQhioyozV3fGgiP+NgRqtDOI7i+Jdz+DYNwEup+3MGZZ4NEmkuFaBeWLM3T01vJRg==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/filesystem@8.1.5':
+    resolution: {integrity: sha512-m1RkI8L83NJeppEKyRWioK3MDp2vjlA+QfUQcF8/xRlcXNC2HYxqoyYJ+K4M0EcVovy+g+4F24S05+bhK4Vgdg==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/geolocation@8.2.4':
+    resolution: {integrity: sha512-FDcUiPQc2AXSTAV61QSDPXml11guKBx5HPEkdWvUqw7kMqrc2Ucp0bsWngeLyRs/01a5aWBI0hEuvetuF3PsrQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -2006,10 +2197,38 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
+  '@capacitor/synapse@1.0.4':
+    resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
+
+  '@capawesome/capacitor-app-update@8.1.1':
+    resolution: {integrity: sha512-1TzM4hMN4wgCDu3O0UhaIIoVspUFNfNJ+q+K/EKSQRKkfCbG79S1Fn/sXwMdtMO1Me55LQxdjw1I9rctFtKBOQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-background-task@8.0.3':
+    resolution: {integrity: sha512-MAeohDZ65gFYlYYivcXcs1rdgpab4biaTfKFoSktfydun7w+VEr415bk3qTd8u9Z95P0Edp6Cw0hYnFEbQ3FTw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-badge@8.0.4':
+    resolution: {integrity: sha512-ADqD0XvSxrry2B5ntLHJrrRKnjYqZjJANRbNpCnEwHn2zBeOt5KIqP6T2FZUod574fPCgXpfhQJWAacaYjNMXA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-file-picker@8.1.1':
+    resolution: {integrity: sha512-4zDRca+uQbhFkbASoRbMpvXRbuCVhmVATDYLL9MG5UvILer01uUcN7oQhuxpltVir2YnP+1O8LasnwYlqlLM5g==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
   '@capgo/capacitor-social-login@8.7.7':
     resolution: {integrity: sha512-8El/LzJkwvHDalbtaqKz3Qrd61OiPWHOB5qrt/ExYFrI9Jzjjk4c6GT+Gg9IJ14AMaboJAhI+0sLZghDBG17NQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
+
+  '@capgo/capacitor-updater@8.54.2':
+    resolution: {integrity: sha512-Tuy9xeaJeudIzz3Dp/oenvhjtC2C3+E2OcZy+zW7w5/0RieTedyI7QRX/hxI3uXsb/94G5HT4ueN3pIb9pbtRA==}
+    peerDependencies:
+      '@capacitor/core': ^8.0.0
 
   '@clack/core@0.5.0':
     resolution: {integrity: sha512-p3y0FIOwaYRUPRcMO7+dlmLh8PSRcrjuTndsiA0WAFbWES0mLZlrjVoBRZ9DzkPFJZG6KGkJmoEAY0ZcVWTkow==}
@@ -5738,6 +5957,9 @@ packages:
   html-entities@2.6.0:
     resolution: {integrity: sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ==}
 
+  html5-qrcode@2.3.8:
+    resolution: {integrity: sha512-jsr4vafJhwoLVEDW3n1KvPnCCXWaQfRng0/EEYk1vNcQGcG/htAdhJX0be8YyqMoSz7+hZvOZSTAepsabiuhiQ==}
+
   http-link-header@1.1.4:
     resolution: {integrity: sha512-xT3GPW6/ZbGuw4UvwHqErSCEjNUlwbQJuZn9/q5U4WEKfp2kENVCAlousG1zLxHeaQ/ffOHUNpWamvkbBW0eNw==}
     engines: {node: '>=6.0.0'}
@@ -8189,6 +8411,13 @@ snapshots:
       package-manager-detector: 1.8.0
       tinyexec: 1.3.1
 
+  '@aparajita/capacitor-biometric-auth@10.0.0':
+    dependencies:
+      '@capacitor/android': 8.5.2(@capacitor/core@8.5.2)
+      '@capacitor/app': 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/core': 8.5.2
+      '@capacitor/ios': 8.5.2(@capacitor/core@8.5.2)
+
   '@aparajita/capacitor-secure-storage@8.0.1':
     dependencies:
       '@capacitor/android': 8.5.2(@capacitor/core@8.5.2)
@@ -8953,6 +9182,22 @@ snapshots:
 
   '@borewit/text-codec@0.2.3': {}
 
+  '@capacitor-community/in-app-review@8.0.0(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capacitor-community/keep-awake@8.0.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capacitor-community/native-audio@8.0.0(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capacitor-firebase/messaging@8.6.0(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
   '@capacitor/android@8.5.2(@capacitor/core@8.5.2)':
     dependencies:
       '@capacitor/core': 8.5.2
@@ -8979,6 +9224,15 @@ snapshots:
       - '@types/node'
       - encoding
       - supports-color
+
+  '@capacitor/barcode-scanner@3.1.3(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+      html5-qrcode: 2.3.8
+
+  '@capacitor/browser@8.0.5(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
 
   '@capacitor/camera@8.2.4(@capacitor/core@8.5.2)':
     dependencies:
@@ -9029,6 +9283,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@capacitor/clipboard@8.0.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
   '@capacitor/core@8.5.2':
     dependencies:
       tslib: 2.8.1
@@ -9036,6 +9294,16 @@ snapshots:
   '@capacitor/device@8.0.3(@capacitor/core@8.5.2)':
     dependencies:
       '@capacitor/core': 8.5.2
+
+  '@capacitor/filesystem@8.1.5(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+      '@capacitor/synapse': 1.0.4
+
+  '@capacitor/geolocation@8.2.4(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+      '@capacitor/synapse': 1.0.4
 
   '@capacitor/haptics@8.0.2(@capacitor/core@8.5.2)':
     dependencies:
@@ -9081,10 +9349,32 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.2
 
+  '@capacitor/synapse@1.0.4': {}
+
+  '@capawesome/capacitor-app-update@8.1.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capawesome/capacitor-background-task@8.0.3(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capawesome/capacitor-badge@8.0.4(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capawesome/capacitor-file-picker@8.1.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
   '@capgo/capacitor-social-login@8.7.7(@capacitor/core@8.5.2)':
     dependencies:
       '@capacitor/core': 8.5.2
       tslib: 2.8.1
+
+  '@capgo/capacitor-updater@8.54.2(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
 
   '@clack/core@0.5.0':
     dependencies:
@@ -12968,6 +13258,8 @@ snapshots:
       whatwg-encoding: 3.1.1
 
   html-entities@2.6.0: {}
+
+  html5-qrcode@2.3.8: {}
 
   http-link-header@1.1.4: {}
 

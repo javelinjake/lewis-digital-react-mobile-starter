@@ -12,7 +12,7 @@ export const NATIVE_FEATURES: Record<NativeCapability, { entry: string, plugins:
   push: { entry: '@ld/native/push', plugins: ['@capacitor-firebase/messaging'] },
   location: { entry: '@ld/native/location', plugins: ['@capacitor/geolocation'] },
   biometrics: { entry: '@ld/native/biometrics', plugins: ['@aparajita/capacitor-biometric-auth'] },
-  barcode: { entry: '@ld/native/barcode', plugins: ['@capacitor-mlkit/barcode-scanning'] },
+  barcode: { entry: '@ld/native/barcode', plugins: ['@capacitor/barcode-scanner'] },
   audio: { entry: '@ld/native/audio', plugins: ['@capacitor-community/native-audio'] },
   filePicker: { entry: '@ld/native/file-picker', plugins: ['@capawesome/capacitor-file-picker'] },
   ota: { entry: '@ld/native/updates', plugins: ['@capgo/capacitor-updater'] },

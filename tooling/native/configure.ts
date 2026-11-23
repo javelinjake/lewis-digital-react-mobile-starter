@@ -5,6 +5,7 @@ import { execSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 import { resolveIdentity, type IdentityMeta } from '../../packages/config-capacitor/src/identity'
 import { buildTrapezeConfig, deriveBuildNumber } from './lib/build-trapeze-config'
+import { MIN_SDK_FOR, raiseMinSdk } from './lib/android-gradle'
 import { checkCapabilityPlugins } from './lib/native-features'
 
 /**
@@ -65,6 +66,16 @@ async function main() {
     cwd: appDir,
     stdio: 'inherit',
   })
+
+  const variablesGradle = join(appDir, 'android/variables.gradle')
+  if (identity.capabilities.barcode && existsSync(variablesGradle)) {
+    const before = readFileSync(variablesGradle, 'utf8')
+    const after = raiseMinSdk(before, MIN_SDK_FOR.barcode)
+    if (after !== before) {
+      writeFileSync(variablesGradle, after)
+      console.log(`Raised Android minSdkVersion to ${MIN_SDK_FOR.barcode} for the barcode scanner.`)
+    }
+  }
 }
 
 main().catch((error) => {
