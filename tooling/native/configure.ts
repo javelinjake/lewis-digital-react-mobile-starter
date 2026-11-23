@@ -9,6 +9,7 @@ import { buildTrapezeConfig, deriveBuildNumber } from './lib/build-trapeze-confi
 import { MIN_SDK_FOR, raiseMinSdk } from './lib/android-gradle'
 import { checkFirebaseBundleId, FIREBASE_TARGETS, firebaseSources, patchAppDelegate } from './lib/firebase'
 import { checkCapabilityPlugins } from './lib/native-features'
+import { PRIVACY_MANIFEST, PRIVACY_MANIFEST_TARGET } from './lib/privacy-manifest'
 
 /**
  * Applies app identity (name, bundle id, version, build number, link domains)
@@ -46,6 +47,7 @@ async function main() {
     tablet: identity.tablet,
     usage: identity.usage,
     capabilities: identity.capabilities,
+    appleTeamId: identity.appleTeamId,
   })
 
   const outDir = join(appDir, '.trapeze')
@@ -69,6 +71,13 @@ async function main() {
     stdio: 'inherit',
   })
 
+  if (existsSync(join(appDir, 'ios/App'))) {
+    const manifest = join(appDir, PRIVACY_MANIFEST_TARGET.file)
+    if (!existsSync(manifest))
+      writeFileSync(manifest, PRIVACY_MANIFEST)
+    await addIosResource(appDir, PRIVACY_MANIFEST_TARGET.projectPath)
+  }
+
   if (identity.capabilities.push)
     await installFirebaseFiles(appDir, identity.appEnv, identity.appId)
 
@@ -81,6 +90,43 @@ async function main() {
       console.log(`Raised Android minSdkVersion to ${MIN_SDK_FOR.barcode} for the barcode scanner.`)
     }
   }
+}
+
+/**
+ * Adds a file in `ios/App/App/` to the App target's "Copy Bundle Resources" phase. A no-op when the project already
+ * has it. Trapeze's public `addFile` only treats .plist and .strings as resources (it would compile anything else),
+ * so this calls the resource step directly; it is private in @trapezedev/project's types, pinned at 7.1.x.
+ */
+async function addIosResource(appDir: string, projectPath: string) {
+  const project = new MobileProject(appDir, { ios: { path: 'ios/App' } })
+  await project.load()
+  type Entry = Record<string, unknown> & { isa?: string, name?: string, path?: string }
+  const ios = project.ios as unknown as {
+    getPbxProject: () => { hash: { project: { objects: { PBXGroup: Record<string, Entry>, PBXFileReference: Record<string, Entry> } } } } | null
+    addResourceFile: (path: string, group: string | undefined) => void
+    markPbxModified: () => void
+  } | null
+  if (!ios)
+    return
+  const objects = ios.getPbxProject()?.hash.project.objects
+  const appGroup = Object.entries(objects?.PBXGroup ?? {}).find(([, group]) => group.isa === 'PBXGroup' && (group.name === 'App' || group.path === 'App'))?.[0]
+  const path = appGroup ? projectPath.replace(/^App\//, '') : projectPath
+  ios.addResourceFile(path, appGroup)
+
+  // The pbx library writes unknown types as `unknown` and unset fields as the word `undefined`. Give Xcode a clean
+  // entry with the type it would choose itself.
+  for (const reference of Object.values(objects?.PBXFileReference ?? {})) {
+    if (typeof reference !== 'object' || (reference.path !== path && reference.path !== `"${path}"`))
+      continue
+    for (const key of ['explicitFileType', 'fileEncoding'] as const) {
+      if (reference[key] === undefined || reference[key] === 'undefined')
+        delete reference[key]
+    }
+    if (path.endsWith('.xcprivacy'))
+      reference.lastKnownFileType = 'text.xml'
+  }
+  ios.markPbxModified()
+  await project.commit()
 }
 
 /**
@@ -107,11 +153,7 @@ async function installFirebaseFiles(appDir: string, appEnv: string, appId: strin
 
   if (ios) {
     copyFileSync(sources.ios, join(appDir, FIREBASE_TARGETS.ios))
-    const project = new MobileProject(appDir, { ios: { path: 'ios/App' } })
-    await project.load()
-    // A no-op when the file is already in the project.
-    await project.ios?.addFile(FIREBASE_TARGETS.iosProjectPath)
-    await project.commit()
+    await addIosResource(appDir, FIREBASE_TARGETS.iosProjectPath)
 
     const appDelegate = join(appDir, 'ios/App/App/AppDelegate.swift')
     const before = readFileSync(appDelegate, 'utf8')

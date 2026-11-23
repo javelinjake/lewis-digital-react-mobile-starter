@@ -14,15 +14,18 @@ export const appMeta = {
   orientation: 'any',
   /** False for a phone-only app: no tablet test project, and iPad runs it letterboxed. */
   tablet: true,
+  /** Apple Developer team id (Membership details). Signs the iOS app and verifies Universal Links. */
+  appleTeamId: '',
   /**
    * One entry per build environment (`APP_ENV=dev|staging|prod`). Each gets its own bundle id and name, so all three
    * install side by side. `apiUrl` is the backend that environment talks to. Leave an entry out to use the defaults
    * (`.dev` / `.staging` suffixes, no api address).
    */
+  // androidSha256: the Play app signing key's SHA-256 for that bundle id (Play Console > App integrity), for App Links.
   environments: {
     dev: { apiUrl: 'http://localhost:3001' },
-    staging: { apiUrl: '' },
-    prod: { apiUrl: '' },
+    staging: { apiUrl: '', androidSha256: [] },
+    prod: { apiUrl: '', androidSha256: [] },
   },
   themeColor: '#ffffff',
   backgroundColor: '#ffffff',

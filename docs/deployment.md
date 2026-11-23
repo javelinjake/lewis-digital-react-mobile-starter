@@ -7,7 +7,7 @@ Two Vercel projects per app, in the same repository, with **Skip unaffected proj
 Root directory `apps/<slug>/api`. It has a `vercel.json`: Next.js, region `lhr1`, build `pnpm run build:vercel`, and a daily cron for cleanup.
 
 1. Add the **Neon** integration. It sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED` (used for migrations). Create Neon in `eu-west-2` to match `lhr1`.
-2. Set `PAYLOAD_SECRET`, `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `APP_ORIGINS` (the app's web origin, comma separated), `RESEND_API_KEY`, `EMAIL_FROM`, `CRON_SECRET`, `REVENUECAT_WEBHOOK_SECRET`, and `PAYLOAD_ADMIN_EMAIL` / `PAYLOAD_ADMIN_PASSWORD` for the first deploy. Add the Apple and Google values for methods you enable.
+2. Set `PAYLOAD_SECRET`, `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `APP_ORIGINS` (the app's web origin, comma separated), `RESEND_API_KEY`, `EMAIL_FROM`, `CRON_SECRET`, `REVENUECAT_WEBHOOK_SECRET`, and `PAYLOAD_ADMIN_EMAIL` / `PAYLOAD_ADMIN_PASSWORD` for the first deploy. Add the Apple and Google values for methods you enable. For push, add `FIREBASE_SERVICE_ACCOUNT_JSON` ([native release](native-release.md#push-optional)).
 3. The build runs the migrations, creates the first admin (if the variables are set), then builds.
 4. Point RevenueCat's webhook at `https://<api>/api/purchases/revenuecat` with the Authorization header set to the secret.
 

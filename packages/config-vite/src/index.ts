@@ -30,6 +30,11 @@ export interface CreateViteConfigOptions {
   nativeApiUrl?: string
   /** The app's `package.json` version, exposed as `import.meta.env.VITE_APP_VERSION`. */
   version?: string
+  /**
+   * Files the web build adds at these paths, from `buildAppLinkFiles(appMeta)`: the Universal Links and App Links
+   * files under `/.well-known/`. Web builds only.
+   */
+  appLinks?: Record<string, string>
 }
 
 /**
@@ -94,14 +99,27 @@ function buildInfo(root: string, buildTarget: BuildTarget, nativeApiUrl: string 
   }
 }
 
+/** Writes generated files into the build output, for the files that are derived from app.meta.ts. */
+function emitFiles(files: Record<string, string>): Plugin {
+  return {
+    name: 'ld-emit-files',
+    apply: 'build',
+    generateBundle() {
+      for (const [fileName, source] of Object.entries(files))
+        this.emitFile({ type: 'asset', fileName, source })
+    },
+  }
+}
+
 export function createViteConfig(options: CreateViteConfigOptions): UserConfig {
-  const { root, port = 5173, pwa, buildTarget = 'web', apiProxy, meta, nativeApiUrl, version } = options
+  const { root, port = 5173, pwa, buildTarget = 'web', apiProxy, meta, nativeApiUrl, version, appLinks } = options
   const plugins: PluginOption[] = [
     react(),
     tailwindcss(),
     dataModeGuard(),
     buildInfo(root, buildTarget, nativeApiUrl, version),
     ...(meta ? [htmlMeta(meta)] : []),
+    ...(buildTarget === 'web' && appLinks ? [emitFiles(appLinks)] : []),
   ]
   const proxy = apiProxy ? { '/api': { target: apiProxy, changeOrigin: true } } : undefined
 

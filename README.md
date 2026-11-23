@@ -36,6 +36,7 @@ pnpm --filter @ld/app-template dev             # the app on :5173 (mock data unt
 | `pnpm create:app -- --name "My App" [--kind game]` | Scaffold a new app. Dry run until you add `--write` |
 | `pnpm db:dev` / `db:up` / `db:down` | Local Postgres without Docker / with Docker / stop Docker |
 | `pnpm --filter <app> build:native`, `cap:dev:ios`, `cap:dev:android` | Native bundle and live reload |
+| `pnpm --filter <app> release:android`, `release:ios`, `native:restore` | Store builds from a Mac ([native release](docs/native-release.md)) |
 
 ## CI
 

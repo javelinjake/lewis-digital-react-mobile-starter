@@ -65,12 +65,14 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Pixel Pitch Dev uses the camera to capture photos you attach to your records.</string>
+	<string>Pixel Pitch uses the camera to take photos and scan codes you choose to add.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Pixel Pitch Dev accesses your photo library so you can attach existing photos.</string>
+	<string>Pixel Pitch accesses your photo library so you can attach existing photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Pixel Pitch Dev accesses your photo library so you can attach existing photos.</string>
+	<string>Pixel Pitch accesses your photo library so you can attach existing photos.</string>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleDefault</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

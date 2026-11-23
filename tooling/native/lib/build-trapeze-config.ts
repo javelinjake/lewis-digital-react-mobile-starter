@@ -18,6 +18,8 @@ export interface NativeIdentity {
   usage: Required<UsageStrings>
   /** Features that need permissions or entitlements. Omitted means all off. */
   capabilities?: Required<NativeCapabilities>
+  /** Apple team for automatic signing, so Xcode needs no team picked by hand (which a restore would undo). */
+  appleTeamId?: string
 }
 
 export interface TrapezeConfig {
@@ -155,7 +157,10 @@ export function buildTrapezeConfig(identity: NativeIdentity): TrapezeConfig {
 
   // A phone-only app is an iPhone app: on an iPad it runs in iPhone size rather than stretched. Set both ways, so
   // switching `tablet` back on also undoes an earlier iPhone-only run.
-  iosTarget.buildSettings = { TARGETED_DEVICE_FAMILY: identity.tablet === false ? '1' : '1,2' }
+  iosTarget.buildSettings = {
+    TARGETED_DEVICE_FAMILY: identity.tablet === false ? '1' : '1,2',
+    ...(identity.appleTeamId ? { DEVELOPMENT_TEAM: identity.appleTeamId, CODE_SIGN_STYLE: 'Automatic' } : {}),
+  }
 
   const entitlements: Record<string, unknown> = {}
   if (hostname)

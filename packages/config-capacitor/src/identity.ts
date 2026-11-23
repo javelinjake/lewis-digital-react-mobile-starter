@@ -23,7 +23,7 @@ export interface EnvironmentMeta {
    * Use the **app signing key** from Play Console (Test and release > App integrity), plus the upload key if you
    * install upload-signed builds directly.
    */
-  androidSha256?: string[]
+  androidSha256?: readonly string[]
 }
 
 /**
@@ -85,7 +85,7 @@ export interface ResolvedIdentity {
   orientation: AppOrientation
   tablet: boolean
   appleTeamId?: string
-  androidSha256: string[]
+  androidSha256: readonly string[]
   capabilities: Required<NativeCapabilities>
   usage: Required<UsageStrings>
 }

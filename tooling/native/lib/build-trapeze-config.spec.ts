@@ -49,6 +49,11 @@ describe('buildTrapezeConfig', () => {
     assert.equal(injected(config), '')
   })
 
+  it('sets the Apple team for automatic signing when app.meta.ts has one', () => {
+    assert.equal(ios(buildTrapezeConfig(identity)).buildSettings?.DEVELOPMENT_TEAM, undefined)
+    assert.equal(ios(buildTrapezeConfig({ ...identity, appleTeamId: 'ABCDE12345' })).buildSettings?.DEVELOPMENT_TEAM, 'ABCDE12345')
+  })
+
   it('turns Android cloud backup off and skips the export-compliance question', () => {
     const config = buildTrapezeConfig(identity)
     assert.equal(manifest(config).find(entry => entry.target === 'manifest/application')?.attrs?.['android:allowBackup'], 'false')

@@ -13,11 +13,14 @@ export const appMeta = {
   orientation: 'portrait',
   /** iPad and Android tablets too: the game stays a phone-width column in the middle, and rotates on iPad. */
   tablet: true,
+  /** Apple Developer team id (Membership details). Signs the iOS app and verifies Universal Links. */
+  appleTeamId: '',
   /** One entry per build environment (APP_ENV). Fill in each api address once it exists. */
+  // androidSha256: the Play app signing key's SHA-256 for that bundle id (Play Console > App integrity), for App Links.
   environments: {
     dev: { apiUrl: 'http://localhost:3001' },
-    staging: { apiUrl: '' },
-    prod: { apiUrl: '' },
+    staging: { apiUrl: '', androidSha256: [] },
+    prod: { apiUrl: '', androidSha256: [] },
   },
   themeColor: '#ffd23f',
   backgroundColor: '#1b1f3b',
