@@ -1,6 +1,5 @@
 import { ActionSheet, ListGroup, ListItem } from '@ld/mobile-ui'
 import { getPlatform, isNativePlatform } from '@ld/native'
-import { usePushNotifications } from '@ld/native/react'
 import { ConfirmDialog, useToast } from '@ld/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -22,7 +21,6 @@ export function SettingsOverview() {
   const toast = useToast()
   const [replayMode, setReplayMode] = useReplayMode()
   const [alerts, setAlert] = useNotificationSettings()
-  const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   return (
@@ -48,15 +46,6 @@ export function SettingsOverview() {
             }}
           />
         ))}
-        <ListItem
-          title="Notifications"
-          subtitle={push.permission}
-          onClick={() => {
-            void push.register().then((permission) => {
-              toast.push(permission === 'granted' ? 'Notifications enabled' : `Notifications ${permission}`, 'info')
-            })
-          }}
-        />
         {user?.isAnonymous
           ? null
           : <ListItem title="Account" subtitle={user?.email ?? 'Sign out, export or delete'} onClick={() => setSheetOpen(true)} />}

@@ -36,4 +36,19 @@ export const appMeta = {
     apple: false,
     google: false,
   },
+  /**
+   * Native features that need a permission prompt, an entitlement or a config file, so each is off until the app
+   * needs it. To turn one on: set it here, add its plugin to package.json with "catalog:" (the list is in
+   * tooling/native/lib/native-features.ts), then `pnpm native:configure` writes the permissions. Push also needs the
+   * Firebase files in firebase/<env>/ (docs/native-release.md). Permission wording can be replaced with `usage`.
+   */
+  capabilities: {
+    push: false,
+    location: false,
+    biometrics: false,
+    barcode: false,
+    audio: false,
+    filePicker: false,
+    ota: false,
+  },
 } as const

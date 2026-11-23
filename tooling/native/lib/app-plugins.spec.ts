@@ -57,15 +57,16 @@ describe('@ld/native plugin lists', () => {
       assert.deepEqual(checkCapabilityPlugins(resolveCapabilities(appMeta.capabilities), dependencies), [])
     })
 
-    it(`${name} only imports opt-in entry points for capabilities it has turned on`, async () => {
+    it(`${name} imports opt-in entry points statically only for capabilities it has turned on`, async () => {
       const { appMeta } = await import(pathToFileURL(join(appDir, 'app.meta.ts')).href) as { appMeta: IdentityMeta }
       const capabilities = resolveCapabilities(appMeta.capabilities)
       const offenders: string[] = []
       for (const file of sourceFiles(join(appDir, 'src'))) {
         const text = readFileSync(file, 'utf8')
         for (const [capability, feature] of Object.entries(NATIVE_FEATURES)) {
-          // Type-only imports bundle nothing, so they are allowed.
-          const runtimeImport = new RegExp(`(?<!import type [^\\n]*)['"]${feature.entry}['"]`)
+          // Allowed while off: `import type` (bundles nothing) and a lazy `import('…')` behind the capability check,
+          // which is how the template keeps push ready without shipping it.
+          const runtimeImport = new RegExp(`^\\s*(?:import|export)\\s+(?!type\\b)[^\\n]*['"]${feature.entry}['"]`, 'm')
           if (!capabilities[capability as keyof typeof capabilities] && runtimeImport.test(text))
             offenders.push(`${file.slice(repoRoot.length + 1)} imports ${feature.entry} but capabilities.${capability} is off`)
         }

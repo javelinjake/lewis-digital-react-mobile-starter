@@ -114,6 +114,8 @@ export function createViteConfig(options: CreateViteConfigOptions): UserConfig {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', `file://${root}/`)),
+        // No web push: the Firebase plugin's web version gets a stub instead of the Firebase SDK (see the file).
+        'firebase/messaging': fileURLToPath(new URL('./stubs/firebase-messaging.ts', import.meta.url)),
         ...(buildTarget === 'native'
           ? { 'virtual:pwa-register': fileURLToPath(new URL('../../pwa/src/register-stub.ts', import.meta.url)) }
           : {}),

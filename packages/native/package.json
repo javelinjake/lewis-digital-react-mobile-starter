@@ -15,7 +15,8 @@
     "./biometrics": "./src/biometrics.ts",
     "./barcode": "./src/barcode.ts",
     "./audio": "./src/audio.ts",
-    "./file-picker": "./src/file-picker.ts"
+    "./file-picker": "./src/file-picker.ts",
+    "./push": "./src/push.ts"
   },
   "scripts": {
     "build": "tsc --noEmit -p tsconfig.json",
@@ -44,7 +45,6 @@
     "@capacitor/local-notifications": "catalog:",
     "@capacitor/network": "catalog:",
     "@capacitor/preferences": "catalog:",
-    "@capacitor/push-notifications": "catalog:",
     "@capacitor/screen-orientation": "catalog:",
     "@capacitor/share": "catalog:",
     "@capacitor/splash-screen": "catalog:",
@@ -102,7 +102,6 @@
     "@capacitor/local-notifications": "catalog:",
     "@capacitor/network": "catalog:",
     "@capacitor/preferences": "catalog:",
-    "@capacitor/push-notifications": "catalog:",
     "@capacitor/screen-orientation": "catalog:",
     "@capacitor/share": "catalog:",
     "@capacitor/splash-screen": "catalog:",

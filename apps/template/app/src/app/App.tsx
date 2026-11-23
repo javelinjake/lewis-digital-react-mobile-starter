@@ -9,6 +9,7 @@ import { SessionScope } from '@/app/session-scope'
 import { useOutbox } from '@/app/use-outbox'
 import { useConnectivity } from '@/hooks/use-connectivity'
 import { useTheme } from '@/hooks/use-theme'
+import { startPushRuntime } from '@/lib/push/push-registration'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -41,6 +42,7 @@ export function NativeRuntime() {
 
   useDeepLinks(path => navigate(path))
   useBackButton({ onBack: () => navigate(-1) })
+  useEffect(() => startPushRuntime(path => navigate(path)), [navigate])
 
   useEffect(() => onResume(() => {
     void outbox?.flush()

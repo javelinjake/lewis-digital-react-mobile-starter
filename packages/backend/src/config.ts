@@ -20,6 +20,7 @@ import { deleteAccountEndpoint, exportAccountEndpoint } from './endpoints/accoun
 import { createCleanupEndpoint } from './endpoints/cron'
 import { assertNoShadowedEndpoints } from './endpoints/guard'
 import { healthEndpoint } from './endpoints/health'
+import { pushEndpoints } from './endpoints/push'
 import { createRevenueCatEndpoint } from './endpoints/revenuecat'
 import { resolveBackendEnv } from './env'
 import { buildAllowedOrigins } from './origins'
@@ -114,6 +115,7 @@ export function createAppBackend(options: AppBackendOptions) {
       exportAccountEndpoint,
       createRevenueCatEndpoint({ secret: env.revenuecatWebhookSecret, onEvent: options.purchases?.onEvent }),
       createCleanupEndpoint({ secret: env.cronSecret, extra: options.cron?.extra }),
+      ...pushEndpoints,
       ...(options.endpoints ?? []),
     ],
     plugins: [

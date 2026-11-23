@@ -1,13 +1,13 @@
 import { ActionSheet, ListGroup, ListItem } from '@ld/mobile-ui'
 import { getPlatform } from '@ld/native'
-import { usePushNotifications } from '@ld/native/react'
 import { ConfirmDialog, useToast } from '@ld/ui'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { clearUserData } from '@/app/session-data'
 import { useOutbox } from '@/app/use-outbox'
 import { useTheme } from '@/hooks/use-theme'
 import { authApi } from '@/lib/auth/auth-api'
+import { checkPushNotifications, enablePushNotifications, forgetPushDevice, pushAvailable, sendTestPush } from '@/lib/push/push-registration'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
 import { saveJson } from '../lib/save-json'
@@ -20,25 +20,51 @@ export function SettingsOverview() {
   const navigate = useNavigate()
   const outbox = useOutbox()
   const toast = useToast()
-  const push = usePushNotifications()
+  const [pushPermission, setPushPermission] = useState<string>('off')
   const [discardOpen, setDiscardOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  useEffect(() => {
+    if (pushAvailable)
+      void checkPushNotifications().then(setPushPermission)
+  }, [])
 
   return (
     <div className="flex flex-col gap-4">
       <ListGroup label="Settings">
         <ListItem title="Appearance" subtitle={theme === 'dracula' ? 'Dark' : 'Light'} onClick={toggleTheme} />
         <ListItem title="Platform" subtitle={getPlatform()} />
-        <ListItem
-          title="Notifications"
-          subtitle={push.permission}
-          onClick={() => {
-            void push.register().then((permission) => {
-              toast.push(permission === 'granted' ? 'Notifications enabled' : `Notifications ${permission}`, 'info')
-            })
-          }}
-        />
+        {pushAvailable
+          ? (
+              <>
+                <ListItem
+                  title="Notifications"
+                  subtitle={pushPermission}
+                  onClick={() => {
+                    void enablePushNotifications()
+                      .then((permission) => {
+                        setPushPermission(permission)
+                        toast.push(permission === 'granted' ? 'Notifications enabled' : `Notifications ${permission}`, 'info')
+                      })
+                      .catch(reason => toast.push(formatError(reason), 'error'))
+                  }}
+                />
+                {pushPermission === 'granted'
+                  ? (
+                      <ListItem
+                        title="Send a test notification"
+                        onClick={() => {
+                          void sendTestPush()
+                            .then(result => toast.push(result.configured ? `Sent to ${result.sent} device(s)` : 'Push is not set up on the server yet', 'info'))
+                            .catch(reason => toast.push(formatError(reason), 'error'))
+                        }}
+                      />
+                    )
+                  : null}
+              </>
+            )
+          : null}
         <ListItem title="Sync now" onClick={() => { void outbox?.flush().then(() => toast.push('Sync finished', 'success')) }} />
         {user?.isAnonymous
           ? <ListItem title="Create an account" subtitle="Keep your progress on every device" onClick={() => navigate('/register?link=1')} />
@@ -50,7 +76,7 @@ export function SettingsOverview() {
         title="Account"
         onClose={() => setSheetOpen(false)}
         actions={[
-          { label: 'Sign out', onSelect: () => { void logout() } },
+          { label: 'Sign out', onSelect: () => { void forgetPushDevice().then(logout) } },
           {
             label: 'Export my data',
             onSelect: () => {

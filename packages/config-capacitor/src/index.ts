@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli'
+import type { NativeCapabilities } from './identity'
 import process from 'node:process'
 
 export interface CreateCapacitorConfigOptions {
@@ -14,6 +15,8 @@ export interface CreateCapacitorConfigOptions {
    * Also sets the WebView origin so cookies/CORS match the web app.
    */
   hostname?: string
+  /** `resolveIdentity(...).capabilities`. Adds the plugin settings each one needs. */
+  capabilities?: NativeCapabilities
 }
 
 /**
@@ -27,6 +30,7 @@ export function createCapacitorConfig(options: CreateCapacitorConfigOptions): Ca
     webDir = 'dist',
     backgroundColor = '#ffffff',
     hostname,
+    capabilities = {},
   } = options
 
   const liveReloadUrl = process.env.CAP_SERVER_URL?.trim()
@@ -63,9 +67,18 @@ export function createCapacitorConfig(options: CreateCapacitorConfigOptions): Ca
       StatusBar: {
         overlaysWebView: true,
       },
-      PushNotifications: {
-        presentationOptions: ['badge', 'sound', 'alert'],
-      },
+      ...(capabilities.push
+        ? {
+            // Show a banner, sound and badge even when the push arrives while the app is open (iOS).
+            FirebaseMessaging: { presentationOptions: ['badge', 'sound', 'alert'] },
+          }
+        : {}),
     },
+    ...(capabilities.push
+      ? {
+          // The Firebase plugins share Swift package names; a symlink avoids SwiftPM's identity collision.
+          experimental: { ios: { spm: { packageOptions: { '@capacitor-firebase/messaging': { symlink: true } } } } },
+        }
+      : {}),
   }
 }
