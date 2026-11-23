@@ -70,3 +70,6 @@ project(':capgo-capacitor-social-login').projectDir = new File('../../../../node
 
 include ':revenuecat-purchases-capacitor'
 project(':revenuecat-purchases-capacitor').projectDir = new File('../../../../node_modules/.pnpm/@revenuecat+purchases-capacitor@14.1.0_@capacitor+core@8.5.2/node_modules/@revenuecat/purchases-capacitor/android')
+
+include ':sentry-capacitor'
+project(':sentry-capacitor').projectDir = new File('../../../../node_modules/.pnpm/@sentry+capacitor@4.5.0_@capacitor+core@8.5.2_@sentry+react@10.76.2_react@19.3.1_/node_modules/@sentry/capacitor/android')

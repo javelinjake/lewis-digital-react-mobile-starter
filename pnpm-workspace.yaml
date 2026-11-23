@@ -66,6 +66,8 @@ catalog:
   posthog-js: 1.447.3
   "@sentry/react": 10.76.2
   "@sentry/capacitor": 4.5.0
+  # Source map upload for release builds (config-vite). Pinned when added; at least two weeks old.
+  "@sentry/vite-plugin": 11.11.0
 
   # PWA
   vite-plugin-pwa: ^1.3.0

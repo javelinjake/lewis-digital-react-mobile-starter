@@ -13,7 +13,7 @@ Root directory `apps/<slug>/api`. It has a `vercel.json`: Next.js, region `lhr1`
 
 ## app project
 
-Root directory `apps/<slug>/app`. Its `vercel.ts` (read at build time) sends `/api` to the backend and sets cache and security headers. Set **`API_ORIGIN`** to the api's address, for Production and for Preview (Preview can point at the production API or a preview API). `build:vercel` builds a live web PWA and refuses mock data.
+Root directory `apps/<slug>/app`. Its `vercel.ts` (read at build time) sends `/api` to the backend and sets cache and security headers. Set **`API_ORIGIN`** to the api's address, for Production and for Preview (Preview can point at the production API or a preview API). For crash reports, also set `VITE_SENTRY_DSN`, and `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` so the build uploads source maps (they are deleted from the output after upload). `build:vercel` builds a live web PWA and refuses mock data.
 
 Only the production deployment may be indexed (`robots.txt`). A game's web build is a playtest: turn on Deployment Protection.
 

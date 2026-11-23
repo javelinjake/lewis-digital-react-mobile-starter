@@ -34,7 +34,8 @@ let package = Package(
         .package(name: "CapawesomeCapacitorBackgroundTask", path: "../../../../../../node_modules/.pnpm/@capawesome+capacitor-background-task@8.0.3_@capacitor+core@8.5.2/node_modules/@capawesome/capacitor-background-task"),
         .package(name: "CapawesomeCapacitorBadge", path: "../../../../../../node_modules/.pnpm/@capawesome+capacitor-badge@8.0.4_@capacitor+core@8.5.2/node_modules/@capawesome/capacitor-badge"),
         .package(name: "CapgoCapacitorSocialLogin", path: "../../../../../../node_modules/.pnpm/@capgo+capacitor-social-login@8.7.7_@capacitor+core@8.5.2/node_modules/@capgo/capacitor-social-login"),
-        .package(name: "RevenuecatPurchasesCapacitor", path: "../../../../../../node_modules/.pnpm/@revenuecat+purchases-capacitor@14.1.0_@capacitor+core@8.5.2/node_modules/@revenuecat/purchases-capacitor")
+        .package(name: "RevenuecatPurchasesCapacitor", path: "../../../../../../node_modules/.pnpm/@revenuecat+purchases-capacitor@14.1.0_@capacitor+core@8.5.2/node_modules/@revenuecat/purchases-capacitor"),
+        .package(name: "SentryCapacitor", path: "../../../../../../node_modules/.pnpm/@sentry+capacitor@4.5.0_@capacitor+core@8.5.2_@sentry+react@10.76.2_react@19.3.1_/node_modules/@sentry/capacitor")
     ],
     targets: [
         .target(
@@ -64,7 +65,8 @@ let package = Package(
                 .product(name: "CapawesomeCapacitorBackgroundTask", package: "CapawesomeCapacitorBackgroundTask"),
                 .product(name: "CapawesomeCapacitorBadge", package: "CapawesomeCapacitorBadge"),
                 .product(name: "CapgoCapacitorSocialLogin", package: "CapgoCapacitorSocialLogin"),
-                .product(name: "RevenuecatPurchasesCapacitor", package: "RevenuecatPurchasesCapacitor")
+                .product(name: "RevenuecatPurchasesCapacitor", package: "RevenuecatPurchasesCapacitor"),
+                .product(name: "SentryCapacitor", package: "SentryCapacitor")
             ]
         )
     ]

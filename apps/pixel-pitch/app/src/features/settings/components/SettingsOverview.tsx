@@ -8,6 +8,7 @@ import { NOTIFICATION_TYPES, useNotificationSettings } from '@/hooks/use-notific
 import { useReplayMode } from '@/hooks/use-replay-mode'
 import { authApi } from '@/lib/auth/auth-api'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
+import { crashReportsAvailable, crashReportsOn, setCrashReports } from '@/lib/telemetry/crash-reports'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
 import { saveJson } from '../lib/save-json'
@@ -23,6 +24,7 @@ export function SettingsOverview() {
   const [alerts, setAlert] = useNotificationSettings()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [crashReports, setCrashReportsState] = useState(crashReportsOn)
   return (
     <div className="flex flex-col gap-4">
       <ListGroup label="Settings">
@@ -32,6 +34,19 @@ export function SettingsOverview() {
           onClick={() => setReplayMode(replayMode === 'text' ? 'pitch' : 'text')}
         />
         <ListItem title="Platform" subtitle={getPlatform()} />
+        {crashReportsAvailable
+          ? (
+              <ListItem
+                title="Send crash reports"
+                subtitle={crashReports ? 'On' : 'Off'}
+                onClick={() => {
+                  const next = !crashReports
+                  setCrashReportsState(next)
+                  void setCrashReports(next)
+                }}
+              />
+            )
+          : null}
         {NOTIFICATION_TYPES.map(entry => (
           <ListItem
             key={entry.type}

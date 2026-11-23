@@ -1,6 +1,7 @@
 import type { PwaConfigOptions } from './pwa.ts'
 import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin, type PluginOption, type UserConfig } from 'vite'
@@ -75,15 +76,28 @@ function dataModeGuard(): Plugin {
  * native, the api address from `app.meta.ts` so it cannot drift from the environment being built. An explicit
  * `VITE_API_URL` still wins. A live native build with no api address at all fails here instead of on the phone.
  */
+/**
+ * The build's identity for crash reports and live updates: `version+build`. Native release builds use the build
+ * number (the release script sets BUILD_NUMBER); a Vercel web build uses the commit. Both come from the environment,
+ * so a cached build replays its own release name and the source maps uploaded with it.
+ */
+export function releaseName(version: string | undefined, env: Record<string, string | undefined> = process.env) {
+  const build = env.BUILD_NUMBER?.trim() || env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 7) || ''
+  return { version: version ?? '0.0.0', build, release: build ? `${version ?? '0.0.0'}+${build}` : version ?? '0.0.0' }
+}
+
 function buildInfo(root: string, buildTarget: BuildTarget, nativeApiUrl: string | undefined, version: string | undefined): Plugin {
   return {
     name: 'ld-build-info',
     config(_config, { mode, command }) {
       const env = loadEnv(mode, root, 'VITE_')
+      const release = releaseName(version)
       const define: Record<string, string> = {
-        'import.meta.env.VITE_APP_VERSION': JSON.stringify(version ?? '0.0.0'),
-        // Only from the environment, so a cached build never carries a stale number. The release script sets it.
-        'import.meta.env.VITE_APP_BUILD': JSON.stringify(process.env.BUILD_NUMBER?.trim() ?? ''),
+        'import.meta.env.VITE_APP_VERSION': JSON.stringify(release.version),
+        'import.meta.env.VITE_APP_BUILD': JSON.stringify(release.build),
+        'import.meta.env.VITE_APP_RELEASE': JSON.stringify(release.release),
+        // dev, staging or prod for a native build; the Vercel environment (production, preview) for the web.
+        'import.meta.env.VITE_APP_ENV': JSON.stringify(buildTarget === 'native' ? process.env.APP_ENV?.trim() || 'prod' : process.env.VERCEL_ENV?.trim() || mode),
       }
 
       if (buildTarget === 'native') {
@@ -97,6 +111,34 @@ function buildInfo(root: string, buildTarget: BuildTarget, nativeApiUrl: string 
       return { define }
     },
   }
+}
+
+/**
+ * Uploads source maps to Sentry when SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT are set (a release build on
+ * your Mac or on Vercel), so a crash shows the original code. The maps are built hidden (no `sourceMappingURL` in
+ * the bundle) and deleted after upload, so they never ship. Without the three variables nothing changes.
+ */
+function sentrySourceMaps(version: string | undefined): PluginOption[] {
+  const authToken = process.env.SENTRY_AUTH_TOKEN?.trim()
+  const org = process.env.SENTRY_ORG?.trim()
+  const project = process.env.SENTRY_PROJECT?.trim()
+  if (!authToken || !org || !project)
+    return []
+  return [
+    {
+      name: 'ld-hidden-source-maps',
+      apply: 'build',
+      config: () => ({ build: { sourcemap: 'hidden' } }),
+    },
+    sentryVitePlugin({
+      authToken,
+      org,
+      project,
+      release: { name: releaseName(version).release },
+      sourcemaps: { filesToDeleteAfterUpload: ['./dist/**/*.map'] },
+      telemetry: false,
+    }),
+  ]
 }
 
 /** Writes generated files into the build output, for the files that are derived from app.meta.ts. */
@@ -120,6 +162,7 @@ export function createViteConfig(options: CreateViteConfigOptions): UserConfig {
     buildInfo(root, buildTarget, nativeApiUrl, version),
     ...(meta ? [htmlMeta(meta)] : []),
     ...(buildTarget === 'web' && appLinks ? [emitFiles(appLinks)] : []),
+    ...sentrySourceMaps(version),
   ]
   const proxy = apiProxy ? { '/api': { target: apiProxy, changeOrigin: true } } : undefined
 

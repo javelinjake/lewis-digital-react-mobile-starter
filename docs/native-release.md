@@ -74,6 +74,8 @@ Server code sends with `sendPushToUser(payload, userId, { title, body, data: { p
 
 Bump `version` in the app's `package.json` for each new store version. The build number is automatic.
 
+For readable crash reports, export `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` in your shell (and set `VITE_SENTRY_DSN` in the app's `.env.production.local`) before releasing. The build uploads hidden source maps under `version+build`, the same release name the app reports.
+
 ### Android
 
 ```bash
@@ -116,7 +118,7 @@ The scripts refuse to start with uncommitted changes in `ios/` or `android/`, so
 - In-app **account deletion** (done in Settings; the backend endpoint exists).
 - **Restore purchases** and **Manage subscription** in the shop. The subscription screen shows price, period, what is included, renewal terms, and links to terms and privacy.
 - **Sign in with Apple** whenever any other social sign-in is offered.
-- A privacy policy, Apple's privacy labels and Google's Data safety form. Analytics is opt-in.
+- A privacy policy, Apple's privacy labels and Google's Data safety form. Analytics is opt-in. With crash reports on (`VITE_SENTRY_DSN`), declare crash and diagnostic data, not linked to identity, collected only with consent.
 - An honest age rating (in-app purchases). No paid random items unless you have followed the UK loot box principles. Show odds before any random reward.
 - Permission wording: the defaults name the app but are generic. Write the real reason in `usage` in `app.meta.ts` before review.
 - The iOS privacy manifest (`ios/App/App/PrivacyInfo.xcprivacy`, written by `native:configure`) covers the baseline plugins. A new plugin that uses a "required reason" API needs its reason added there.

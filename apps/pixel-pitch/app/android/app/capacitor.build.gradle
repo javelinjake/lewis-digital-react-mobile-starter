@@ -32,6 +32,7 @@ dependencies {
     implementation project(':capawesome-capacitor-badge')
     implementation project(':capgo-capacitor-social-login')
     implementation project(':revenuecat-purchases-capacitor')
+    implementation project(':sentry-capacitor')
 
 }
 

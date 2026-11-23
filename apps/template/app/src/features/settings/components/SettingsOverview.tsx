@@ -8,6 +8,7 @@ import { useOutbox } from '@/app/use-outbox'
 import { useTheme } from '@/hooks/use-theme'
 import { authApi } from '@/lib/auth/auth-api'
 import { checkPushNotifications, enablePushNotifications, forgetPushDevice, pushAvailable, sendTestPush } from '@/lib/push/push-registration'
+import { crashReportsAvailable, crashReportsOn, setCrashReports } from '@/lib/telemetry/crash-reports'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
 import { saveJson } from '../lib/save-json'
@@ -24,6 +25,7 @@ export function SettingsOverview() {
   const [discardOpen, setDiscardOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [crashReports, setCrashReportsState] = useState(crashReportsOn)
 
   useEffect(() => {
     if (pushAvailable)
@@ -35,6 +37,19 @@ export function SettingsOverview() {
       <ListGroup label="Settings">
         <ListItem title="Appearance" subtitle={theme === 'dracula' ? 'Dark' : 'Light'} onClick={toggleTheme} />
         <ListItem title="Platform" subtitle={getPlatform()} />
+        {crashReportsAvailable
+          ? (
+              <ListItem
+                title="Send crash reports"
+                subtitle={crashReports ? 'On' : 'Off'}
+                onClick={() => {
+                  const next = !crashReports
+                  setCrashReportsState(next)
+                  void setCrashReports(next)
+                }}
+              />
+            )
+          : null}
         {pushAvailable
           ? (
               <>
