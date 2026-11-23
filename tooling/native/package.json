@@ -4,6 +4,7 @@
   "type": "module",
   "version": "0.0.0",
   "dependencies": {
-    "@trapezedev/project": "catalog:"
+    "@trapezedev/project": "catalog:",
+    "@vercel/blob": "catalog:"
   }
 }

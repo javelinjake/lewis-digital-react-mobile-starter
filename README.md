@@ -37,6 +37,7 @@ pnpm --filter @ld/app-template dev             # the app on :5173 (mock data unt
 | `pnpm db:dev` / `db:up` / `db:down` | Local Postgres without Docker / with Docker / stop Docker |
 | `pnpm --filter <app> build:native`, `cap:dev:ios`, `cap:dev:android` | Native bundle and live reload |
 | `pnpm --filter <app> release:android`, `release:ios`, `native:restore` | Store builds from a Mac ([native release](docs/native-release.md)) |
+| `pnpm --filter <app> ota:publish` | Live update of the web bundle to installed apps ([OTA](docs/ota.md)) |
 
 ## CI
 
@@ -47,6 +48,7 @@ Pull requests run, for what they affect: lint, types, architecture and unit test
 - [New app playbook](docs/new-app-playbook.md): start here for a new app or game
 - [Backend](docs/backend.md): accounts, privacy model, actions, purchases
 - [Deployment](docs/deployment.md): Vercel projects and environment variables
-- [Native release](docs/native-release.md): environments, signing, store checklist
+- [Native release](docs/native-release.md): accounts, signing, push, releasing from a Mac, store checklist
+- [Live updates](docs/ota.md): shipping web-code fixes without a store release
 - [Games](docs/games.md): the rules package, server-owned time, the game kit
 - [Monorepo](docs/monorepo.md), [Architecture](docs/architecture.md), [Shared packages](docs/shared-packages.md), [Native apps](docs/native.md), [PWA and offline](docs/pwa-offline.md)

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
 import { gameKeys } from '@/features/game/queries/game.keys'
+import { reportAppReady } from '@/lib/updates/live-updates'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -19,8 +20,11 @@ export function App() {
   }, [])
 
   useEffect(() => {
-    if (status !== 'bootstrapping')
+    if (status !== 'bootstrapping') {
       void hideSplashScreen()
+      // The first screen is up: a live update that got this far is kept.
+      reportAppReady()
+    }
   }, [status])
 
   return (

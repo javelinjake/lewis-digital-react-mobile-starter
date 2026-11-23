@@ -120,3 +120,5 @@ catalog:
   "@capacitor/assets": ^3.0.5
   "@trapezedev/configure": ^7.1.10
   "@trapezedev/project": ^7.1.10
+  # Uploads live-update bundles (tooling/native/ota-publish.ts). Pinned when added; at least two weeks old.
+  "@vercel/blob": 2.8.2

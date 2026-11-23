@@ -16,7 +16,8 @@
     "./barcode": "./src/barcode.ts",
     "./audio": "./src/audio.ts",
     "./file-picker": "./src/file-picker.ts",
-    "./push": "./src/push.ts"
+    "./push": "./src/push.ts",
+    "./updates": "./src/updates.ts"
   },
   "scripts": {
     "build": "tsc --noEmit -p tsconfig.json",

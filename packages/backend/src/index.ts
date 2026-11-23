@@ -14,6 +14,8 @@ export type { PurchaseEventContext, PurchaseOptions, RevenueCatEvent } from './e
 export { resolveBackendEnv } from './env'
 export type { BackendEnv } from './env'
 export { buildAllowedOrigins } from './origins'
+export { pickUpdate } from './ota'
+export type { BundleRow, UpdateAnswer, UpdateCheck } from './ota'
 export { createFcmSender, getDefaultPushSender, parseServiceAccount, sendPushToUser } from './push'
 export type { FcmSender, PushMessage, PushSummary, SendOutcome, ServiceAccount } from './push'
 export { consumeRateLimit } from './rate-limit'

@@ -25,6 +25,7 @@
     "native:assets": "capacitor-assets generate --ios --android --assetPath resources --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#111827' --splashBackgroundColor '#ffffff' --splashBackgroundColorDark '#111827'",
     "native:configure": "tsx ../../../tooling/native/configure.ts",
     "native:restore": "tsx ../../../tooling/native/release.ts restore",
+    "ota:publish": "tsx ../../../tooling/native/ota-publish.ts",
     "release:android": "tsx ../../../tooling/native/release.ts android",
     "release:ios": "tsx ../../../tooling/native/release.ts ios",
     "build:vercel": "tsx ../../../tooling/deploy/vercel-build.ts"

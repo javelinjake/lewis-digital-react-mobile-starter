@@ -17,6 +17,8 @@ export interface CreateCapacitorConfigOptions {
   hostname?: string
   /** `resolveIdentity(...).capabilities`. Adds the plugin settings each one needs. */
   capabilities?: NativeCapabilities
+  /** `resolveIdentity(...).apiUrl`. Live updates check `<apiUrl>/api/ota/check`; only an https api turns them on. */
+  apiUrl?: string
 }
 
 /**
@@ -31,7 +33,11 @@ export function createCapacitorConfig(options: CreateCapacitorConfigOptions): Ca
     backgroundColor = '#ffffff',
     hostname,
     capabilities = {},
+    apiUrl,
   } = options
+
+  // Live updates need an https api (a local dev api is http, and dev builds do not need them).
+  const otaUrl = capabilities.ota && apiUrl && /^https:\/\//.test(apiUrl) ? `${apiUrl.replace(/\/+$/, '')}/api/ota/check` : undefined
 
   const liveReloadUrl = process.env.CAP_SERVER_URL?.trim()
 
@@ -71,6 +77,25 @@ export function createCapacitorConfig(options: CreateCapacitorConfigOptions): Ca
         ? {
             // Show a banner, sound and badge even when the push arrives while the app is open (iOS).
             FirebaseMessaging: { presentationOptions: ['badge', 'sound', 'alert'] },
+          }
+        : {}),
+      ...(capabilities.ota
+        ? {
+            CapacitorUpdater: otaUrl
+              ? {
+                  // Check in the background, download, and switch when the app is next backgrounded.
+                  autoUpdate: true,
+                  updateUrl: otaUrl,
+                  // Our own api answers the checks; nothing goes to Capgo's cloud.
+                  statsUrl: '',
+                  // A bundle that has not called markAppReady() by then is rolled back.
+                  appReadyTimeout: 10_000,
+                  autoDeleteFailed: true,
+                  autoDeletePrevious: true,
+                  // A new store build starts from its own bundle, never an older live update.
+                  resetWhenUpdate: true,
+                }
+              : { autoUpdate: false, statsUrl: '' },
           }
         : {}),
     },

@@ -10,6 +10,7 @@ import { useOutbox } from '@/app/use-outbox'
 import { useConnectivity } from '@/hooks/use-connectivity'
 import { useTheme } from '@/hooks/use-theme'
 import { startPushRuntime } from '@/lib/push/push-registration'
+import { reportAppReady } from '@/lib/updates/live-updates'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -21,8 +22,11 @@ export function App() {
   }, [])
 
   useEffect(() => {
-    if (status !== 'bootstrapping')
+    if (status !== 'bootstrapping') {
       void hideSplashScreen()
+      // The first screen is up: a live update that got this far is kept.
+      reportAppReady()
+    }
   }, [status])
 
   return (
