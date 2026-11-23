@@ -81,7 +81,7 @@ pnpm --filter @ld/app-<slug> release:android               # prod
 APP_ENV=staging pnpm --filter @ld/app-<slug> release:android
 ```
 
-It checks the api address and signing files, builds, configures, syncs, runs `bundleRelease` with your upload key, prints the `.aab` path and restores `android/`. If Java is not on your path it uses Android Studio's bundled Java 21.
+It checks the api address and signing files, builds, configures, syncs, runs `bundleRelease` with your upload key, prints the `.aab` path and restores `android/`. If `JAVA_HOME` and `ANDROID_HOME` are not set, it uses Android Studio's bundled Java 21 and the SDK in `~/Library/Android/sdk` (open the project in Android Studio once to install it).
 
 Upload the `.aab` in Play Console > (app) > Test and release. Start with **Internal testing** (instant, up to 100 testers), then closed testing, then production.
 
