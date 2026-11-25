@@ -84,6 +84,15 @@ export interface ClubState {
   pass: { season: number, xp: number, claimedFree: number[], claimedPremium: number[] }
   /** The album: every player ever pulled, how many sets are finished, which finished sets paid out. */
   album: { collected: string[], completed: number, claimed: string[] }
+
+  /** What has been bought: the Chairman's Licence and extra bench room (bought with gems). */
+  perks: { licence: boolean, benchBuys: number }
+  /** Star Signings waiting to be chosen (`pending`), and how many have been chosen so far (seeds the next offer). */
+  signings: { pending: number, taken: number }
+  /** Premium kits the club owns (ids in `config.cosmetics.kits`). */
+  kits: string[]
+  /** The one-off starter offer: on sale until `until`, once. */
+  starterOffer: { until: number, bought: boolean }
 }
 
 export function newClubState(now: number, config: GameConfig): ClubState {
@@ -108,6 +117,10 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     calendar: { streak: 0, lastClaimDay: -1 },
     pass: { season: -1, xp: 0, claimedFree: [], claimedPremium: [] },
     album: { collected: [], completed: 0, claimed: [] },
+    perks: { licence: false, benchBuys: 0 },
+    signings: { pending: 0, taken: 0 },
+    kits: [],
+    starterOffer: { until: 0, bought: false },
   }
 }
 
@@ -124,7 +137,13 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
   return {
     ...fresh,
     ...rest,
-    idle: { ...saved.idle, trayCollectedAt: typeof tray === 'number' ? tray : Math.min(tray.kick, tray.keepy) },
+    idle: {
+      ...fresh.idle,
+      ...saved.idle,
+      trayCollectedAt: typeof tray === 'number' ? tray : Math.min(tray.kick, tray.keepy),
+      // A Pass from before it was tied to a season stays active for the season the club was in.
+      passSeason: saved.idle.passSeason ?? (saved.idle.hasPass ? saved.pass?.season ?? -1 : -1),
+    },
     energy: { ...fresh.energy, ...saved.energy },
     arcade: { best: { ...fresh.arcade.best, ...saved.arcade?.best } },
     daily: { ...fresh.daily, ...saved.daily },
@@ -132,5 +151,8 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
     pass: { ...fresh.pass, ...saved.pass },
     album: { ...fresh.album, ...saved.album },
     extraPacks: { ...fresh.extraPacks, ...saved.extraPacks },
+    perks: { ...fresh.perks, ...saved.perks },
+    signings: { ...fresh.signings, ...saved.signings },
+    starterOffer: { ...fresh.starterOffer, ...saved.starterOffer },
   }
 }

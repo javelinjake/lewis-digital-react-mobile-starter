@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { useGameAction } from '../mutations/use-game-action'
+import { useGameConfig } from '../queries/use-game'
 import { WarmupGame } from './WarmupGame'
 
 const ZONE_TEXT: Record<WarmupZone, string> = { gold: 'Perfect', green: 'Good', miss: 'A miss' }
@@ -14,7 +15,9 @@ export function WarmupCard({ game }: { game: GameResponse }) {
   const toast = useToast()
   const [open, setOpen] = useState(false)
   const [last, setLast] = useState<{ zone: WarmupZone, bonus: number } | null>(null)
+  const config = useGameConfig()
   const start = useGameAction(() => gameApi.startWarmup())
+  const retry = useGameAction(() => gameApi.retryWarmup())
   const finish = useGameAction((tapMs: number) => gameApi.finishWarmup(tapMs))
   const { state } = game.club
   const tried = state.warmupTriedFor === state.league.fixtureNo
@@ -49,6 +52,13 @@ export function WarmupCard({ game }: { game: GameResponse }) {
                     ? `${last ? `${ZONE_TEXT[last.zone]}. ` : ''}+${Math.round(state.league.warmupBonus * 100)}% attack in your next match.`
                     : 'You have warmed up for this match.'}
                 </span>
+                {last?.zone !== 'gold'
+                  ? (
+                      <button type="button" className="btn btn-ghost min-h-11" disabled={retry.isPending || state.idle.gems < config.shop.gems.warmupRetry} onClick={() => retry.mutate(undefined, { onSuccess: () => setOpen(true), onError })}>
+                        {`Another try · ${config.shop.gems.warmupRetry} gems`}
+                      </button>
+                    )
+                  : null}
                 <Link to="/squad" className="btn btn-outline min-h-11">Set the lineup ›</Link>
               </>
             )

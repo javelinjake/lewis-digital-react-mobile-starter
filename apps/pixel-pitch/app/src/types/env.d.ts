@@ -24,6 +24,14 @@ interface ImportMetaEnv {
   readonly VITE_APP_ENV: string
   /** Sentry DSN (public). Crash reports are offered only when set. */
   readonly VITE_SENTRY_DSN?: string
+  /** RevenueCat's public SDK keys (not secrets). Without one, the shop says purchases are not available. */
+  readonly VITE_REVENUECAT_IOS_KEY?: string
+  readonly VITE_REVENUECAT_ANDROID_KEY?: string
+  /** PostHog's public project key. Without it, nothing is recorded. */
+  readonly VITE_POSTHOG_KEY?: string
+  /** Links the shop shows. Both stores require them before an app with purchases is approved. */
+  readonly VITE_TERMS_URL?: string
+  readonly VITE_PRIVACY_URL?: string
 }
 
 interface ImportMeta {

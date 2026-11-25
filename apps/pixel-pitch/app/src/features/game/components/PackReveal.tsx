@@ -1,9 +1,10 @@
 import type { GameResponse, Player } from '@ld/pixel-pitch-core'
 import type { CardTag } from './PlayerCard'
-import { benchCount, lineupForMatch, toFielded, upgradeDelta } from '@ld/pixel-pitch-core'
+import { benchCount, benchLimit, lineupForMatch, toFielded, upgradeDelta } from '@ld/pixel-pitch-core'
 import { useReducedEffects } from '@ld/react-utils'
 import { useToast } from '@ld/ui'
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { art } from '../lib/art'
@@ -55,7 +56,8 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
     })
   }, [players, state, game.cards, lookup, config])
 
-  const room = config.cards.benchSize - benchCount(game.cards, state.lineup)
+  const bench = benchLimit(state, config)
+  const room = bench - benchCount(game.cards, state.lineup)
   const [choices, setChoices] = useState<Array<'sign' | 'sell'> | null>(null)
   const decisions = choices ?? players.map((_, position) => (position < room ? 'sign' : 'sell'))
   const signing = decisions.filter(choice => choice === 'sign').length
@@ -158,12 +160,15 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
                   ))}
                 </ul>
                 <div className="flex flex-col items-center gap-1 text-lg">
-                  <span>{`Bench after signing: ${benchCount(game.cards, state.lineup) + signing}/${config.cards.benchSize}`}</span>
+                  <span>{`Bench after signing: ${benchCount(game.cards, state.lineup) + signing}/${bench}`}</span>
                   <span>
                     <Icon path="icons/currency_coin.png" />
                     {` +${sellTotal} coins from sales`}
                   </span>
                   {overfull ? <span className="text-error" role="alert">{`Your bench has room for ${Math.max(0, room)} more. Sell the rest.`}</span> : null}
+                  {room < players.length && state.perks.benchBuys < config.shop.benchSlotsMaxBuys
+                    ? <Link to="/shop?from=bench-full" className="link text-base">{`Short of room? +${config.shop.benchSlotsEach} bench places for ${config.shop.gems.benchSlots} gems`}</Link>
+                    : null}
                 </div>
                 <button
                   type="button"

@@ -1,6 +1,8 @@
 import type { GameResponse, PassTrack } from '@ld/pixel-pitch-core'
-import { dayIndex, maxXp, tierReached } from '@ld/pixel-pitch-core'
+import { maxXp, seasonDaysLeft, tierReached } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
+import { Link } from 'react-router'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { useGameAction } from '../mutations/use-game-action'
@@ -15,8 +17,7 @@ export function PassScreen({ game }: { game: GameResponse }) {
   const claim = useGameAction((input: { track: PassTrack, tier: number }) => gameApi.claimPassTier(input.track, input.tier))
   const reached = tierReached(state, config)
   const tiers = config.pass.premium.length
-  const seasonStart = state.pass.season * config.pass.seasonDays
-  const daysLeft = Math.max(0, seasonStart + config.pass.seasonDays - dayIndex(game.now, config))
+  const daysLeft = seasonDaysLeft(game.now, config)
   const hasPass = state.idle.hasPass
 
   return (
@@ -35,8 +36,10 @@ export function PassScreen({ game }: { game: GameResponse }) {
         </div>
         <span className="text-muted">{`Earn XP from matches, packs, the arcade and goals. ${config.pass.xpPerTier} XP a tier.`}</span>
         <span className={hasPass ? 'text-success' : 'text-muted'}>
-          {hasPass ? 'League Pass active: both tracks, bigger shelf and trays.' : 'Free track. The League Pass (coming to the shop) adds the premium track, and unlocks every tier you have already passed.'}
+          {hasPass ? 'League Pass active for this season: both tracks, bigger shelf and trays.' : 'Free track. The League Pass adds the premium track (two Star Signings and the season\'s kits), and unlocks every tier you have already reached.'}
         </span>
+        {hasPass ? null : <Link to="/shop?from=pass" className="btn btn-primary min-h-11 font-display text-xs">Get the League Pass</Link>}
+        <span className="text-muted">Anything you reach but do not claim is paid to you when the season ends.</span>
       </section>
 
       <ol className="flex flex-col gap-1" aria-label="Tiers">
@@ -55,7 +58,7 @@ export function PassScreen({ game }: { game: GameResponse }) {
                 {claimed
                   ? <span className="text-success">Claimed</span>
                   : canClaim
-                    ? <button type="button" className="btn btn-xs btn-primary min-h-11 px-3" aria-label={`Claim ${track} tier ${tier}`} disabled={claim.isPending} onClick={() => claim.mutate({ track, tier }, { onError: error => toast.push(formatError(error), 'error') })}>Claim</button>
+                    ? <button type="button" className="btn btn-xs btn-primary min-h-11 px-3" aria-label={`Claim ${track} tier ${tier}`} disabled={claim.isPending} onClick={() => claim.mutate({ track, tier }, { onSuccess: () => telemetry.track('pass_tier_claimed', { track, tier }), onError: error => toast.push(formatError(error), 'error') })}>Claim</button>
                     : <span className="text-muted">{!unlocked ? 'Locked' : 'Needs the Pass'}</span>}
               </div>
             )

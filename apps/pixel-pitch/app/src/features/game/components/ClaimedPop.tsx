@@ -12,6 +12,8 @@ export function ClaimedPop({ result, onClose }: { result: Claimed, onClose: () =
     { key: 'tokens', icon: 'icons/currency_token.png', text: `+${result.tokens} tokens`, show: result.tokens > 0 },
     { key: 'packs', icon: 'icons/currency_pack.png', text: `+${result.packs} ${result.packs === 1 ? 'pack' : 'packs'} on the shelf`, show: result.packs > 0 },
     { key: 'star', icon: 'icons/currency_star.png', text: `+${result.starPacks} Star ${result.starPacks === 1 ? 'pack' : 'packs'}`, show: result.starPacks > 0 },
+    { key: 'signing', icon: 'icons/currency_star.png', text: `+${result.signings} Star ${result.signings === 1 ? 'Signing' : 'Signings'} to choose`, show: (result.signings ?? 0) > 0 },
+    { key: 'kit', icon: 'icons/ui_club.png', text: `+${result.kits} new ${result.kits === 1 ? 'kit' : 'kits'}, in the shop`, show: (result.kits ?? 0) > 0 },
   ].filter(line => line.show)
   const toOpen = result.club.state.idle.shelfPacks + result.club.state.starPacks
 
@@ -27,6 +29,9 @@ export function ClaimedPop({ result, onClose }: { result: Claimed, onClose: () =
             </li>
           ))}
         </ul>
+        {result.club.state.signings.pending > 0
+          ? <Link to="/signing" className="btn btn-accent min-h-12 w-full font-display text-xs" onClick={onClose}>Choose your Star Signing</Link>
+          : null}
         {toOpen > 0
           ? (
               <>

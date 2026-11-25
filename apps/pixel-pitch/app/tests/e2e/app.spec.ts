@@ -170,7 +170,8 @@ test.describe('Packs @game', () => {
     await foundClub(page)
     await advanceClock(page, 3 * HOUR + 60_000)
     await page.goto('/packs')
-    await expect(page.getByLabel('4 of 10 packs')).toBeVisible()
+    // Three starter packs, and one more every 45 minutes.
+    await expect(page.getByLabel('7 of 10 packs')).toBeVisible()
   }
 
   async function flipAll(page: Page) {
@@ -196,7 +197,7 @@ test.describe('Packs @game', () => {
     await page.getByRole('button', { name: 'Done', exact: true }).click()
 
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
-    await expect(page.getByLabel('3 of 10 packs')).toBeVisible()
+    await expect(page.getByLabel('6 of 10 packs')).toBeVisible()
     await tab(page, 'Squad').click()
     await expect(page.getByRole('heading', { name: 'Squad (7)' })).toBeVisible()
   })
@@ -412,7 +413,8 @@ test.describe('Goals, Pass and album @game', () => {
     await expect(page.getByLabel('Day 1, claimed')).toBeVisible()
 
     await page.goto('/packs')
-    await expect(page.getByLabel('1 of 10 packs')).toBeVisible()
+    // The three starter packs and the free one.
+    await expect(page.getByLabel('4 of 10 packs')).toBeVisible()
 
     await advanceClock(page, 24 * HOUR + 60_000)
     await page.goto('/goals')
@@ -422,13 +424,14 @@ test.describe('Goals, Pass and album @game', () => {
     await expect(page.getByLabel('Day 2, claimed')).toBeVisible()
   })
 
-  test('a missed day starts the calendar again', async ({ page }) => {
+  test('a missed day keeps the calendar where it was', async ({ page }) => {
     await foundClub(page)
     await page.goto('/goals')
     await page.getByRole('button', { name: 'Claim day 1' }).click()
+    await expect(page.getByLabel('Day 1, claimed')).toBeVisible()
     await advanceClock(page, 3 * 24 * HOUR)
     await page.goto('/goals')
-    await expect(page.getByRole('button', { name: 'Claim day 1' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Claim day 2' })).toBeEnabled()
   })
 
   test('the League Pass fills with XP from matches, and its premium track needs the Pass', async ({ page }) => {

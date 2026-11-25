@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
 import { gameKeys } from '@/features/game/queries/game.keys'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { reportAppReady } from '@/lib/updates/live-updates'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
@@ -15,9 +16,21 @@ import { useAuthStore } from '@/stores/auth.store'
 export function App() {
   const status = useAuthStore(state => state.status)
 
+  const userId = useAuthStore(state => state.userId)
+
   useEffect(() => {
     void useAuthStore.getState().bootstrap()
+    // The saved consent is applied in main.tsx; this is dropped unless analytics are on by then.
+    telemetry.track('session_started')
   }, [])
+
+  // Analytics are linked to the account id, never an email, and unlinked on sign-out.
+  useEffect(() => {
+    if (userId)
+      telemetry.identify(userId)
+    else
+      telemetry.reset()
+  }, [userId])
 
   useEffect(() => {
     if (status !== 'bootstrapping') {

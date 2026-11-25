@@ -38,16 +38,14 @@ export function claimFreePack(ctx: FlowContext): FlowResult<{ packs: number }> {
 
 /** What the next calendar claim would be: the day number (1 to 7) it would be, given today. */
 export function nextCalendarDay(calendar: { streak: number, lastClaimDay: number }, day: number) {
-  if (calendar.lastClaimDay === day)
+  if (calendar.lastClaimDay >= day)
     return null
-  if (calendar.lastClaimDay === day - 1 && calendar.streak < CALENDAR_DAYS)
-    return calendar.streak + 1
-  return 1
+  return calendar.streak < CALENDAR_DAYS ? calendar.streak + 1 : 1
 }
 
 /**
- * The 7-day login calendar: claim every day for the next reward, ending in a Star pack on day 7. Missing a day starts
- * again at day 1, and so does the day after claiming day 7.
+ * The 7-day login calendar: one claim a day, each the next reward, ending in a Star pack on day 7, then it starts
+ * again at day 1. A missed day loses nothing: the next visit carries on where the player left off.
  */
 export function claimCalendar(ctx: FlowContext): FlowResult<{ day: number, reward: Reward }> {
   const { state, config, now } = ctx

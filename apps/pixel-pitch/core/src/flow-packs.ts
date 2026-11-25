@@ -6,7 +6,7 @@ import type { Position } from './positions'
 import { hashSeed } from '@ld/utils/random/rng'
 import { dayIndex } from './advance'
 import { albumSets, recordCollected } from './album'
-import { benchHasRoom } from './cards'
+import { benchHasRoom, benchLimit } from './cards'
 import { GameRuleError } from './errors'
 import { rollPack } from './packs'
 import { addXp, recordProgress } from './progress'
@@ -121,8 +121,8 @@ export function decidePack(ctx: FlowContext, decisions: readonly string[]): Flow
     return player
   })
   const signs = decisions.filter(choice => choice === 'sign').length
-  if (!benchHasRoom(ctx.cards, state.lineup, config, signs))
-    throw new GameRuleError('bench-full', `Your bench holds ${config.cards.benchSize} players. Sell some to make room.`)
+  if (!benchHasRoom(ctx.cards, state.lineup, config, signs, benchLimit(state, config)))
+    throw new GameRuleError('bench-full', `Your bench holds ${benchLimit(state, config)} players. Sell some to make room.`)
 
   const signed: OwnedCard[] = []
   const ledger: LedgerEntry[] = []

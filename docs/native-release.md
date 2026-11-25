@@ -113,10 +113,17 @@ The scripts refuse to start with uncommitted changes in `ios/` or `android/`, so
 
 **Play Console**: the store listing, then everything under Policy > App content: privacy policy, ads, Data safety, target audience, content rating. Promote a tested build to production, optionally as a staged rollout.
 
+## Purchases (Pixel Pitch)
+
+1. Create the products in App Store Connect and Google Play with the ids in `config.shop.products` (`pp_starter`, `pp_league_pass`, `pp_chairman_licence`, `pp_gems_80`, `pp_gems_500`, `pp_gems_1100`, `pp_gems_2400`). The Licence is non-consumable; the rest are consumable. None is a subscription.
+2. In RevenueCat, add both apps, put every product in the current offering, and set the webhook to `https://<api>/api/purchases/revenuecat` with the Authorization header `Bearer <REVENUECAT_WEBHOOK_SECRET>`.
+3. Build with `VITE_REVENUECAT_IOS_KEY` and `VITE_REVENUECAT_ANDROID_KEY` (public SDK keys), `VITE_TERMS_URL` and `VITE_PRIVACY_URL`. Without a key the shop says purchases are not available. `VITE_POSTHOG_KEY` turns on opt-in usage analytics.
+4. Test with sandbox accounts: a purchase should reach the club within a few seconds of the store's confirmation.
+
 ## Store checklist
 
 - In-app **account deletion** (done in Settings; the backend endpoint exists).
-- **Restore purchases** and **Manage subscription** in the shop. The subscription screen shows price, period, what is included, renewal terms, and links to terms and privacy.
+- **Restore purchases** in the shop (done in Pixel Pitch). Pixel Pitch sells no subscriptions; an app that does needs **Manage subscription** and a screen with price, period, what is included, renewal terms, and links to terms and privacy.
 - **Sign in with Apple** whenever any other social sign-in is offered.
 - A privacy policy, Apple's privacy labels and Google's Data safety form. Analytics is opt-in. With crash reports on (`VITE_SENTRY_DSN`), declare crash and diagnostic data, not linked to identity, collected only with consent.
 - An honest age rating (in-app purchases). No paid random items unless you have followed the UK loot box principles. Show odds before any random reward.

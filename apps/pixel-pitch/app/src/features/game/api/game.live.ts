@@ -56,6 +56,12 @@ export const gameApi: GameApi = {
   claimCalendar: () => act('/game/calendar/claim'),
   claimPassTier: (track, tier) => act('/game/pass/claim', { track, tier }),
   claimAlbumSet: setId => act('/game/album/claim', { setId }),
+  refillEnergy: () => act('/game/shop/energy'),
+  buyBenchSlots: () => act('/game/shop/bench'),
+  retryWarmup: () => act('/game/shop/warmup'),
+  buyKit: kitId => act('/game/shop/kit', { kitId }),
+  changeIdentity: change => act('/game/identity', { ...change }),
+  chooseSigning: playerId => act('/game/signing', { playerId }),
   async readCatalogue() {
     const result = await getApi().collection<PlayerDoc>('players').find({ limit: 1000, depth: 0 })
     return result.docs.map(doc => ({

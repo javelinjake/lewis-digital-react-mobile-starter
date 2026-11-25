@@ -83,6 +83,12 @@ export function benchCount(cards: readonly OwnedCard[], lineupIds: ReadonlyArray
   return cards.filter(card => !inLineup.has(card.id)).length
 }
 
-export function benchHasRoom(cards: readonly OwnedCard[], lineupIds: ReadonlyArray<string | null>, config: GameConfig, incoming = 1): boolean {
-  return benchCount(cards, lineupIds) + incoming <= config.cards.benchSize
+/** How many cards the bench holds: the base size, plus what the Chairman's Licence and bought bench slots add. */
+export function benchLimit(state: { perks?: { licence: boolean, benchBuys: number } }, config: GameConfig): number {
+  const perks = state.perks ?? { licence: false, benchBuys: 0 }
+  return config.cards.benchSize + perks.benchBuys * config.shop.benchSlotsEach + (perks.licence ? config.shop.licenceBenchSlots : 0)
+}
+
+export function benchHasRoom(cards: readonly OwnedCard[], lineupIds: ReadonlyArray<string | null>, config: GameConfig, incoming = 1, limit = config.cards.benchSize): boolean {
+  return benchCount(cards, lineupIds) + incoming <= limit
 }

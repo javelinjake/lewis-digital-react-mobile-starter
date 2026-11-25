@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from '@/app/App'
 import { validateEnv } from '@/config/env.config'
-import { startCrashReports } from '@/lib/telemetry/crash-reports'
+import { startTelemetry } from '@/lib/telemetry/telemetry'
 import '@/assets/base.css'
 
 const root = document.getElementById('root')
@@ -12,7 +12,7 @@ if (!root)
 
 try {
   validateEnv()
-  void startCrashReports()
+  void startTelemetry()
   createRoot(root).render(
     <StrictMode>
       <App />

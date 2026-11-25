@@ -2,6 +2,7 @@ import type { GameResponse, Position } from '@ld/pixel-pitch-core'
 import { dayIndex, oddsForTier, usedToday } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useMemo, useState } from 'react'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { art } from '../lib/art'
@@ -44,7 +45,13 @@ export function PacksScreen({ game }: { game: GameResponse }) {
   const toGo = config.packs.pityPlayers - state.pity
   const odds = oddsRows(state.league.tier, config)
   const hasOdds = oddsForTier(state.league.tier, config).length > 0
-  const reveal = { onSuccess: () => setRevealing(true), onError }
+  const reveal = {
+    onSuccess: (response: GameResponse) => {
+      telemetry.track('pack_opened', { source: response.club.state.pendingPack?.source ?? 'unknown' })
+      setRevealing(true)
+    },
+    onError,
+  }
 
   return (
     <div className="flex flex-col gap-4">

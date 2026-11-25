@@ -19,6 +19,8 @@ export const pages = {
   league: () => import('@/pages/LeaguePage').then(m => ({ Component: m.LeaguePage })),
   match: () => import('@/pages/MatchPage').then(m => ({ Component: m.MatchPage })),
   settings: () => import('@/pages/SettingsPage').then(m => ({ Component: m.SettingsPage })),
+  shop: () => import('@/pages/ShopPage').then(m => ({ Component: m.ShopPage })),
+  signing: () => import('@/pages/SigningPage').then(m => ({ Component: m.SigningPage })),
   notFound: () => import('@/pages/NotFoundPage').then(m => ({ Component: m.NotFoundPage })),
 }
 

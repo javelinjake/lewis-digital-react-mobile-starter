@@ -18,6 +18,7 @@ export function ArcadeScreen({ game }: { game: GameResponse }) {
   const { state } = game.club
   const now = useServerNow(game)
   const collect = useGameAction(() => gameApi.collectTray())
+  const refill = useGameAction(() => gameApi.refillEnergy())
   const tray = pendingTrayTokens(state.idle, config, now)
   const trayHours = state.idle.hasPass ? config.cabinets.trayCapHoursWithPass : config.cabinets.trayCapHours
   const hot = hotCabinet(now, config)
@@ -27,6 +28,18 @@ export function ArcadeScreen({ game }: { game: GameResponse }) {
   return (
     <div className="flex flex-col gap-4">
       <EnergyBar game={game} />
+      {!hasEnergy
+        ? (
+            <button
+              type="button"
+              className="btn btn-outline min-h-11"
+              disabled={refill.isPending || state.idle.gems < config.shop.gems.energyRefill}
+              onClick={() => refill.mutate(undefined, { onError: error => toast.push(formatError(error), 'error') })}
+            >
+              {`Refill energy · ${config.shop.gems.energyRefill} gems`}
+            </button>
+          )
+        : null}
 
       <section className="flex flex-col gap-2 border-2 border-slate bg-base-100 p-3" aria-label="Token tray">
         <div className="flex items-center justify-between text-lg">
