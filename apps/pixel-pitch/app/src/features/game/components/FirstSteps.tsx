@@ -1,7 +1,7 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import { useEffect } from 'react'
 import { Link } from 'react-router'
-import { telemetry } from '@/lib/telemetry'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { firstSteps } from '../lib/first-steps'
 
 const RECORDED_KEY = 'pp-first-steps'

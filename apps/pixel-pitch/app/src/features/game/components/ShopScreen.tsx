@@ -3,7 +3,7 @@ import { BASE_KITS, benchLimit, canBuy, CREST_COUNT, energyAt, energyMax, season
 import { useToast } from '@ld/ui'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { telemetry } from '@/lib/telemetry'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { kitOf } from '../lib/club'

@@ -9,9 +9,24 @@ catalogs:
     '@antfu/eslint-config':
       specifier: ^4.16.1
       version: 4.19.0
+    '@aparajita/capacitor-biometric-auth':
+      specifier: 10.0.0
+      version: 10.0.0
     '@aparajita/capacitor-secure-storage':
       specifier: ^8.0.1
       version: 8.0.1
+    '@capacitor-community/in-app-review':
+      specifier: 8.0.0
+      version: 8.0.0
+    '@capacitor-community/keep-awake':
+      specifier: 8.0.1
+      version: 8.0.1
+    '@capacitor-community/native-audio':
+      specifier: 8.0.0
+      version: 8.0.0
+    '@capacitor-firebase/messaging':
+      specifier: 8.6.0
+      version: 8.6.0
     '@capacitor/android':
       specifier: ^8.5.1
       version: 8.5.2
@@ -21,18 +36,33 @@ catalogs:
     '@capacitor/assets':
       specifier: ^3.0.5
       version: 3.0.5
+    '@capacitor/barcode-scanner':
+      specifier: 3.1.3
+      version: 3.1.3
+    '@capacitor/browser':
+      specifier: 8.0.5
+      version: 8.0.5
     '@capacitor/camera':
       specifier: ^8.2.4
       version: 8.2.4
     '@capacitor/cli':
       specifier: ^8.5.1
       version: 8.5.2
+    '@capacitor/clipboard':
+      specifier: 8.0.1
+      version: 8.0.1
     '@capacitor/core':
       specifier: ^8.5.1
       version: 8.5.2
     '@capacitor/device':
       specifier: ^8.0.3
       version: 8.0.3
+    '@capacitor/filesystem':
+      specifier: 8.1.5
+      version: 8.1.5
+    '@capacitor/geolocation':
+      specifier: 8.2.4
+      version: 8.2.4
     '@capacitor/haptics':
       specifier: ^8.0.2
       version: 8.0.2
@@ -51,9 +81,6 @@ catalogs:
     '@capacitor/preferences':
       specifier: ^8.0.1
       version: 8.0.1
-    '@capacitor/push-notifications':
-      specifier: ^8.1.2
-      version: 8.1.2
     '@capacitor/screen-orientation':
       specifier: ^8.0.2
       version: 8.0.2
@@ -66,9 +93,24 @@ catalogs:
     '@capacitor/status-bar':
       specifier: ^8.0.3
       version: 8.0.3
+    '@capawesome/capacitor-app-update':
+      specifier: 8.1.1
+      version: 8.1.1
+    '@capawesome/capacitor-background-task':
+      specifier: 8.0.3
+      version: 8.0.3
+    '@capawesome/capacitor-badge':
+      specifier: 8.0.4
+      version: 8.0.4
+    '@capawesome/capacitor-file-picker':
+      specifier: 8.1.1
+      version: 8.1.1
     '@capgo/capacitor-social-login':
       specifier: ^8.7.7
       version: 8.7.7
+    '@capgo/capacitor-updater':
+      specifier: 8.54.2
+      version: 8.54.2
     '@delmaredigital/payload-better-auth':
       specifier: 0.14.0
       version: 0.14.0
@@ -111,6 +153,9 @@ catalogs:
     '@sentry/react':
       specifier: 10.76.2
       version: 10.76.2
+    '@sentry/vite-plugin':
+      specifier: 11.11.0
+      version: 11.11.0
     '@tailwindcss/vite':
       specifier: ^4.1.11
       version: 4.3.3
@@ -126,6 +171,9 @@ catalogs:
     '@trapezedev/configure':
       specifier: ^7.1.10
       version: 7.1.10
+    '@trapezedev/project':
+      specifier: ^7.1.10
+      version: 7.1.10
     '@types/node':
       specifier: ^22.18.0
       version: 22.20.5
@@ -135,6 +183,9 @@ catalogs:
     '@types/react-dom':
       specifier: ^19.3.0
       version: 19.3.0
+    '@vercel/blob':
+      specifier: 2.8.2
+      version: 2.8.2
     '@vercel/config':
       specifier: 0.14.1
       version: 0.14.1
@@ -324,18 +375,33 @@ importers:
       '@aparajita/capacitor-secure-storage':
         specifier: 'catalog:'
         version: 8.0.1
+      '@capacitor-community/in-app-review':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-community/keep-awake':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/app':
         specifier: 'catalog:'
         version: 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/browser':
+        specifier: 'catalog:'
+        version: 8.0.5(@capacitor/core@8.5.2)
       '@capacitor/camera':
         specifier: 'catalog:'
         version: 8.2.4(@capacitor/core@8.5.2)
+      '@capacitor/clipboard':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/core':
         specifier: 'catalog:'
         version: 8.5.2
       '@capacitor/device':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capacitor/filesystem':
+        specifier: 'catalog:'
+        version: 8.1.5(@capacitor/core@8.5.2)
       '@capacitor/haptics':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -351,9 +417,6 @@ importers:
       '@capacitor/preferences':
         specifier: 'catalog:'
         version: 8.0.1(@capacitor/core@8.5.2)
-      '@capacitor/push-notifications':
-        specifier: 'catalog:'
-        version: 8.1.2(@capacitor/core@8.5.2)
       '@capacitor/screen-orientation':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -366,6 +429,15 @@ importers:
       '@capacitor/status-bar':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-app-update':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-background-task':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-badge':
+        specifier: 'catalog:'
+        version: 8.0.4(@capacitor/core@8.5.2)
       '@capgo/capacitor-social-login':
         specifier: 'catalog:'
         version: 8.7.7(@capacitor/core@8.5.2)
@@ -414,6 +486,9 @@ importers:
       '@revenuecat/purchases-capacitor':
         specifier: 'catalog:'
         version: 14.1.0(@capacitor/core@8.5.2)
+      '@sentry/capacitor':
+        specifier: 'catalog:'
+        version: 4.5.0(@capacitor/core@8.5.2)(@sentry/react@10.76.2(react@19.3.1))
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.104.0(react@19.3.1)
@@ -624,18 +699,33 @@ importers:
       '@aparajita/capacitor-secure-storage':
         specifier: 'catalog:'
         version: 8.0.1
+      '@capacitor-community/in-app-review':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-community/keep-awake':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/app':
         specifier: 'catalog:'
         version: 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/browser':
+        specifier: 'catalog:'
+        version: 8.0.5(@capacitor/core@8.5.2)
       '@capacitor/camera':
         specifier: 'catalog:'
         version: 8.2.4(@capacitor/core@8.5.2)
+      '@capacitor/clipboard':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/core':
         specifier: 'catalog:'
         version: 8.5.2
       '@capacitor/device':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capacitor/filesystem':
+        specifier: 'catalog:'
+        version: 8.1.5(@capacitor/core@8.5.2)
       '@capacitor/haptics':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -651,9 +741,6 @@ importers:
       '@capacitor/preferences':
         specifier: 'catalog:'
         version: 8.0.1(@capacitor/core@8.5.2)
-      '@capacitor/push-notifications':
-        specifier: 'catalog:'
-        version: 8.1.2(@capacitor/core@8.5.2)
       '@capacitor/screen-orientation':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -666,6 +753,15 @@ importers:
       '@capacitor/status-bar':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-app-update':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-background-task':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-badge':
+        specifier: 'catalog:'
+        version: 8.0.4(@capacitor/core@8.5.2)
       '@capgo/capacitor-social-login':
         specifier: 'catalog:'
         version: 8.7.7(@capacitor/core@8.5.2)
@@ -690,6 +786,9 @@ importers:
       '@ld/react-utils':
         specifier: workspace:*
         version: link:../../../packages/react-utils
+      '@ld/telemetry':
+        specifier: workspace:*
+        version: link:../../../packages/telemetry
       '@ld/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
@@ -699,6 +798,9 @@ importers:
       '@revenuecat/purchases-capacitor':
         specifier: 'catalog:'
         version: 14.1.0(@capacitor/core@8.5.2)
+      '@sentry/capacitor':
+        specifier: 'catalog:'
+        version: 4.5.0(@capacitor/core@8.5.2)(@sentry/react@10.76.2(react@19.3.1))
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.104.0(react@19.3.1)
@@ -941,6 +1043,9 @@ importers:
 
   packages/config-vite:
     dependencies:
+      '@sentry/vite-plugin':
+        specifier: 'catalog:'
+        version: 11.11.0(rollup@4.63.5)
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.3.3(vite@7.3.6(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
@@ -1042,21 +1147,51 @@ importers:
 
   packages/native:
     devDependencies:
+      '@aparajita/capacitor-biometric-auth':
+        specifier: 'catalog:'
+        version: 10.0.0
       '@aparajita/capacitor-secure-storage':
         specifier: 'catalog:'
         version: 8.0.1
+      '@capacitor-community/in-app-review':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-community/keep-awake':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
+      '@capacitor-community/native-audio':
+        specifier: 'catalog:'
+        version: 8.0.0(@capacitor/core@8.5.2)
+      '@capacitor-firebase/messaging':
+        specifier: 'catalog:'
+        version: 8.6.0(@capacitor/core@8.5.2)
       '@capacitor/app':
         specifier: 'catalog:'
         version: 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/barcode-scanner':
+        specifier: 'catalog:'
+        version: 3.1.3(@capacitor/core@8.5.2)
+      '@capacitor/browser':
+        specifier: 'catalog:'
+        version: 8.0.5(@capacitor/core@8.5.2)
       '@capacitor/camera':
         specifier: 'catalog:'
         version: 8.2.4(@capacitor/core@8.5.2)
+      '@capacitor/clipboard':
+        specifier: 'catalog:'
+        version: 8.0.1(@capacitor/core@8.5.2)
       '@capacitor/core':
         specifier: 'catalog:'
         version: 8.5.2
       '@capacitor/device':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capacitor/filesystem':
+        specifier: 'catalog:'
+        version: 8.1.5(@capacitor/core@8.5.2)
+      '@capacitor/geolocation':
+        specifier: 'catalog:'
+        version: 8.2.4(@capacitor/core@8.5.2)
       '@capacitor/haptics':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -1072,9 +1207,6 @@ importers:
       '@capacitor/preferences':
         specifier: 'catalog:'
         version: 8.0.1(@capacitor/core@8.5.2)
-      '@capacitor/push-notifications':
-        specifier: 'catalog:'
-        version: 8.1.2(@capacitor/core@8.5.2)
       '@capacitor/screen-orientation':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.5.2)
@@ -1087,9 +1219,24 @@ importers:
       '@capacitor/status-bar':
         specifier: 'catalog:'
         version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-app-update':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-background-task':
+        specifier: 'catalog:'
+        version: 8.0.3(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-badge':
+        specifier: 'catalog:'
+        version: 8.0.4(@capacitor/core@8.5.2)
+      '@capawesome/capacitor-file-picker':
+        specifier: 'catalog:'
+        version: 8.1.1(@capacitor/core@8.5.2)
       '@capgo/capacitor-social-login':
         specifier: 'catalog:'
         version: 8.7.7(@capacitor/core@8.5.2)
+      '@capgo/capacitor-updater':
+        specifier: 'catalog:'
+        version: 8.54.2(@capacitor/core@8.5.2)
       '@ld/config-typescript':
         specifier: workspace:*
         version: link:../config-typescript
@@ -1248,7 +1395,14 @@ importers:
 
   tooling/create-app: {}
 
-  tooling/native: {}
+  tooling/native:
+    dependencies:
+      '@trapezedev/project':
+        specifier: 'catalog:'
+        version: 7.1.10
+      '@vercel/blob':
+        specifier: 'catalog:'
+        version: 2.8.2
 
 packages:
 
@@ -1306,6 +1460,10 @@ packages:
 
   '@antfu/install-pkg@1.1.0':
     resolution: {integrity: sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ==}
+
+  '@aparajita/capacitor-biometric-auth@10.0.0':
+    resolution: {integrity: sha512-azjWaRucB8x1/gSzSTp/NxelaOZyg+m765gSzjwUkSQgg30RrZPmPq6pyLeeXVSZNDY3Rxf5Hj8obgZaXirCFQ==}
+    engines: {node: '>=20.0.0'}
 
   '@aparajita/capacitor-secure-storage@8.0.1':
     resolution: {integrity: sha512-NSYIQtH6TyBgL3myumQGcCE3iecq2PtGNFlGxl1fJKEU37Dv5DudzDlwg42cgbVxCm1ay72g4X7rTSAvKULsVg==}
@@ -1916,6 +2074,30 @@ packages:
   '@borewit/text-codec@0.2.3':
     resolution: {integrity: sha512-49CycTz1aAZmvFcwkeFyhud1HUmRIB5Tabf7ALV+VA4Iu85MTfz2cUwzPagMFAdVBvrWdkCxG67I30tUwwpKsw==}
 
+  '@capacitor-community/in-app-review@8.0.0':
+    resolution: {integrity: sha512-AYpEkIjdv27WGS3hnlc7xAQ1BhaBvD2svgQBfHF4P2Olw1N6a7MSCOQC6O4SuxmdBdJ2fM6uFeo1jyNjKLtIPw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor-community/keep-awake@8.0.1':
+    resolution: {integrity: sha512-wTI5A6FWl5gWoMduzJ5euuJ1P73SO+rea0jV6vNdmz5TLbwIDhufelFe/GowNvU9gog6kDYbFhJ2pOp9ua1f3w==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor-community/native-audio@8.0.0':
+    resolution: {integrity: sha512-2y7uZfwmAkwfaz+Sj8ZX0ZWGgBK+0Hbg3IUl8gb1brCkH3UgQLAKkMNoaxVJ6yKP5Ov9vp8wKkeyLxU2KEpNMw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor-firebase/messaging@8.6.0':
+    resolution: {integrity: sha512-DRx4O/naR/tguHAbSlhsm66x/XUKn0IM3KfKcn6lx0pPTGucSfGjJUbSztJmvv5vSwJpUU39tTWUboFe4IVpQA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+      firebase: ^12.6.0
+    peerDependenciesMeta:
+      firebase:
+        optional: true
+
   '@capacitor/android@8.5.2':
     resolution: {integrity: sha512-rtiaz78egCcS+vs29wkWCL3C+RhazKMSygXcjutwWP8NmO6r5UBxOvGf3Wjz5+ahobyQ723tn9gCePwRwcNDZQ==}
     peerDependencies:
@@ -1930,6 +2112,16 @@ packages:
     resolution: {integrity: sha512-ohz/OUq61Y1Fc6aVSt0uDrUdeOA7oTH4pkWDbv/8I3UrPjH7oPkzYhShuDRUjekNp9RBi198VSFdt0CetpEOzw==}
     engines: {node: '>=10.3.0'}
     hasBin: true
+
+  '@capacitor/barcode-scanner@3.1.3':
+    resolution: {integrity: sha512-ZqM+Z6gMdIyjA2g+S5SgR3dyfIdKA6h6lnkV/rwKa+Q/iZ32rGnbuBATvqwb+HwQqvSGpvIZUlOU51Cw/MAIug==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/browser@8.0.5':
+    resolution: {integrity: sha512-qqcEjUqs9kG1naF+tsD8rERuZ3wuIfXzvoIJEERHI4RNWwNSUqAHHduaKhkyb+t01VyVPa0ydx0mZ/eOskk2Ug==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@capacitor/camera@8.2.4':
     resolution: {integrity: sha512-kZIeRkOvtE2dnbq76tEo3ZWKyGfzHFK0txsR56qKAmjAARTg9r86iIUcKZa/y4U1vOHH/gdQae5e3+OAF3wwPQ==}
@@ -1946,11 +2138,26 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
+  '@capacitor/clipboard@8.0.1':
+    resolution: {integrity: sha512-iOlbTi8MojKyLnYE+M27priXid7vHd0PlDwyHohPzkuQ8Rkp6q7ykwZmPEUD+OnU/Ink7Qw/pUOfKgraKmA6Eg==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
   '@capacitor/core@8.5.2':
     resolution: {integrity: sha512-agnQbGdhGw/KZFuLf7H9SY2o+oE7upkr/WPQsYaokXP6f9chaE8iVmbKkfN6SVl4w3pmz7oZ3Ur1hbkmy1hx+w==}
 
   '@capacitor/device@8.0.3':
     resolution: {integrity: sha512-rliPCCZwxtjU6200jJNDAsQhioyozV3fGgiP+NgRqtDOI7i+Jdz+DYNwEup+3MGZZ4NEmkuFaBeWLM3T01vJRg==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/filesystem@8.1.5':
+    resolution: {integrity: sha512-m1RkI8L83NJeppEKyRWioK3MDp2vjlA+QfUQcF8/xRlcXNC2HYxqoyYJ+K4M0EcVovy+g+4F24S05+bhK4Vgdg==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/geolocation@8.2.4':
+    resolution: {integrity: sha512-FDcUiPQc2AXSTAV61QSDPXml11guKBx5HPEkdWvUqw7kMqrc2Ucp0bsWngeLyRs/01a5aWBI0hEuvetuF3PsrQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -1984,11 +2191,6 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
-  '@capacitor/push-notifications@8.1.2':
-    resolution: {integrity: sha512-TQl4XxqJfNF+KbSYBFMXYYT5WXUaleVKXlByhh/8+KySMVNjp+l5OqAUoGe/sY1IAnGXEuUeCjA/WLZEVvGwrA==}
-    peerDependencies:
-      '@capacitor/core': '>=8.0.0'
-
   '@capacitor/screen-orientation@8.0.2':
     resolution: {integrity: sha512-4hC/LBRI3m0Mm3J+U7NyFd3WtQt/GryYgutOqygP1NTw3eAn1p1d+88Z8GwsuGpRj2vxyWySDUJSndXyAfxwUw==}
     peerDependencies:
@@ -2009,10 +2211,38 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
+  '@capacitor/synapse@1.0.4':
+    resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
+
+  '@capawesome/capacitor-app-update@8.1.1':
+    resolution: {integrity: sha512-1TzM4hMN4wgCDu3O0UhaIIoVspUFNfNJ+q+K/EKSQRKkfCbG79S1Fn/sXwMdtMO1Me55LQxdjw1I9rctFtKBOQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-background-task@8.0.3':
+    resolution: {integrity: sha512-MAeohDZ65gFYlYYivcXcs1rdgpab4biaTfKFoSktfydun7w+VEr415bk3qTd8u9Z95P0Edp6Cw0hYnFEbQ3FTw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-badge@8.0.4':
+    resolution: {integrity: sha512-ADqD0XvSxrry2B5ntLHJrrRKnjYqZjJANRbNpCnEwHn2zBeOt5KIqP6T2FZUod574fPCgXpfhQJWAacaYjNMXA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-file-picker@8.1.1':
+    resolution: {integrity: sha512-4zDRca+uQbhFkbASoRbMpvXRbuCVhmVATDYLL9MG5UvILer01uUcN7oQhuxpltVir2YnP+1O8LasnwYlqlLM5g==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
   '@capgo/capacitor-social-login@8.7.7':
     resolution: {integrity: sha512-8El/LzJkwvHDalbtaqKz3Qrd61OiPWHOB5qrt/ExYFrI9Jzjjk4c6GT+Gg9IJ14AMaboJAhI+0sLZghDBG17NQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
+
+  '@capgo/capacitor-updater@8.54.2':
+    resolution: {integrity: sha512-Tuy9xeaJeudIzz3Dp/oenvhjtC2C3+E2OcZy+zW7w5/0RieTedyI7QRX/hxI3uXsb/94G5HT4ueN3pIb9pbtRA==}
+    peerDependencies:
+      '@capacitor/core': ^8.0.0
 
   '@clack/core@0.5.0':
     resolution: {integrity: sha512-p3y0FIOwaYRUPRcMO7+dlmLh8PSRcrjuTndsiA0WAFbWES0mLZlrjVoBRZ9DzkPFJZG6KGkJmoEAY0ZcVWTkow==}
@@ -3253,6 +3483,9 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
+  '@isaacs/nonrecursive-glob-match@1.1.0':
+    resolution: {integrity: sha512-GPm/Dbvk5RLmhRnxXIa7nTpK0xtl4E0wj0MslsuNiJ1FIROU+2+9lgUC/dgF7Ey4QCWhfEsgxilMRMCdHPfDfw==}
+
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
@@ -3398,6 +3631,123 @@ packages:
   '@opentelemetry/semantic-conventions@1.45.0':
     resolution: {integrity: sha512-aOP45mbcOKbQVvFWfQmgoOPT8R2iwbbbgl83k4CujGV9BrJhFr3qG55MFpwFs4YLabpuW3HhzUY9eQxPlDqaZw==}
     engines: {node: '>=14'}
+
+  '@oxc-parser/binding-android-arm-eabi@0.152.0':
+    resolution: {integrity: sha512-393VtirINkae4XHBTkq/yQxhOwEr4V+r0et37P2fp+sYZSdYgZTRDPo5Um8vBh0QjMZ+RmaMy4PP0qwr4cTMwA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm]
+    os: [android]
+
+  '@oxc-parser/binding-android-arm64@0.152.0':
+    resolution: {integrity: sha512-iYFcExATJNZ0rZj0o02THbD1Nc9jAW0nVgIQPee6ejbSASpbZXlIMw8jxtpzaG14JQTWwGSZ6U5dEtRJXE6V3Q==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [android]
+
+  '@oxc-parser/binding-darwin-arm64@0.152.0':
+    resolution: {integrity: sha512-fnU+DfUzi5/rFy0LzmipYRz06PAUUkOS8kCJQ3Eg6oqlunC1XZXoffFqxmdL51RmcbYtUG3P8DVG1U5fckoa2A==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@oxc-parser/binding-darwin-x64@0.152.0':
+    resolution: {integrity: sha512-Y3U2okryWTs7hDld6UhjJwLNf8/do+x4g4C+1U5SiGwrTLwbO83WJYJA8+l9iFSilWBgnfpd/+U76tfeNxUHzA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [darwin]
+
+  '@oxc-parser/binding-freebsd-x64@0.152.0':
+    resolution: {integrity: sha512-XkhkRrrPffEw+ZLv/d/5pEni0buxinm/E/N6fLbJCunD1DBbeCTtVP23ESV+4CWCWdSz397asks1ViGslpmWiQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [freebsd]
+
+  '@oxc-parser/binding-linux-arm-gnueabihf@0.152.0':
+    resolution: {integrity: sha512-MLzsRRbdfmdzo6JEhbC1yKU9ItfvM8tEf18HM32jCiNYZEz6J3bRBRl3cTkKR0vBdrk9ZVlcARXtwHccs+epDA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-arm-musleabihf@0.152.0':
+    resolution: {integrity: sha512-HHerTEJz7Iy10Ji6BGsk4gqG6PU0UzFuBu91jIEOX89FnrI5ECWSEr7BLpkYQhp7U0QFtMnBhNfQKI0hYZK78w==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-arm64-gnu@0.152.0':
+    resolution: {integrity: sha512-9Bb8GyzZ2uSLzRDZ27usaKokr07mxiBe2dDF5b6bd2janmaJTT1gL51UfP7AU30yFiXrJvcRyFKREAgKwZYs0w==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-arm64-musl@0.152.0':
+    resolution: {integrity: sha512-om7iDMUroI74A/lfRRWY9/Ev3VWrVsrUZ4tyvyh8raBey/sdcfyAD7tYWc+iykAiotnmftyKTpUKFr1QnaBrAQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-ppc64-gnu@0.152.0':
+    resolution: {integrity: sha512-Lf1OL2lMTqwDMFC6jnRb30B+WYHKV0XT+bPHcFM6xHtNVwxpobiTzUIvKH6a0LWpvfwyru8Yu6zCGHqqFHH+gg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [ppc64]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-riscv64-gnu@0.152.0':
+    resolution: {integrity: sha512-BYWSMQK+YJ9ZILStPcmmiSVq8KEG9Qdq/c4BHPC3rUEq/fEDCVjUIwdj5ZzjgZ9P9is9PKu0tcAXzq1ZXg4urQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [riscv64]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-riscv64-musl@0.152.0':
+    resolution: {integrity: sha512-d2LqHNNNqdH185sRK5dPKWZu201JrNu9/CRFuVEuT+ht7n/QaVblEMWT9MALQPrDWYvhG10P+NSKJFquDWZ09w==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [riscv64]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-s390x-gnu@0.152.0':
+    resolution: {integrity: sha512-8gBeHt5rA/8+pKhHl+zLggfa3L/V/L2at96p7ty6pBE7id6lFO19nFUc15u2PcjC4OYeYK465MKy1fhhbpFIGw==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [s390x]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-x64-gnu@0.152.0':
+    resolution: {integrity: sha512-ltgrSF6L+yPTVsIdaAyqKq3zTqzj/1VlNbxWZuxAe8flR3sWdyNsKvdXukoO8/ucJbLickhmieRBge+o/e8Ugw==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-x64-musl@0.152.0':
+    resolution: {integrity: sha512-LcMp6BvrBnewSfdkLHoSqidhoAq4syKOTBV5TYHWd+2VnGkfD/nPRRVIzTBt/Lkbt7pfOFDGtkiTntFS0p6sQQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [linux]
+
+  '@oxc-parser/binding-openharmony-arm64@0.152.0':
+    resolution: {integrity: sha512-jbhoMCslVxzRCRNQ8TSHxjYdSKRvk8O6ciLVDkahJvmyHDzBqba/bMQHM6ULKj/rgHNNbSzlIiakdx8SEfkJzA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [openharmony]
+
+  '@oxc-parser/binding-win32-arm64-msvc@0.152.0':
+    resolution: {integrity: sha512-JZYVlhv36mr/nertnRB7vchJECOBb1Lz6lltalILsB+o9M/is+H6BEDRLQKdqA4JKs6NjJszo46+iM5sfwj6jQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [win32]
+
+  '@oxc-parser/binding-win32-ia32-msvc@0.152.0':
+    resolution: {integrity: sha512-1X9oganvVsunRH0lH10UU05N+H9atpX6WsOybByUjwnfcd3h/0tYwvuv16XuHglrIUOnxV2TodbLVEwwafd64g==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [ia32]
+    os: [win32]
+
+  '@oxc-parser/binding-win32-x64-msvc@0.152.0':
+    resolution: {integrity: sha512-sw0M80/dn9rcpu+Rqqph/C+MjvDDce6MlXmFjsNQtPEymha0eJy3ml6+foSUTqFfpDIDyHZZ4eoJ43IoMe8bJw==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [win32]
+
+  '@oxc-project/types@0.152.0':
+    resolution: {integrity: sha512-oM/5rLBm2tPkg0iBgkH/FOeR3PCDpY19GTgAZjMFM8h9WI9VW7cLgzp6nwtarYKmovavIQZ+Fe/RKX/8C8O/Rw==}
 
   '@paulirish/trace_engine@0.0.65':
     resolution: {integrity: sha512-Qsm6F5C8xf6ZzQXbQc2+wcpe6sggfs/gvc/ytqSurdvYg3kyW0ECHCqE0CWBKZpqgjVfPNX9c7SCS3r2nEIRGg==}
@@ -3688,6 +4038,18 @@ packages:
     resolution: {integrity: sha512-dFyuWYjDs0/LetQZqK5IHj0/wIC8sBYADyMjU5Fo0nt2vzT11CPPG2AKeITIQcoRRs9IZ8ahtDMqWMvBPfDs1w==}
     engines: {node: '>=18'}
 
+  '@sentry/bundler-plugins@11.11.0':
+    resolution: {integrity: sha512-et1v8V74ARNOSQ+k4VG7PRiNJl2APGAzlRCiUt42izw8yD+X+E4oCe7wwHjohmv3zufvD1VntHDptSC0/9ChQw==}
+    engines: {node: '>=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0'}
+    peerDependencies:
+      rollup: '>=3.2.0'
+      webpack: '>=5.1.0'
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+      webpack:
+        optional: true
+
   '@sentry/capacitor@4.5.0':
     resolution: {integrity: sha512-f/rH3ImHnYfNC6Y76C3pzKTWtkCLpVw+oEAGWzADfRJd3eSmnFnDP0NCfyMzyIi+hfI+BpFnaHgC3KdUxD0Mcw==}
     peerDependencies:
@@ -3707,6 +4069,10 @@ packages:
     resolution: {integrity: sha512-fO9PLmHdVURcSPUpWCItWAtgKiMwGdJHbovoSEyLplX5sxs2ugvI4CBPTrkkgqhObnZOD0CnWBKDzSVQYBKEyQ==}
     engines: {node: '>=14'}
 
+  '@sentry/conventions@0.30.0':
+    resolution: {integrity: sha512-WTumd5A2iFmHTRubi6mc6gLHU8LswPQqoNaZu6T1cxiTUmy3WdEw0i8FAnVbcgxTlsumX5oh63/b4B9lY5wAPQ==}
+    engines: {node: '>=14'}
+
   '@sentry/core@10.76.2':
     resolution: {integrity: sha512-vndrQalRiwYatTkjlLWvyf69KocXIb9TKJ4A9oiyWguL8PJYtqIRTlRe4OpkpjLrxS18fvRdV0jEm29c/9p3hQ==}
     engines: {node: '>=18'}
@@ -3714,6 +4080,10 @@ packages:
   '@sentry/core@10.78.0':
     resolution: {integrity: sha512-MMR4ME+agrjbvQ0DtTYJJypm+QlCoz9UJgWN8gjcXqlyDjYk69LwPjnaocYN1JyQMy2dx5Hk4S/Rt12gTQ5cGw==}
     engines: {node: '>=18'}
+
+  '@sentry/core@11.11.0':
+    resolution: {integrity: sha512-PRrcEdPrTYuHcbDa6DhJZR9Qg2d+2gjKVXiv2QeiTgxvhvXDxYiaVSXH0lldKTR099Er5TAEChiX7aEu4yNlUw==}
+    engines: {node: '>=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0'}
 
   '@sentry/feedback@10.76.2':
     resolution: {integrity: sha512-w8T7+LfAXjPPg/CpIcXHzPfeMHXR+61WhfYCwKNFK4mUQknYK4m0Kbt28dte9fSsijo4hKvHZ+tJc591SaD4ig==}
@@ -3773,6 +4143,10 @@ packages:
   '@sentry/types@10.76.2':
     resolution: {integrity: sha512-UliOKWPE5t+T3E1cAbCzQyGoThfx930CoILEnkQfeyqvIk39ykYv+l9XWh47OxG5W5R/2cDKhIPX3o0qmnk1Yg==}
     engines: {node: '>=18'}
+
+  '@sentry/vite-plugin@11.11.0':
+    resolution: {integrity: sha512-2mTYahcev74yoQJ8qENMdBS6aQ3QzFn3vWL0d7SxdQP9nDko9qwK65GjFMtmgF6+spMW5JdjJOt/dvgh3CSJIw==}
+    engines: {node: '>=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0'}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -4128,9 +4502,24 @@ packages:
     resolution: {integrity: sha512-8eQ9R218XORK+KLosnf4bu/QsUXvUyVwTbArg7/0NMB1Pu87OJKvj4nhFblkYE8gQV73mW1dx1ptlPCkwRGa7A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
+  '@vercel/blob@2.8.2':
+    resolution: {integrity: sha512-ZUUWO2VA00r9ZTRtKgH4va7FGOUxUtge2FaRr9WZmeeX2s3C3qVe2tOTLTbv/tkcd+L+ijxaI2eP9S1/mGHc9Q==}
+    engines: {node: '>=20.0.0'}
+
+  '@vercel/cli-config@0.3.1':
+    resolution: {integrity: sha512-sISbygqlFXYb8qfPu/+2Cf/A8IjrlAuZePdag3EDQr2PRA455s7UZtl9Ro674CWsB/saBRmz3jEkw0YsQs8OoQ==}
+
+  '@vercel/cli-exec@1.0.1':
+    resolution: {integrity: sha512-g9XerViJ/paZujufXYcu5XYI2vU2rtB4sgdpjUHde5RnOkdmpu0ngH46LCFGHoPXO/C+qDPSczIHIRN+8Q2YKQ==}
+    engines: {node: '>= 18'}
+
   '@vercel/config@0.14.1':
     resolution: {integrity: sha512-iaCxmLGGm84mglf1NpCEXYbvH8u5xvcWCuXo7iBevxGlIHoN6/qV9532oYf2wv6EPgxdh12Q9jwav+3Buv387w==}
     hasBin: true
+
+  '@vercel/oidc@3.8.10':
+    resolution: {integrity: sha512-sPw1kIfQEA6/2dB+zlAJHnhhNBRJ8t/t4HfFvKO+g0EPBA7NbCKyGovuhgAV6Mnl865ka7HqCEguIy596czdAw==}
+    engines: {node: '>= 20'}
 
   '@vercel/routing-utils@6.6.1':
     resolution: {integrity: sha512-rIVybdiezAVE4KZVjXRrKHUEoUNW1RzNTkcUR/0v1rsOnxn2EqNjleNP7HFoPlr0vfWvXUUtUKPTM7AFxIcJnw==}
@@ -4867,6 +5256,10 @@ packages:
     resolution: {integrity: sha512-1gxPBJpI/pcjQhKgIU91II6Wkay+dLcN3M6rf2uwP8hRur3HtQXjVrdAK3sjC0piaEuxzMwjXChcETiJl47lAQ==}
     engines: {node: '>=18'}
 
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
+    engines: {node: '>=12'}
+
   drizzle-kit@0.31.7:
     resolution: {integrity: sha512-hOzRGSdyKIU4FcTSFYGKdXEjFsncVwHZ43gY3WU5Bz9j5Iadp6Rh6hxLSQ1IWXpKLBKt/d5y1cpSPcV+FcoQ1A==}
     hasBin: true
@@ -5395,6 +5788,10 @@ packages:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
 
+  execa@5.1.1:
+    resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}
+    engines: {node: '>=10'}
+
   exit-hook@5.1.0:
     resolution: {integrity: sha512-INjr2xyxHo7bhAqf5ong++GZPPnpcuBcaXUKt03yf7Fie9yWD7FapL4teOU0+awQazGs5ucBh7xWs/AD+6nhog==}
     engines: {node: '>=20'}
@@ -5585,6 +5982,10 @@ packages:
     resolution: {integrity: sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==}
     engines: {node: '>= 0.4'}
 
+  get-stream@6.0.1:
+    resolution: {integrity: sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==}
+    engines: {node: '>=10'}
+
   get-symbol-description@1.1.0:
     resolution: {integrity: sha512-w9UMqWwJxHNOvoNzSJ2oPF5wvYcvP7jUvYzhp67yEhTi17ZDBBC1z9pTdGuzjD+EFIqLSYRweZjqfiPzQ06Ebg==}
     engines: {node: '>= 0.4'}
@@ -5614,6 +6015,10 @@ packages:
 
   glob@13.0.6:
     resolution: {integrity: sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw==}
+    engines: {node: 18 || 20 || >=22}
+
+  glob@14.0.6:
+    resolution: {integrity: sha512-OwXjVP2svY5EyLY75Vek96C8qK43gqrt4xsZ+qSILdnaEiJPXkd62mcfUSNx/TQErQRdu5uM5kF67sfONragKw==}
     engines: {node: 18 || 20 || >=22}
 
   glob@9.3.5:
@@ -5741,6 +6146,9 @@ packages:
   html-entities@2.6.0:
     resolution: {integrity: sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ==}
 
+  html5-qrcode@2.3.8:
+    resolution: {integrity: sha512-jsr4vafJhwoLVEDW3n1KvPnCCXWaQfRng0/EEYk1vNcQGcG/htAdhJX0be8YyqMoSz7+hZvOZSTAepsabiuhiQ==}
+
   http-link-header@1.1.4:
     resolution: {integrity: sha512-xT3GPW6/ZbGuw4UvwHqErSCEjNUlwbQJuZn9/q5U4WEKfp2kENVCAlousG1zLxHeaQ/ffOHUNpWamvkbBW0eNw==}
     engines: {node: '>=6.0.0'}
@@ -5764,6 +6172,10 @@ packages:
   https-proxy-agent@7.0.6:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
+
+  human-signals@2.1.0:
+    resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
+    engines: {node: '>=10.17.0'}
 
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
@@ -5864,6 +6276,10 @@ packages:
   is-buffer@1.1.6:
     resolution: {integrity: sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==}
 
+  is-buffer@2.0.5:
+    resolution: {integrity: sha512-i2R6zNFDwgEHJyQUtJEk0XFi1i0dPFn/oqjK3/vPCcDeJvW5NQ83V8QbicfF1SupOaB0h8ntgBC2YiE7dfyctQ==}
+    engines: {node: '>=4'}
+
   is-builtin-module@5.0.0:
     resolution: {integrity: sha512-f4RqJKBUe5rQkJ2eJEJBXSticB3hGbN9j0yxxMQFqIW89Jp9WYFtzfTcRlstDKVUTRzSOTLKRfO9vIztenwtxA==}
     engines: {node: '>=18.20'}
@@ -5929,6 +6345,9 @@ packages:
   is-negative-zero@2.0.3:
     resolution: {integrity: sha512-5KoIu2Ngpyek75jXodFvnafB6DJgr3u8uuK0LEZJjrU19DrMD3EVERaR8sjz8CCGgpZvxPl9SuE1GMVPFHx1mw==}
     engines: {node: '>= 0.4'}
+
+  is-node-process@1.2.0:
+    resolution: {integrity: sha512-Vg4o6/fqPxIjtxgUH5QLJhwZ7gW5diGCVlXpuUfELC62CuxM1iHcRe51f2W1FDy04Ai4KJkagKjx3XaqyfRKXw==}
 
   is-number-object@1.1.1:
     resolution: {integrity: sha512-lZhclumE1G6VYD8VHe35wFaIif+CTy5SJIi5+3y4psDgWu4wPDoBhF8NxUOinEc7pHgiTsT6MaBb92rKhhD+Xw==}
@@ -6337,6 +6756,9 @@ packages:
   memoize-one@6.0.0:
     resolution: {integrity: sha512-rkpe71W0N0c0Xz6QD0eJETuWAJGnJ9afsl1srmwPrI+yBCkge5EycXXbYRyvL29zZVUWQCY7InPRCv3GDXuZNw==}
 
+  merge-stream@2.0.0:
+    resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
+
   merge@2.1.1:
     resolution: {integrity: sha512-jz+Cfrg9GWOZbQAnDQ4hlVnQky+341Yk5ru8bZSe6sIDTCIg8n9i/u7hSQGSVOF3C7lH6mGtqjkiT9G4wFLL0w==}
 
@@ -6447,9 +6869,17 @@ packages:
     engines: {node: '>=10.0.0'}
     hasBin: true
 
+  mimic-fn@2.1.0:
+    resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
+    engines: {node: '>=6'}
+
   minimatch@10.2.6:
     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
     engines: {node: 18 || 20 || >=22}
+
+  minimatch@11.0.9:
+    resolution: {integrity: sha512-KCFkfyjqerNlSstjlhIGNXIKZGA/6O4V4RlhZ+Dsr621SPPw0mzlypE9D9ZOoPiVefHID+j7/XuMMlqfD/F60Q==}
+    engines: {node: 20 || >=22}
 
   minimatch@3.1.5:
     resolution: {integrity: sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w==}
@@ -6561,6 +6991,10 @@ packages:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
 
+  npm-run-path@4.0.1:
+    resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
+    engines: {node: '>=8'}
+
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
 
@@ -6597,6 +7031,10 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
+  onetime@5.1.2:
+    resolution: {integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==}
+    engines: {node: '>=6'}
+
   open@8.4.2:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
@@ -6605,9 +7043,17 @@ packages:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
 
+  os-paths@4.4.0:
+    resolution: {integrity: sha512-wrAwOeXp1RRMFfQY8Sy7VaGVmPocaLwSFOYCGKSyo8qmJ+/yaafCl5BCA1IQZWqFSRBrKDYFeR9d/VyQzfH/jg==}
+    engines: {node: '>= 6.0'}
+
   own-keys@1.0.2:
     resolution: {integrity: sha512-19YVAg7T+WTrxggPukVq7DjTv6+PJ867TmhCvBsYwmbFCsZd344rq2Ld1p0wo8f8Qrrhgp82c6FJRqdXWtSEhg==}
     engines: {node: '>= 0.4'}
+
+  oxc-parser@0.152.0:
+    resolution: {integrity: sha512-ZztsZgaCWmPeKYMdoTT5e0oV/oxD1NeLWNR3kAtr/G707cUPYaaozRlVDHLCGnszHJRszN9mJwmPNpqgwloC0A==}
+    engines: {node: ^20.19.0 || >=22.12.0}
 
   p-limit@3.1.0:
     resolution: {integrity: sha512-TYOanM3wGwNGsZN2cVTYPArw454xnXj5qmWF1bEoAc4+cU/ol7GVh7odevjp1FNHduHc3KZMcFduxU5Xc6uJRQ==}
@@ -6669,6 +7115,10 @@ packages:
 
   path-scurry@2.0.2:
     resolution: {integrity: sha512-3O/iVVsJAPsOnpwWIeD+d6z/7PmqApyQePUtCndjatj/9I5LylHvt5qluFaBT3I5h3r1ejfR056c+FCv+NnNXg==}
+    engines: {node: 18 || 20 || >=22}
+
+  path-scurry@3.0.0:
+    resolution: {integrity: sha512-1pTbQqH1wIwMi/eleQ5leFTTCkzFsPcgXNjwOA8YGGW/W4/kHT3dssE7Z6NH+zuqNLOzOB0uaD61yl7cAcVhgg==}
     engines: {node: 18 || 20 || >=22}
 
   path-to-regexp@6.1.0:
@@ -7160,6 +7610,11 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  sentry@0.45.0:
+    resolution: {integrity: sha512-kgmEbLlC22lL7uneeUm9Sjz65rp5cvwYOMTxXbZCmBum4sbVre/lLT3zTV3kwXHJ9/BM8ZS0/GhZe9Cl1t6WyA==}
+    engines: {node: '>=20.0'}
+    hasBin: true
+
   serialize-javascript@7.1.2:
     resolution: {integrity: sha512-GL2BWwVa6JydKO6l/ljVgjAZF4QJ3S7dWDWi53s5GZT8PJzD2fNxi67HANQGKAqPrwEpL5ba7gUBGi0Ls/sEoQ==}
     engines: {node: '>=20.0.0'}
@@ -7368,6 +7823,10 @@ packages:
     resolution: {integrity: sha512-ZprKx+bBLXv067WTCALv8SSz5l2+XhpYCsVtSqlMnkAXMWDq+/ekVbl1ghqP9rUHTzv6sm/DwCOiYutU/yp1fw==}
     engines: {node: '>=10'}
 
+  strip-final-newline@2.0.0:
+    resolution: {integrity: sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==}
+    engines: {node: '>=6'}
+
   strip-indent@4.1.1:
     resolution: {integrity: sha512-SlyRoSkdh1dYP0PzclLE7r0M9sgbFKKMFXpFRUMNuKhQSbC6VQIGzq3E0qsfvGJaUFJPGv6Ws1NZ/haTAjfbMA==}
     engines: {node: '>=12'}
@@ -7416,6 +7875,10 @@ packages:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
 
+  supports-color@8.1.1:
+    resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
+    engines: {node: '>=10'}
+
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
@@ -7463,6 +7926,10 @@ packages:
 
   thread-stream@3.2.0:
     resolution: {integrity: sha512-zLBvqpwr4Esa0kRjcrzGU6zL25lePWaCLMx0RQFrmteozIfeNdaMLpG5U7PeHzvlFkAWaRKA9/KVW4F60iB+qw==}
+
+  throttleit@2.1.0:
+    resolution: {integrity: sha512-nt6AMGKW1p/70DF/hGBdJB57B8Tspmbp5gfJ8ilhLnt7kkr2ye7hzD6NVG8GGErk2HWF34igrL2CXmNIkzKqKw==}
+    engines: {node: '>=18'}
 
   through2@4.0.2:
     resolution: {integrity: sha512-iOqSav00cVxEEICeD7TjLB1sueEL+81Wpzp2bY17uZjZN0pWZPuo4suZ/61VujxmqSGFfgOcNuTZ85QJwNZQpw==}
@@ -7627,6 +8094,10 @@ packages:
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
+
+  undici@6.29.1:
+    resolution: {integrity: sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==}
+    engines: {node: '>=18.17'}
 
   undici@7.30.1:
     resolution: {integrity: sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg==}
@@ -8000,9 +8471,17 @@ packages:
     resolution: {integrity: sha512-kCz5k7J7XbJtjABOvkc5lJmkiDh8VhjVCGNiqdKCscmVpdVUpEAyXv1xmCLkQJ5dsHqx3IPO4XW+NTDhU/fatA==}
     engines: {node: '>=10.0.0'}
 
+  xdg-app-paths@5.5.1:
+    resolution: {integrity: sha512-hI3flOB4PLZIy5prbtTpirobtPE2ZtZ52szO+2mM9Efp6ErM398La+C1lIpNWDfNoQk+6Lsi6nMcCwVB7pxeMQ==}
+    engines: {node: '>= 6.0'}
+
   xdg-basedir@5.1.0:
     resolution: {integrity: sha512-GCPAHLvrIH13+c0SuacwvRYj2SxJXQ4kaVTT5xgL3kPrz56XxkF21IGhjSE1+W0aw7gpBWRGXLCPnPby6lSpmQ==}
     engines: {node: '>=12'}
+
+  xdg-portable@7.3.0:
+    resolution: {integrity: sha512-sqMMuL1rc0FmMBOzCpd0yuy9trqF2yTTVe+E9ogwCSWQCdDEtQUwrZPT6AxqtsFGRNxycgncbP/xmOOSPw5ZUw==}
+    engines: {node: '>= 6.0'}
 
   xml-js@1.6.11:
     resolution: {integrity: sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==}
@@ -8106,6 +8585,9 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
+  zod@4.1.11:
+    resolution: {integrity: sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg==}
+
   zod@4.6.5:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
@@ -8191,6 +8673,13 @@ snapshots:
     dependencies:
       package-manager-detector: 1.8.0
       tinyexec: 1.3.1
+
+  '@aparajita/capacitor-biometric-auth@10.0.0':
+    dependencies:
+      '@capacitor/android': 8.5.2(@capacitor/core@8.5.2)
+      '@capacitor/app': 8.1.1(@capacitor/core@8.5.2)
+      '@capacitor/core': 8.5.2
+      '@capacitor/ios': 8.5.2(@capacitor/core@8.5.2)
 
   '@aparajita/capacitor-secure-storage@8.0.1':
     dependencies:
@@ -8956,6 +9445,22 @@ snapshots:
 
   '@borewit/text-codec@0.2.3': {}
 
+  '@capacitor-community/in-app-review@8.0.0(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capacitor-community/keep-awake@8.0.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capacitor-community/native-audio@8.0.0(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capacitor-firebase/messaging@8.6.0(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
   '@capacitor/android@8.5.2(@capacitor/core@8.5.2)':
     dependencies:
       '@capacitor/core': 8.5.2
@@ -8982,6 +9487,15 @@ snapshots:
       - '@types/node'
       - encoding
       - supports-color
+
+  '@capacitor/barcode-scanner@3.1.3(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+      html5-qrcode: 2.3.8
+
+  '@capacitor/browser@8.0.5(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
 
   '@capacitor/camera@8.2.4(@capacitor/core@8.5.2)':
     dependencies:
@@ -9032,6 +9546,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@capacitor/clipboard@8.0.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
   '@capacitor/core@8.5.2':
     dependencies:
       tslib: 2.8.1
@@ -9039,6 +9557,16 @@ snapshots:
   '@capacitor/device@8.0.3(@capacitor/core@8.5.2)':
     dependencies:
       '@capacitor/core': 8.5.2
+
+  '@capacitor/filesystem@8.1.5(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+      '@capacitor/synapse': 1.0.4
+
+  '@capacitor/geolocation@8.2.4(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+      '@capacitor/synapse': 1.0.4
 
   '@capacitor/haptics@8.0.2(@capacitor/core@8.5.2)':
     dependencies:
@@ -9064,10 +9592,6 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.2
 
-  '@capacitor/push-notifications@8.1.2(@capacitor/core@8.5.2)':
-    dependencies:
-      '@capacitor/core': 8.5.2
-
   '@capacitor/screen-orientation@8.0.2(@capacitor/core@8.5.2)':
     dependencies:
       '@capacitor/core': 8.5.2
@@ -9084,10 +9608,32 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.2
 
+  '@capacitor/synapse@1.0.4': {}
+
+  '@capawesome/capacitor-app-update@8.1.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capawesome/capacitor-background-task@8.0.3(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capawesome/capacitor-badge@8.0.4(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
+  '@capawesome/capacitor-file-picker@8.1.1(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
+
   '@capgo/capacitor-social-login@8.7.7(@capacitor/core@8.5.2)':
     dependencies:
       '@capacitor/core': 8.5.2
       tslib: 2.8.1
+
+  '@capgo/capacitor-updater@8.54.2(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
 
   '@clack/core@0.5.0':
     dependencies:
@@ -10142,6 +10688,8 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
+  '@isaacs/nonrecursive-glob-match@1.1.0': {}
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -10258,6 +10806,65 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.45.0
 
   '@opentelemetry/semantic-conventions@1.45.0': {}
+
+  '@oxc-parser/binding-android-arm-eabi@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-android-arm64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-darwin-arm64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-darwin-x64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-freebsd-x64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-arm-gnueabihf@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-arm-musleabihf@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-arm64-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-arm64-musl@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-ppc64-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-riscv64-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-riscv64-musl@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-s390x-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-x64-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-x64-musl@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-openharmony-arm64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-win32-arm64-msvc@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-win32-ia32-msvc@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-win32-x64-msvc@0.152.0':
+    optional: true
+
+  '@oxc-project/types@0.152.0': {}
 
   '@paulirish/trace_engine@0.0.65':
     dependencies:
@@ -10487,7 +11094,7 @@ snapshots:
   '@prettier/plugin-xml@2.2.0':
     dependencies:
       '@xml-tools/parser': 1.0.11
-      prettier: 2.8.8
+      prettier: 3.9.10
 
   '@puppeteer/browsers@3.2.6(yauzl@2.10.0)':
     dependencies:
@@ -10638,6 +11245,18 @@ snapshots:
       '@sentry/replay': 10.76.2
       '@sentry/replay-canvas': 10.76.2
 
+  '@sentry/bundler-plugins@11.11.0(rollup@4.63.5)':
+    dependencies:
+      '@sentry/core': 11.11.0
+      dotenv: 17.4.2
+      glob: 14.0.6
+      magic-string: 0.30.21
+      oxc-parser: 0.152.0
+      sentry: 0.45.0
+      supports-color: 8.1.1
+    optionalDependencies:
+      rollup: 4.63.5
+
   '@sentry/capacitor@4.5.0(@capacitor/core@8.5.2)(@sentry/react@10.76.2(react@19.3.1))':
     dependencies:
       '@capacitor/core': 8.5.2
@@ -10649,6 +11268,8 @@ snapshots:
 
   '@sentry/conventions@0.16.0': {}
 
+  '@sentry/conventions@0.30.0': {}
+
   '@sentry/core@10.76.2':
     dependencies:
       '@sentry/conventions': 0.16.0
@@ -10656,6 +11277,10 @@ snapshots:
   '@sentry/core@10.78.0':
     dependencies:
       '@sentry/conventions': 0.16.0
+
+  '@sentry/core@11.11.0':
+    dependencies:
+      '@sentry/conventions': 0.30.0
 
   '@sentry/feedback@10.76.2':
     dependencies:
@@ -10722,6 +11347,13 @@ snapshots:
   '@sentry/types@10.76.2':
     dependencies:
       '@sentry/core': 10.76.2
+
+  '@sentry/vite-plugin@11.11.0(rollup@4.63.5)':
+    dependencies:
+      '@sentry/bundler-plugins': 11.11.0(rollup@4.63.5)
+    transitivePeerDependencies:
+      - rollup
+      - webpack
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -11124,11 +11756,35 @@ snapshots:
       '@typescript-eslint/types': 8.71.0
       eslint-visitor-keys: 5.0.1
 
+  '@vercel/blob@2.8.2':
+    dependencies:
+      '@vercel/oidc': 3.8.10
+      async-retry: 1.3.3
+      is-buffer: 2.0.5
+      is-node-process: 1.2.0
+      throttleit: 2.1.0
+      undici: 6.29.1
+
+  '@vercel/cli-config@0.3.1':
+    dependencies:
+      xdg-app-paths: 5.5.1
+      zod: 4.1.11
+
+  '@vercel/cli-exec@1.0.1':
+    dependencies:
+      execa: 5.1.1
+
   '@vercel/config@0.14.1':
     dependencies:
       '@vercel/routing-utils': 6.6.1
       pretty-cache-header: 1.0.0
       zod: 3.25.76
+
+  '@vercel/oidc@3.8.10':
+    dependencies:
+      '@vercel/cli-config': 0.3.1
+      '@vercel/cli-exec': 1.0.1
+      jose: 5.10.0
 
   '@vercel/routing-utils@6.6.1':
     dependencies:
@@ -11619,7 +12275,7 @@ snapshots:
     dependencies:
       devtools-protocol: 0.0.1704951
       mitt: 3.0.1
-      zod: 4.6.5
+      zod: 4.6.7
 
   ci-info@4.4.0: {}
 
@@ -11866,6 +12522,8 @@ snapshots:
   dot-prop@9.0.0:
     dependencies:
       type-fest: 4.41.0
+
+  dotenv@17.4.2: {}
 
   drizzle-kit@0.31.7:
     dependencies:
@@ -12596,6 +13254,18 @@ snapshots:
 
   event-target-shim@5.0.1: {}
 
+  execa@5.1.1:
+    dependencies:
+      cross-spawn: 7.0.6
+      get-stream: 6.0.1
+      human-signals: 2.1.0
+      is-stream: 2.0.1
+      merge-stream: 2.0.0
+      npm-run-path: 4.0.1
+      onetime: 5.1.2
+      signal-exit: 3.0.7
+      strip-final-newline: 2.0.0
+
   exit-hook@5.1.0: {}
 
   expand-tilde@2.0.2:
@@ -12812,6 +13482,8 @@ snapshots:
       dunder-proto: 1.0.1
       es-object-atoms: 1.1.2
 
+  get-stream@6.0.1: {}
+
   get-symbol-description@1.1.0:
     dependencies:
       call-bound: 1.0.4
@@ -12850,6 +13522,12 @@ snapshots:
       minimatch: 10.2.6
       minipass: 7.1.3
       path-scurry: 2.0.2
+
+  glob@14.0.6:
+    dependencies:
+      minimatch: 11.0.9
+      minipass: 7.1.3
+      path-scurry: 3.0.0
 
   glob@9.3.5:
     dependencies:
@@ -12972,6 +13650,8 @@ snapshots:
 
   html-entities@2.6.0: {}
 
+  html5-qrcode@2.3.8: {}
+
   http-link-header@1.1.4: {}
 
   http-proxy-agent@5.0.0:
@@ -13004,6 +13684,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  human-signals@2.1.0: {}
 
   iconv-lite@0.6.3:
     dependencies:
@@ -13094,6 +13776,8 @@ snapshots:
 
   is-buffer@1.1.6: {}
 
+  is-buffer@2.0.5: {}
+
   is-builtin-module@5.0.0:
     dependencies:
       builtin-modules: 5.4.0
@@ -13156,6 +13840,8 @@ snapshots:
   is-module@1.0.0: {}
 
   is-negative-zero@2.0.3: {}
+
+  is-node-process@1.2.0: {}
 
   is-number-object@1.1.1:
     dependencies:
@@ -13637,6 +14323,8 @@ snapshots:
 
   memoize-one@6.0.0: {}
 
+  merge-stream@2.0.0: {}
+
   merge@2.1.1: {}
 
   micromark-core-commonmark@2.0.4:
@@ -13856,8 +14544,15 @@ snapshots:
 
   mime@3.0.0: {}
 
+  mimic-fn@2.1.0: {}
+
   minimatch@10.2.6:
     dependencies:
+      brace-expansion: 5.0.12
+
+  minimatch@11.0.9:
+    dependencies:
+      '@isaacs/nonrecursive-glob-match': 1.1.0
       brace-expansion: 5.0.12
 
   minimatch@3.1.5:
@@ -13969,6 +14664,10 @@ snapshots:
 
   normalize-path@3.0.0: {}
 
+  npm-run-path@4.0.1:
+    dependencies:
+      path-key: 3.1.1
+
   nth-check@2.1.1:
     dependencies:
       boolbase: 1.0.0
@@ -14000,6 +14699,10 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
+  onetime@5.1.2:
+    dependencies:
+      mimic-fn: 2.1.0
+
   open@8.4.2:
     dependencies:
       define-lazy-prop: 2.0.0
@@ -14015,12 +14718,38 @@ snapshots:
       type-check: 0.4.0
       word-wrap: 1.2.5
 
+  os-paths@4.4.0: {}
+
   own-keys@1.0.2:
     dependencies:
       call-bound: 1.0.4
       get-intrinsic: 1.3.0
       object-keys: 1.1.1
       safe-push-apply: 1.0.0
+
+  oxc-parser@0.152.0:
+    dependencies:
+      '@oxc-project/types': 0.152.0
+    optionalDependencies:
+      '@oxc-parser/binding-android-arm-eabi': 0.152.0
+      '@oxc-parser/binding-android-arm64': 0.152.0
+      '@oxc-parser/binding-darwin-arm64': 0.152.0
+      '@oxc-parser/binding-darwin-x64': 0.152.0
+      '@oxc-parser/binding-freebsd-x64': 0.152.0
+      '@oxc-parser/binding-linux-arm-gnueabihf': 0.152.0
+      '@oxc-parser/binding-linux-arm-musleabihf': 0.152.0
+      '@oxc-parser/binding-linux-arm64-gnu': 0.152.0
+      '@oxc-parser/binding-linux-arm64-musl': 0.152.0
+      '@oxc-parser/binding-linux-ppc64-gnu': 0.152.0
+      '@oxc-parser/binding-linux-riscv64-gnu': 0.152.0
+      '@oxc-parser/binding-linux-riscv64-musl': 0.152.0
+      '@oxc-parser/binding-linux-s390x-gnu': 0.152.0
+      '@oxc-parser/binding-linux-x64-gnu': 0.152.0
+      '@oxc-parser/binding-linux-x64-musl': 0.152.0
+      '@oxc-parser/binding-openharmony-arm64': 0.152.0
+      '@oxc-parser/binding-win32-arm64-msvc': 0.152.0
+      '@oxc-parser/binding-win32-ia32-msvc': 0.152.0
+      '@oxc-parser/binding-win32-x64-msvc': 0.152.0
 
   p-limit@3.1.0:
     dependencies:
@@ -14073,6 +14802,11 @@ snapshots:
       minipass: 7.1.3
 
   path-scurry@2.0.2:
+    dependencies:
+      lru-cache: 11.5.3
+      minipass: 7.1.3
+
+  path-scurry@3.0.0:
     dependencies:
       lru-cache: 11.5.3
       minipass: 7.1.3
@@ -14649,6 +15383,8 @@ snapshots:
 
   semver@7.8.5: {}
 
+  sentry@0.45.0: {}
+
   serialize-javascript@7.1.2: {}
 
   set-cookie-parser@2.7.2: {}
@@ -14936,6 +15672,8 @@ snapshots:
 
   strip-comments@2.0.1: {}
 
+  strip-final-newline@2.0.0: {}
+
   strip-indent@4.1.1: {}
 
   strip-json-comments@3.1.1: {}
@@ -14966,6 +15704,10 @@ snapshots:
   stylis@4.2.0: {}
 
   supports-color@7.2.0:
+    dependencies:
+      has-flag: 4.0.0
+
+  supports-color@8.1.1:
     dependencies:
       has-flag: 4.0.0
 
@@ -15023,6 +15765,8 @@ snapshots:
   thread-stream@3.2.0:
     dependencies:
       real-require: 0.2.0
+
+  throttleit@2.1.0: {}
 
   through2@4.0.2:
     dependencies:
@@ -15185,6 +15929,8 @@ snapshots:
   undici-types@6.21.0: {}
 
   undici-types@8.9.0: {}
+
+  undici@6.29.1: {}
 
   undici@7.30.1: {}
 
@@ -15621,7 +16367,16 @@ snapshots:
       simple-plist: 1.3.1
       uuid: 7.0.3
 
+  xdg-app-paths@5.5.1:
+    dependencies:
+      os-paths: 4.4.0
+      xdg-portable: 7.3.0
+
   xdg-basedir@5.1.0: {}
+
+  xdg-portable@7.3.0:
+    dependencies:
+      os-paths: 4.4.0
 
   xml-js@1.6.11:
     dependencies:
@@ -15717,6 +16472,8 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zod@3.25.76: {}
+
+  zod@4.1.11: {}
 
   zod@4.6.5: {}
 

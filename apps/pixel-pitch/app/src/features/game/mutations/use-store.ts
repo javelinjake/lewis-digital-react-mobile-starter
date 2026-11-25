@@ -1,6 +1,6 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { telemetry } from '@/lib/telemetry'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { useAuthStore } from '@/stores/auth.store'
 import { gameApi } from '../api/game-api'
 import { buyFromStore, loadStorePrices, purchaseMark, restoreFromStore, storeMode } from '../lib/store'

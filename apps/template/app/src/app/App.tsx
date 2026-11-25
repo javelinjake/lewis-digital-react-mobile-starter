@@ -1,5 +1,5 @@
 import { useFormDirty } from '@ld/forms'
-import { hideSplashScreen, isNativePlatform, setStatusBarAppearance } from '@ld/native'
+import { finishInBackground, hideSplashScreen, isNativePlatform, setStatusBarAppearance } from '@ld/native'
 import { useAppState, useBackButton, useDeepLinks } from '@ld/native/react'
 import { ReloadPrompt, useServiceWorker } from '@ld/pwa'
 import { ToastProvider } from '@ld/ui'
@@ -9,6 +9,8 @@ import { SessionScope } from '@/app/session-scope'
 import { useOutbox } from '@/app/use-outbox'
 import { useConnectivity } from '@/hooks/use-connectivity'
 import { useTheme } from '@/hooks/use-theme'
+import { startPushRuntime } from '@/lib/push/push-registration'
+import { reportAppReady } from '@/lib/updates/live-updates'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -20,8 +22,11 @@ export function App() {
   }, [])
 
   useEffect(() => {
-    if (status !== 'bootstrapping')
+    if (status !== 'bootstrapping') {
       void hideSplashScreen()
+      // The first screen is up: a live update that got this far is kept.
+      reportAppReady()
+    }
   }, [status])
 
   return (
@@ -35,16 +40,23 @@ export function App() {
 
 export function NativeRuntime() {
   const navigate = useNavigate()
-  const { onResume } = useAppState()
+  const { onResume, onPause } = useAppState()
   const outbox = useOutbox()
   const { theme } = useTheme()
 
   useDeepLinks(path => navigate(path))
   useBackButton({ onBack: () => navigate(-1) })
+  useEffect(() => startPushRuntime(path => navigate(path)), [navigate])
 
   useEffect(() => onResume(() => {
     void outbox?.flush()
   }), [onResume, outbox])
+
+  // Leaving the app mid-save would otherwise freeze the write until the next launch. The OS gives a few seconds.
+  useEffect(() => onPause(() => {
+    if (outbox)
+      void finishInBackground(() => outbox.flush())
+  }), [onPause, outbox])
 
   useEffect(() => {
     void setStatusBarAppearance({

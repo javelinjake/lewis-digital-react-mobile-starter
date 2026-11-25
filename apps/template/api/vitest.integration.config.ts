@@ -19,6 +19,7 @@ export default defineConfig({
       APP_ORIGINS: 'http://localhost:5173',
       REVENUECAT_WEBHOOK_SECRET: 'test-revenuecat-secret',
       CRON_SECRET: 'test-cron-secret',
+      OTA_PUBLISH_SECRET: 'test-ota-secret',
       // Many guests sign in from one address during a run. tests/integration/rate-limit.spec.ts turns it back on.
       AUTH_RATE_LIMIT: 'off',
     },

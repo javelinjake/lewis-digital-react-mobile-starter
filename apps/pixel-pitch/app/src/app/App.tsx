@@ -8,7 +8,8 @@ import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
 import { gameKeys } from '@/features/game/queries/game.keys'
-import { startTelemetry, telemetry } from '@/lib/telemetry'
+import { telemetry } from '@/lib/telemetry/telemetry'
+import { reportAppReady } from '@/lib/updates/live-updates'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -19,7 +20,8 @@ export function App() {
 
   useEffect(() => {
     void useAuthStore.getState().bootstrap()
-    void startTelemetry().then(() => telemetry.track('session_started'))
+    // The saved consent is applied in main.tsx; this is dropped unless analytics are on by then.
+    telemetry.track('session_started')
   }, [])
 
   // Analytics are linked to the account id, never an email, and unlinked on sign-out.
@@ -31,8 +33,11 @@ export function App() {
   }, [userId])
 
   useEffect(() => {
-    if (status !== 'bootstrapping')
+    if (status !== 'bootstrapping') {
       void hideSplashScreen()
+      // The first screen is up: a live update that got this far is kept.
+      reportAppReady()
+    }
   }, [status])
 
   return (

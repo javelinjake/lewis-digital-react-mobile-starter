@@ -5,14 +5,29 @@ project(':capacitor-android').projectDir = new File('../../../../node_modules/.p
 include ':aparajita-capacitor-secure-storage'
 project(':aparajita-capacitor-secure-storage').projectDir = new File('../../../../node_modules/.pnpm/@aparajita+capacitor-secure-storage@8.0.1/node_modules/@aparajita/capacitor-secure-storage/android')
 
+include ':capacitor-community-in-app-review'
+project(':capacitor-community-in-app-review').projectDir = new File('../../../../node_modules/.pnpm/@capacitor-community+in-app-review@8.0.0_@capacitor+core@8.5.2/node_modules/@capacitor-community/in-app-review/android')
+
+include ':capacitor-community-keep-awake'
+project(':capacitor-community-keep-awake').projectDir = new File('../../../../node_modules/.pnpm/@capacitor-community+keep-awake@8.0.1_@capacitor+core@8.5.2/node_modules/@capacitor-community/keep-awake/android')
+
 include ':capacitor-app'
 project(':capacitor-app').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+app@8.1.1_@capacitor+core@8.5.2/node_modules/@capacitor/app/android')
+
+include ':capacitor-browser'
+project(':capacitor-browser').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+browser@8.0.5_@capacitor+core@8.5.2/node_modules/@capacitor/browser/android')
 
 include ':capacitor-camera'
 project(':capacitor-camera').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+camera@8.2.4_@capacitor+core@8.5.2/node_modules/@capacitor/camera/android')
 
+include ':capacitor-clipboard'
+project(':capacitor-clipboard').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+clipboard@8.0.1_@capacitor+core@8.5.2/node_modules/@capacitor/clipboard/android')
+
 include ':capacitor-device'
 project(':capacitor-device').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+device@8.0.3_@capacitor+core@8.5.2/node_modules/@capacitor/device/android')
+
+include ':capacitor-filesystem'
+project(':capacitor-filesystem').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+filesystem@8.1.5_@capacitor+core@8.5.2/node_modules/@capacitor/filesystem/android')
 
 include ':capacitor-haptics'
 project(':capacitor-haptics').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+haptics@8.0.2_@capacitor+core@8.5.2/node_modules/@capacitor/haptics/android')
@@ -29,9 +44,6 @@ project(':capacitor-network').projectDir = new File('../../../../node_modules/.p
 include ':capacitor-preferences'
 project(':capacitor-preferences').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.2/node_modules/@capacitor/preferences/android')
 
-include ':capacitor-push-notifications'
-project(':capacitor-push-notifications').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+push-notifications@8.1.2_@capacitor+core@8.5.2/node_modules/@capacitor/push-notifications/android')
-
 include ':capacitor-screen-orientation'
 project(':capacitor-screen-orientation').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+screen-orientation@8.0.2_@capacitor+core@8.5.2/node_modules/@capacitor/screen-orientation/android')
 
@@ -44,8 +56,20 @@ project(':capacitor-splash-screen').projectDir = new File('../../../../node_modu
 include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.3_@capacitor+core@8.5.2/node_modules/@capacitor/status-bar/android')
 
+include ':capawesome-capacitor-app-update'
+project(':capawesome-capacitor-app-update').projectDir = new File('../../../../node_modules/.pnpm/@capawesome+capacitor-app-update@8.1.1_@capacitor+core@8.5.2/node_modules/@capawesome/capacitor-app-update/android')
+
+include ':capawesome-capacitor-background-task'
+project(':capawesome-capacitor-background-task').projectDir = new File('../../../../node_modules/.pnpm/@capawesome+capacitor-background-task@8.0.3_@capacitor+core@8.5.2/node_modules/@capawesome/capacitor-background-task/android')
+
+include ':capawesome-capacitor-badge'
+project(':capawesome-capacitor-badge').projectDir = new File('../../../../node_modules/.pnpm/@capawesome+capacitor-badge@8.0.4_@capacitor+core@8.5.2/node_modules/@capawesome/capacitor-badge/android')
+
 include ':capgo-capacitor-social-login'
 project(':capgo-capacitor-social-login').projectDir = new File('../../../../node_modules/.pnpm/@capgo+capacitor-social-login@8.7.7_@capacitor+core@8.5.2/node_modules/@capgo/capacitor-social-login/android')
 
 include ':revenuecat-purchases-capacitor'
 project(':revenuecat-purchases-capacitor').projectDir = new File('../../../../node_modules/.pnpm/@revenuecat+purchases-capacitor@14.1.0_@capacitor+core@8.5.2/node_modules/@revenuecat/purchases-capacitor/android')
+
+include ':sentry-capacitor'
+project(':sentry-capacitor').projectDir = new File('../../../../node_modules/.pnpm/@sentry+capacitor@4.5.0_@capacitor+core@8.5.2_@sentry+react@10.76.2_react@19.3.1_/node_modules/@sentry/capacitor/android')

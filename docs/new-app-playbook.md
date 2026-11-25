@@ -23,7 +23,7 @@ pnpm --filter @ld/app-my-app dev
 
 ## 3. Make it yours
 
-- `apps/<slug>/app/app.meta.ts`: name, colours, hostname, orientation, tablet, per-environment api addresses, and which sign-in methods to offer. The api reads the sign-in list from here too.
+- `apps/<slug>/app/app.meta.ts`: name, colours, hostname, orientation, tablet, per-environment api addresses, which sign-in methods to offer, the Apple team id and Android signing fingerprints, and which native `capabilities` (push, location, ...) the app uses. The api reads the sign-in list from here too.
 - Collections: `apps/<slug>/api/cms/collections/`. Anything with user data uses `ownedCollection`. After changing one: `pnpm --filter <api> cms:types && cms:importmap && cms:migrate:create <name>`.
 - Server-side rules that grant or charge: `defineAction` in `cms/actions/`.
 - Theme and fonts: `src/assets/base.css`.
@@ -32,6 +32,18 @@ pnpm --filter @ld/app-my-app dev
 
 `pnpm review`, the app's production build, the api's integration tests, and the e2e suite. For a release also: mobile Lighthouse and the bundle budget (CI runs both).
 
-## 5. Ship it
+## 5. Add the native apps
 
-See [deployment](deployment.md) and [native release](native-release.md).
+```bash
+pnpm --filter @ld/app-my-app exec cap add ios
+pnpm --filter @ld/app-my-app exec cap add android
+APP_ENV=dev pnpm --filter @ld/app-my-app native:configure
+pnpm --filter @ld/app-my-app native:assets
+```
+
+Commit `ios/` and `android/`. See [native apps](native.md) for plugins and capabilities.
+
+## 6. Ship it
+
+- Web and api: [deployment](deployment.md).
+- Stores, from a Mac: [native release](native-release.md). `pnpm release:android` and `pnpm release:ios`.

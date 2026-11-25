@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { setAnalyticsConsent, telemetry } from '@/lib/telemetry'
+import { analyticsAvailable, setAnalyticsConsent, telemetry } from '@/lib/telemetry/telemetry'
 
 /** Asks once whether anonymous usage can be recorded. Nothing is recorded until the player says yes. */
 export function ConsentCard() {
   const [decided, setDecided] = useState(() => telemetry.consent.decided)
-  if (decided || !import.meta.env.VITE_POSTHOG_KEY)
+  if (decided || !analyticsAvailable)
     return null
   const choose = (analytics: boolean) => {
     setDecided(true)
