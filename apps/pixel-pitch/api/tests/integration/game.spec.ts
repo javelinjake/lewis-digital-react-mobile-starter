@@ -53,7 +53,9 @@ describe('creating a club', () => {
     expect(aliceClub.fixtures[0]).toMatchObject({ no: -1, result: 'win', coins: config.league.winCoins })
     expect(aliceClub.club.state.coins).toBe(config.league.winCoins)
     expect(aliceClub.club.state.idle.gems).toBe(config.daily.gems)
-    expect(aliceClub.club.state.league.nextKickoffAt).toBe(T0 + 3 * HOUR)
+    // The first league match is part of the first session.
+    expect(aliceClub.club.state.league.nextKickoffAt).toBe(T0 + config.league.firstMatchMinutes * 60_000)
+    expect(aliceClub.club.state.idle.shelfPacks).toBe(config.onboarding.starterShelfPacks)
   })
 
   it('only once per player', async () => {
@@ -111,11 +113,12 @@ describe('syncing', () => {
     const expected = syncClub({ state: aliceClub.club.state, cards: aliceClub.cards, players, clubId: aliceClub.club.id, config, now: at })
     expect(synced.fixtures).toEqual(expected.fixtures)
     expect(synced.club.state).toEqual(expected.state)
-    expect(synced.fixtures).toHaveLength(3)
-    expect(synced.events.find(event => event.type === 'matches')).toMatchObject({ played: 3 })
+    // Kick-offs at 10 minutes, then every 3 hours: four by 10 hours.
+    expect(synced.fixtures).toHaveLength(4)
+    expect(synced.events.find(event => event.type === 'matches')).toMatchObject({ played: 4 })
 
     const stored = await alice.get('/api/fixtures?limit=100&sort=no')
-    expect(stored.json.docs.map((fixture: { no: number }) => fixture.no)).toEqual([-1, 0, 1, 2])
+    expect(stored.json.docs.map((fixture: { no: number }) => fixture.no)).toEqual([-1, 0, 1, 2, 3])
     // Each match keeps both squads' names, so its written report reads the same whenever it is opened.
     for (const [index, fixture] of stored.json.docs.entries()) {
       expect(fixture.squads.ours).toHaveLength(5)

@@ -7,8 +7,8 @@ import { useNavigate } from 'react-router'
 const HOUR = 60 * 60 * 1000
 
 /**
- * Tools for trying the game out in a playtest build (offline, mock data): move the clock, start a new day, stand in
- * for shop purchases that do not exist yet, and start again. They talk to the mock through `window`, so nothing here
+ * Tools for trying the game out in a playtest build (offline, mock data): move the clock, start a new day, top up
+ * the wallet, and start again. The shop itself works in this build with pretend purchases. They talk to the mock through `window`, so nothing here
  * exists in a live build, where the server owns the clock and the wallet.
  */
 export function PlaytestTools() {
@@ -43,14 +43,12 @@ export function PlaytestTools() {
       </ListGroup>
 
       <ListGroup label="Playtest: shop (pretend purchases)">
+        <ListItem title="Open the shop" subtitle="Buy the Pass, gems, the Licence and the starter offer for nothing" onClick={() => navigate('/shop?from=playtest')} />
         <ListItem
           title="League Pass"
-          subtitle={status.hasPass ? 'On: premium track, 6 energy, bigger shelf. Tap to turn off' : 'Off. Tap to buy it'}
+          subtitle={status.hasPass ? 'On for this season. Tap to turn off' : 'Off. Tap to turn on without the shop'}
           onClick={() => run(() => window.__pixelPitchClock?.setPass(!status.hasPass), status.hasPass ? 'League Pass off' : 'League Pass on')}
         />
-        <ListItem title="Gem pack" subtitle="+100 gems" onClick={() => run(() => tools.grant({ gems: 100 }), '+100 gems')} />
-        <ListItem title="Big gem pack" subtitle="+500 gems" onClick={() => run(() => tools.grant({ gems: 500 }), '+500 gems')} />
-        <ListItem title="Starter bundle" subtitle="3 Star packs, 5,000 coins and 100 gems" onClick={() => run(() => tools.grant({ starPacks: 3, coins: 5000, gems: 100 }), 'Starter bundle added')} />
       </ListGroup>
 
       <ListGroup label="Playtest: top up">

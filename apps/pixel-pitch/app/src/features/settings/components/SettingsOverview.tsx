@@ -9,6 +9,7 @@ import { NOTIFICATION_TYPES, useNotificationSettings } from '@/hooks/use-notific
 import { useReplayMode } from '@/hooks/use-replay-mode'
 import { authApi } from '@/lib/auth/auth-api'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
+import { setAnalyticsConsent, telemetry } from '@/lib/telemetry'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
 import { saveJson } from '../lib/save-json'
@@ -25,6 +26,7 @@ export function SettingsOverview() {
   const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [sharing, setSharing] = useState(() => telemetry.consent.analytics)
   return (
     <div className="flex flex-col gap-4">
       <ListGroup label="Settings">
@@ -57,6 +59,19 @@ export function SettingsOverview() {
             })
           }}
         />
+        <ListItem title="Shop" subtitle="League Pass, gems, kits and restore purchases" onClick={() => navigate('/shop?from=settings')} />
+        {import.meta.env.VITE_POSTHOG_KEY
+          ? (
+              <ListItem
+                title="Share usage data"
+                subtitle={sharing ? 'On: helps improve the game. Nothing that identifies you' : 'Off'}
+                onClick={() => {
+                  setSharing(!sharing)
+                  void setAnalyticsConsent(!sharing)
+                }}
+              />
+            )
+          : null}
         {user?.isAnonymous
           ? null
           : <ListItem title="Account" subtitle={user?.email ?? 'Sign out, export or delete'} onClick={() => setSheetOpen(true)} />}

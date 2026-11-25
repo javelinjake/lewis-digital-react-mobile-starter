@@ -55,6 +55,8 @@ export const router = createBrowserRouter([
                   { path: '/pass', lazy: pages.pass, handle: { title: 'League Pass' } },
                   { path: '/album', lazy: pages.album, handle: { title: 'Album' } },
                   { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
+                  { path: '/shop', lazy: pages.shop, handle: { title: 'Shop' } },
+                  { path: '/signing', lazy: pages.signing, handle: { title: 'Star Signing' } },
                   { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade' } },
                 ],
               },

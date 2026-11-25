@@ -8,6 +8,7 @@ import { duplicateNoteAction } from './cms/actions/duplicate-note'
 import { gameActions } from './cms/actions/game'
 import { packActions } from './cms/actions/packs'
 import { rewardActions } from './cms/actions/rewards'
+import { grantPurchase, shopActions } from './cms/actions/shop'
 import { cardsCollection } from './cms/collections/cards'
 import { clubsCollection } from './cms/collections/clubs'
 import { fixturesCollection } from './cms/collections/fixtures'
@@ -29,6 +30,8 @@ export default buildConfig(createAppBackend({
   guestLink: keepAccountClub,
   collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, notesCollection],
   globals: [gameConfigGlobal],
-  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, duplicateNoteAction],
+  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, ...shopActions, duplicateNoteAction],
+  // A store purchase is paid into the club when RevenueCat reports it (see `grantPurchase`).
+  purchases: { onEvent: grantPurchase },
   adminMeta: { titleSuffix: `· ${appMeta.name} admin` },
 }))

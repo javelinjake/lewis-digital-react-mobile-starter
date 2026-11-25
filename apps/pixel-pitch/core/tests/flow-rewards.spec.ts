@@ -99,15 +99,15 @@ describe('the login calendar', () => {
     expect(config.calendar.rewards[6].kind).toBe('starPacks')
   })
 
-  it('can be claimed once a day, starts again after a missed day, and again after day 7', () => {
+  it('can be claimed once a day, keeps its place after a missed day, and starts again after day 7', () => {
     const first = claimCalendar(context())
     const ctx = { ...context(), state: first.state }
     expect(code(() => claimCalendar(ctx))).toBe('claimed')
     expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 1)).toBe(4)
-    expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 2)).toBe(1)
+    expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 2)).toBe(4)
     expect(nextCalendarDay({ streak: 7, lastClaimDay: day0 }, day0 + 1)).toBe(1)
     expect(nextCalendarDay({ streak: 2, lastClaimDay: day0 }, day0)).toBeNull()
-    expect(claimCalendar({ ...ctx, now: T0 + 3 * DAY }).extra!.day).toBe(1)
+    expect(claimCalendar({ ...ctx, now: T0 + 3 * DAY }).extra!.day).toBe(2)
   })
 })
 
@@ -119,7 +119,10 @@ describe('the League Pass', () => {
     expect(config.pass.free).toHaveLength(30)
     expect(config.pass.free.filter(Boolean)).toHaveLength(15)
     expect(config.pass.free[29]).toEqual({ kind: 'starPacks', amount: 1 })
-    expect(config.pass.premium.filter(reward => reward.kind === 'starPacks')).toHaveLength(2)
+    expect(config.pass.premium.filter(reward => reward.kind === 'signing').map((_, index) => index)).toHaveLength(2)
+    expect(config.pass.premium[14]).toEqual({ kind: 'signing', amount: 1 })
+    expect(config.pass.premium[29]).toEqual({ kind: 'signing', amount: 1 })
+    expect(config.pass.premium.filter(reward => reward.kind === 'kit')).toHaveLength(2)
     expect(maxXp(config)).toBe(3000)
   })
 
@@ -147,7 +150,8 @@ describe('the League Pass', () => {
       ctx = { ...ctx, state: claimed.state }
     }
     expect(ctx.state.pass.claimedPremium).toHaveLength(15)
-    expect(ctx.state.starPacks).toBe(1)
+    expect(ctx.state.signings.pending).toBe(1)
+    expect(ctx.state.kits).toEqual(['season-gold'])
     expect(code(() => claimPassTier(ctx, 'premium', 16))).toBe('locked')
   })
 
@@ -222,5 +226,20 @@ describe('the album', () => {
     expect(done.state.idle.shelfPacks).toBe(1)
     expect(code(() => claimAlbumSet({ ...finished, state: done.state }, set.id))).toBe('claimed')
     expect(code(() => claimAlbumSet(finished, 'nowhere-fwd-9'))).toBe('no-set')
+  })
+})
+
+describe('Pass pacing', () => {
+  // A day of doing everything: 8 matches (half won), the free pack plus 8 shelf packs, 6 arcade plays and 3 goals.
+  const xpForDay = (share: number) => {
+    const { xp } = config.pass
+    return share * (8 * xp.match + 4 * xp.win + 9 * xp.pack + 6 * xp.cabinet + 3 * xp.goal)
+  }
+
+  it('fills the track in a season for a player who does everything, and gets a casual player past the first Star Signing', () => {
+    expect(xpForDay(1) * config.pass.seasonDays).toBeGreaterThanOrEqual(maxXp(config))
+    const casualTier = Math.floor((xpForDay(0.55) * config.pass.seasonDays) / config.pass.xpPerTier)
+    expect(casualTier).toBeGreaterThanOrEqual(15)
+    expect(casualTier).toBeLessThan(30)
   })
 })

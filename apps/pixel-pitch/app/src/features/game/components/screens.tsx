@@ -2,8 +2,10 @@ import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { ReactNode } from 'react'
 import { SegmentedControl } from '@ld/mobile-ui'
 import { EmptyState, LoadingState } from '@ld/ui'
+import { useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useReplayMode } from '@/hooks/use-replay-mode'
+import { telemetry } from '@/lib/telemetry'
 import { isCabinet } from '../lib/cabinets'
 import { useClub, useFixtures } from '../queries/use-game'
 import { AlbumScreen } from './AlbumScreen'
@@ -16,6 +18,8 @@ import { MatchReplay } from './MatchReplay'
 import { MatchTextReplay } from './MatchTextReplay'
 import { PacksScreen } from './PacksScreen'
 import { PassScreen } from './PassScreen'
+import { ShopScreen } from './ShopScreen'
+import { SigningScreen } from './SigningScreen'
 import { SquadScreen } from './SquadScreen'
 
 /** The game screens run inside `ClubGate`, so the club is there (from the cache at least). */
@@ -34,6 +38,15 @@ export function GoalsTab() {
 
 export function PassTab() {
   return <WithClub>{game => <PassScreen game={game} />}</WithClub>
+}
+
+export function ShopView() {
+  const [search] = useSearchParams()
+  return <WithClub>{game => <ShopScreen game={game} from={search.get('from') ?? 'direct'} />}</WithClub>
+}
+
+export function SigningView() {
+  return <WithClub>{game => <SigningScreen game={game} />}</WithClub>
 }
 
 export function AlbumTab() {
@@ -70,6 +83,10 @@ export function MatchView() {
   const fixtures = useFixtures(60)
   const fixture = fixtures.data?.find(entry => String(entry.no) === no)
     ?? club.data?.fixtures.find(entry => String(entry.no) === no)
+  useEffect(() => {
+    if (no !== undefined)
+      telemetry.track('match_viewed', { no: Number(no) })
+  }, [no])
 
   if (!fixture)
     return fixtures.isPending ? <LoadingState message="Finding the match…" /> : <EmptyState title="Match not found" />

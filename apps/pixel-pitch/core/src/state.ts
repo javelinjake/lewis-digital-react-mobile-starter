@@ -1,3 +1,5 @@
+import type { Reward } from './config'
+
 /** Times are epoch milliseconds from the SERVER clock. The client never supplies one. */
 export interface IdleState {
   /** Packs waiting on the shelf. */
@@ -12,7 +14,13 @@ export interface IdleState {
   /** Which day (see `dayIndex`) gems were last granted for. */
   gemsGrantedForDay: number
   gems: number
+  /**
+   * Whether the League Pass is active. Derived on every sync from `passSeason` (the season it was bought for), so it
+   * ends with the season on the server's clock. Kept as a field because the idle timers read it.
+   */
   hasPass: boolean
+  /** The season the League Pass was bought for, -1 for never. */
+  passSeason: number
 }
 
 export function newIdleState(now: number): IdleState {
@@ -25,6 +33,7 @@ export function newIdleState(now: number): IdleState {
     gemsGrantedForDay: -1,
     gems: 0,
     hasPass: false,
+    passSeason: -1,
   }
 }
 
@@ -43,3 +52,7 @@ export type WelcomeBackEvent =
     /** The highest tier reached, if any match promoted the club. */
     promotedTo: number | null
   }
+  /** A promotion paid its rewards. */
+  | { type: 'promotion', tier: number, rewards: Reward[] }
+  /** The season ended: what was reached on the Pass but not claimed was paid automatically. */
+  | { type: 'season-end', rewards: Reward[] }

@@ -15,9 +15,9 @@ function game(later = 0, patch: (state: typeof founded.state) => typeof founded.
 }
 
 describe('what is ready now', () => {
-  it('lists the calendar and the free pack for a new club, and the arcade energy to spend', () => {
+  it('lists the calendar and the free pack for a new club, its starter packs, and the arcade energy to spend', () => {
     const items = readyItems(game(), config, catalogue)
-    expect(items.map(item => item.id)).toEqual(['calendar', 'freePack', 'arcade'])
+    expect(items.map(item => item.id)).toEqual(['calendar', 'freePack', 'packs', 'arcade'])
     expect(claimCount(items)).toBe(2)
     expect(items.find(item => item.id === 'arcade')!.label).toBe('Arcade: 5 energy to spend')
   })
@@ -33,7 +33,7 @@ describe('what is ready now', () => {
   })
 
   it('says nothing is ready when everything has been taken and the energy is spent', () => {
-    const spent = game(0, state => ({ ...state, daily: { ...state.daily, freePackClaimed: true }, calendar: { streak: 1, lastClaimDay: Math.floor(T0 / 86_400_000) }, energy: { fullAt: T0 + 100 * 3_600_000 } }))
+    const spent = game(0, state => ({ ...state, idle: { ...state.idle, shelfPacks: 0 }, daily: { ...state.daily, freePackClaimed: true }, calendar: { streak: 1, lastClaimDay: Math.floor(T0 / 86_400_000) }, energy: { fullAt: T0 + 100 * 3_600_000 } }))
     expect(readyItems(spent, config, catalogue)).toEqual([])
   })
 })

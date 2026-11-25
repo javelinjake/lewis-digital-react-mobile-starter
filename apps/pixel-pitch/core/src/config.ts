@@ -11,12 +11,10 @@ const positive = z.number().positive()
 const count = z.number().int().nonnegative()
 const formationId = z.enum(['2-2', '1-2-1', '2-1-1', '3-1', '1-1-2'])
 
-/** Something a goal, the calendar, the pass or an album set can pay out. `packs` go on the shelf, `starPacks` are guaranteed a Star or better. */
-export const rewardSchema = z.object({
-  kind: z.enum(['coins', 'gems', 'tokens', 'packs', 'starPacks']),
-  amount: z.number().int().positive(),
-})
-export type Reward = z.infer<typeof rewardSchema>
+import { rewardSchema } from './config-rewards'
+import { cosmeticsSchema, DEFAULT_COSMETICS, DEFAULT_SHOP, shopSchema } from './config-shop'
+
+export { REWARD_KINDS, type Reward, rewardSchema } from './config-rewards'
 
 export const GOAL_KINDS = ['openPacks', 'winMatches', 'playCabinets', 'trainPlayers', 'signPlayers', 'collectStadium'] as const
 export type GoalKind = (typeof GOAL_KINDS)[number]
@@ -41,13 +39,9 @@ export const gameConfigSchema = z.object({
     capacity: z.number().int().positive(),
     capacityWithPass: z.number().int().positive(),
     playersPerPack: z.number().int().positive(),
-    /** Packs bought with coins: price and how many a day. */
+    /** Packs bought with coins: price and how many a day. Packs are never sold for gems or money (see `shop`). */
     extraPackCoins: count,
     extraPacksPerDay: count,
-    /** Refilling the shelf with gems is a paid random item, so it is off at launch. */
-    gemRefillEnabled: z.boolean(),
-    gemRefillPacks: count,
-    gemRefillCost: count,
   }),
 
   stadium: z.object({
@@ -163,6 +157,13 @@ export const gameConfigSchema = z.object({
     rivalSpread: count,
     /** Fixtures simulated per catch-up at most. A player gone for longer misses the oldest ones. */
     maxCatchUpMatches: z.number().int().positive(),
+    /** Past League 1 (the Prestige tiers) rivals grow by this much a tier instead of `rivalStep`, up to `rivalMaxRating`. */
+    rivalPrestigeStep: count.default(2),
+    rivalMaxRating: positive.default(95),
+    /** A new club's first league match kicks off this long after the debut, so it is part of the first session. */
+    firstMatchMinutes: positive.default(10),
+    /** Paid on every promotion. */
+    promotionRewards: z.array(rewardSchema).default([{ kind: 'gems', amount: 50 }, { kind: 'starPacks', amount: 1 }]),
   }),
 
   match: z.object({
@@ -231,6 +232,8 @@ export const gameConfigSchema = z.object({
     starterPositions: z.array(z.enum(['GK', 'DEF', 'MID', 'FWD'])).min(1),
     /** How many of them are Pro (the spec guarantees one). The rest are Grassroots or Semi-Pro. */
     starterPros: count,
+    /** Packs waiting on the shelf when the club is founded, so the first session starts with something to open. */
+    starterShelfPacks: count.default(3),
   }),
 
   daily: z.object({
@@ -252,6 +255,8 @@ export const gameConfigSchema = z.object({
 
   pass: z.object({
     seasonDays: z.number().int().positive(),
+    /** Gems paid instead if a League Pass is bought for a season the club already has it for (the store took the money). */
+    duplicateGems: count.default(500),
     xpPerTier: positive,
     /** Pass XP from each thing. A win pays `match` + `win`. */
     xp: z.object({ match: count, win: count, pack: count, cabinet: count, goal: count }),
@@ -259,6 +264,10 @@ export const gameConfigSchema = z.object({
     free: z.array(rewardSchema.nullable()),
     premium: z.array(rewardSchema),
   }),
+
+  shop: shopSchema.default(() => DEFAULT_SHOP),
+  cosmetics: cosmeticsSchema.default(() => DEFAULT_COSMETICS),
+
 
   album: z.object({
     /** Players in a set. Sets are every nation and position's players, best first, in groups of this many. */
@@ -271,7 +280,11 @@ export const gameConfigSchema = z.object({
 
 export type GameConfig = z.infer<typeof gameConfigSchema>
 
-/** 30 tiers. The free track pays every second tier (15 rewards) and ends in a Star pack; the premium track pays every tier, with Star packs at 15 and 30. PLACEHOLDER values. */
+/**
+ * 30 tiers. The free track pays every second tier (15 rewards), including the packs, and ends in a Star pack. The
+ * premium track pays every tier and holds no random packs: gems and coins, the season's kits at 10 and 20, and a Star
+ * Signing (choose one of three named Stars, shown before buying) at 15 and 30. PLACEHOLDER values.
+ */
 function passTiers() {
   const tiers = 30
   const free = Array.from({ length: tiers }, (_, index) => {
@@ -286,15 +299,18 @@ function passTiers() {
   const premium = Array.from({ length: tiers }, (_, index) => {
     const tier = index + 1
     if (tier === 15 || tier === tiers)
-      return { kind: 'starPacks', amount: 1 }
-    const cycle = tier % 3
-    return cycle === 1 ? { kind: 'packs', amount: 1 } : cycle === 2 ? { kind: 'gems', amount: 30 } : { kind: 'coins', amount: 800 + tier * 20 }
+      return { kind: 'signing', amount: 1 }
+    if (tier === 10)
+      return { kind: 'kit', amount: 1, id: 'season-gold' }
+    if (tier === 20)
+      return { kind: 'kit', amount: 1, id: 'season-night' }
+    return tier % 2 === 1 ? { kind: 'gems', amount: 25 } : { kind: 'coins', amount: 1000 + tier * 40 }
   })
   return { free, premium }
 }
 
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 4,
+  version: 5,
   shelf: {
     intervalMinutes: 45,
     capacity: 10,
@@ -302,9 +318,6 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     playersPerPack: 3,
     extraPackCoins: 2000,
     extraPacksPerDay: 3,
-    gemRefillEnabled: false,
-    gemRefillPacks: 3,
-    gemRefillCost: 60,
   },
   stadium: {
     coinsPerHour: [60, 90, 130, 180, 240, 310, 390, 480, 580, 700],
@@ -415,7 +428,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   pass: {
     seasonDays: 28,
     xpPerTier: 100,
-    xp: { match: 2, win: 1, pack: 2, cabinet: 3, goal: 15 },
+    xp: { match: 2, win: 1, pack: 2, cabinet: 3, goal: 20 },
     ...passTiers(),
   },
   album: { setSize: 6, bonusPerSet: 0.01, reward: { kind: 'packs', amount: 1 } },
@@ -432,6 +445,16 @@ export function parseConfig(raw: unknown): GameConfig {
     const total = row.reduce((sum, value) => sum + value, 0)
     if (Math.abs(total - 100) > 0.01)
       throw new Error(`packs.oddsByLeague row ${league + 1} adds up to ${total}, not 100.`)
+  }
+  if (new Set(config.shop.products.map(product => product.id)).size !== config.shop.products.length)
+    throw new Error('shop.products has two products with the same id.')
+  const kits = new Set(config.cosmetics.kits.map(kit => kit.id))
+  if (kits.size !== config.cosmetics.kits.length)
+    throw new Error('cosmetics.kits has two kits with the same id.')
+  const rewards = [...config.pass.free, ...config.pass.premium, ...config.calendar.rewards, ...config.league.promotionRewards, ...config.shop.products.flatMap(product => product.rewards)]
+  for (const reward of rewards) {
+    if (reward?.kind === 'kit' && !kits.has(reward.id ?? ''))
+      throw new Error(`A reward names the kit "${reward.id}", which is not in cosmetics.kits.`)
   }
   if (config.onboarding.starterPros > config.onboarding.starterPositions.length)
     throw new Error('onboarding.starterPros is more than the number of starter players.')

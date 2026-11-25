@@ -402,6 +402,9 @@ importers:
       '@ld/react-utils':
         specifier: workspace:*
         version: link:../../../packages/react-utils
+      '@ld/telemetry':
+        specifier: workspace:*
+        version: link:../../../packages/telemetry
       '@ld/ui':
         specifier: workspace:*
         version: link:../../../packages/ui

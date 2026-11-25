@@ -55,6 +55,7 @@
     "@ld/pixel-pitch-core": "workspace:*",
     "@ld/pwa": "workspace:*",
     "@ld/react-utils": "workspace:*",
+    "@ld/telemetry": "workspace:*",
     "@ld/ui": "workspace:*",
     "@ld/utils": "workspace:*",
     "@revenuecat/purchases-capacitor": "catalog:",

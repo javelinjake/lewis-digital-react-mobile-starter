@@ -2,6 +2,7 @@ import type { NewClub } from '@ld/pixel-pitch-core'
 import { CREST_COUNT } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useState } from 'react'
+import { telemetry } from '@/lib/telemetry'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { KIT_COLOURS } from '../lib/art'
@@ -29,6 +30,7 @@ export function OnboardingScreen() {
           return
         // On success the new club lands in the cache and the onboarding gate moves on to the debut replay.
         create.mutate({ name: name.trim(), crest, kitPrimary: primary, kitSecondary: secondary }, {
+          onSuccess: () => telemetry.track('club_founded'),
           onError: error => toast.push(formatError(error), 'error'),
         })
       }}

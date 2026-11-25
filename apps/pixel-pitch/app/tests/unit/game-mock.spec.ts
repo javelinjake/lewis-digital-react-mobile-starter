@@ -28,8 +28,9 @@ describe('the mock game api', () => {
     await gameApi.createClub(newClub)
     window.__pixelPitchClock!.advance(10 * HOUR)
     const synced = await gameApi.sync()
-    expect(synced!.fixtures.map(fixture => fixture.no)).toEqual([0, 1, 2])
-    expect((await gameApi.readFixtures(2)).map(fixture => fixture.no)).toEqual([2, 1])
+    // The first kicks off 10 minutes after the debut, then one every 3 hours.
+    expect(synced!.fixtures.map(fixture => fixture.no)).toEqual([0, 1, 2, 3])
+    expect((await gameApi.readFixtures(2)).map(fixture => fixture.no)).toEqual([3, 2])
   })
 
   it('refuses what the server would refuse', async () => {
@@ -107,8 +108,9 @@ describe('local notifications', () => {
     const byType = Object.fromEntries(plans.map(plan => [plan.type, plan]))
     expect(Object.keys(byType).sort()).toEqual(['full-time', 'shelf-full', 'trays-full'])
     expect(byType['full-time'].at).toBe(created.club.state.league.nextKickoffAt + 60_000)
-    // Ten packs at 45 minutes each from the start, and 8 hours of tray (a new club's energy is full, so the tray is next).
-    expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + 10 * 45 * 60_000)
+    // A new club starts with three packs: seven more at 45 minutes each fill the shelf. And 8 hours of tray (a new
+    // club's energy is full, so the tray is next).
+    expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + (10 - DEFAULT_CONFIG.onboarding.starterShelfPacks) * 45 * 60_000)
     expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt + 8 * HOUR)
 
     const full = { ...created, club: { ...created.club, state: { ...created.club.state, idle: { ...created.club.state.idle, shelfPacks: 10 } } } }
@@ -117,5 +119,45 @@ describe('local notifications', () => {
     // The shared planner keeps alerts out of quiet hours and drops the types the player switched off.
     const allowed = planNotifications(plans, { enabledTypes: ['full-time'], now: created.now })
     expect(allowed.map(plan => plan.type)).toEqual(['full-time'])
+  })
+})
+
+describe('the shop in the playtest build', () => {
+  beforeEach(() => {
+    sessionStorage.clear()
+    useAuthStore.setState({ userId: `user-${Math.random()}` })
+  })
+
+  it('pays pretend purchases at once, as the webhook would, and spends gems on what the shop lists', async () => {
+    const created = await gameApi.createClub(newClub)
+    const gems = await gameApi.pretendPurchase!('pp_gems_500')
+    expect(gems.club.state.idle.gems).toBe(created.club.state.idle.gems + 500)
+
+    const pass = await gameApi.pretendPurchase!('pp_league_pass')
+    expect(pass.club.state.idle.hasPass).toBe(true)
+
+    const starter = await gameApi.pretendPurchase!('pp_starter')
+    expect(starter.club.state.signings.pending).toBe(1)
+
+    const kit = await gameApi.buyKit('claret')
+    expect(kit.club.kitPrimary).toBe('#7a1f3d')
+    expect(kit.club.state.kits).toEqual(['claret'])
+    const crest = await gameApi.changeIdentity({ crest: 9 })
+    expect(crest.club.crest).toBe(9)
+    // The kit survives a sync: it is stored on the club, not only in the answer.
+    expect((await gameApi.sync())!.club).toMatchObject({ crest: 9, kitPrimary: '#7a1f3d' })
+  })
+})
+
+describe('first steps', () => {
+  it('starts with opening a pack and is done once everything has been tried', async () => {
+    const { firstSteps } = await import('@/features/game/lib/first-steps')
+    useAuthStore.setState({ userId: `user-${Math.random()}` })
+    sessionStorage.clear()
+    const created = await gameApi.createClub(newClub)
+    expect(firstSteps(created).find(step => !step.done)?.id).toBe('open-pack')
+    const state = created.club.state
+    const done = { ...created, cards: [...created.cards, ...created.cards], club: { ...created.club, state: { ...state, packsOpened: 1, ticketsIssued: 1, league: { ...state.league, fixtureNo: 1 }, calendar: { streak: 1, lastClaimDay: 1 } } } }
+    expect(firstSteps(done).every(step => step.done)).toBe(true)
   })
 })

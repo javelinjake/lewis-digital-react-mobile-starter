@@ -8,15 +8,27 @@ import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
 import { gameKeys } from '@/features/game/queries/game.keys'
+import { startTelemetry, telemetry } from '@/lib/telemetry'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function App() {
   const status = useAuthStore(state => state.status)
 
+  const userId = useAuthStore(state => state.userId)
+
   useEffect(() => {
     void useAuthStore.getState().bootstrap()
+    void startTelemetry().then(() => telemetry.track('session_started'))
   }, [])
+
+  // Analytics are linked to the account id, never an email, and unlinked on sign-out.
+  useEffect(() => {
+    if (userId)
+      telemetry.identify(userId)
+    else
+      telemetry.reset()
+  }, [userId])
 
   useEffect(() => {
     if (status !== 'bootstrapping')
