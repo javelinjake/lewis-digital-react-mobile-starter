@@ -66,6 +66,8 @@ catalog:
   posthog-js: 1.447.3
   "@sentry/react": 10.76.2
   "@sentry/capacitor": 4.5.0
+  # Source map upload for release builds (config-vite). Pinned when added; at least two weeks old.
+  "@sentry/vite-plugin": 11.11.0
 
   # PWA
   vite-plugin-pwa: ^1.3.0
@@ -86,7 +88,6 @@ catalog:
   "@capacitor/local-notifications": ^8.3.1
   "@capacitor/network": ^8.0.1
   "@capacitor/preferences": ^8.0.1
-  "@capacitor/push-notifications": ^8.1.2
   "@capacitor/screen-orientation": ^8.0.2
   "@capacitor/share": ^8.0.1
   "@capacitor/splash-screen": ^8.0.2
@@ -94,7 +95,30 @@ catalog:
   "@aparajita/capacitor-secure-storage": ^8.0.1
   "@capgo/capacitor-social-login": ^8.7.7
   "@revenuecat/purchases-capacitor": ^14.1.0
+  # Baseline plugins added 2026-11: no permission prompt or store privacy answer until the app calls them, so every
+  # app declares them. Pinned to releases at least two weeks old when added; move to ^ ranges when next upgrading.
+  "@capacitor/browser": 8.0.5
+  "@capacitor/clipboard": 8.0.1
+  "@capacitor/filesystem": 8.1.5
+  "@capacitor-community/in-app-review": 8.0.0
+  "@capacitor-community/keep-awake": 8.0.1
+  "@capawesome/capacitor-app-update": 8.1.1
+  "@capawesome/capacitor-background-task": 8.0.3
+  "@capawesome/capacitor-badge": 8.0.4
+  # Opt-in plugins: an app declares one only with the matching `capabilities` entry in app.meta.ts, because each needs
+  # a permission string, an entitlement or a config file (tooling/native/lib/native-features.ts lists which).
+  # The barcode scanner is the official one, not ML Kit: ML Kit has no Swift Package, and these iOS projects use SPM.
+  "@capacitor-firebase/messaging": 8.6.0
+  "@capacitor/geolocation": 8.2.4
+  "@aparajita/capacitor-biometric-auth": 10.0.0
+  "@capacitor/barcode-scanner": 3.1.3
+  "@capacitor-community/native-audio": 8.0.0
+  "@capawesome/capacitor-file-picker": 8.1.1
+  "@capgo/capacitor-updater": 8.54.2
 
   # Native project tooling
   "@capacitor/assets": ^3.0.5
   "@trapezedev/configure": ^7.1.10
+  "@trapezedev/project": ^7.1.10
+  # Uploads live-update bundles (tooling/native/ota-publish.ts). Pinned when added; at least two weeks old.
+  "@vercel/blob": 2.8.2

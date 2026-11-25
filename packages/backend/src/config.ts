@@ -20,9 +20,11 @@ import { deleteAccountEndpoint, exportAccountEndpoint } from './endpoints/accoun
 import { createCleanupEndpoint } from './endpoints/cron'
 import { assertNoShadowedEndpoints } from './endpoints/guard'
 import { healthEndpoint } from './endpoints/health'
+import { pushEndpoints } from './endpoints/push'
 import { createRevenueCatEndpoint } from './endpoints/revenuecat'
 import { resolveBackendEnv } from './env'
 import { buildAllowedOrigins } from './origins'
+import { appBundlesCollection, createOtaPublishEndpoint, otaCheckEndpoint } from './ota'
 
 export interface AppBackendOptions {
   app: {
@@ -85,6 +87,7 @@ export function createAppBackend(options: AppBackendOptions) {
     'purchase-events',
     'idempotency-keys',
     'action-throttles',
+    'app-bundles',
   ])
 
   const uploadDir = path.resolve(env.mediaDir)
@@ -105,6 +108,7 @@ export function createAppBackend(options: AppBackendOptions) {
       purchaseEventsCollection,
       idempotencyKeysCollection,
       rateLimitsCollection,
+      appBundlesCollection,
       ...(options.collections ?? []),
     ],
     globals: options.globals ?? [],
@@ -114,6 +118,9 @@ export function createAppBackend(options: AppBackendOptions) {
       exportAccountEndpoint,
       createRevenueCatEndpoint({ secret: env.revenuecatWebhookSecret, onEvent: options.purchases?.onEvent }),
       createCleanupEndpoint({ secret: env.cronSecret, extra: options.cron?.extra }),
+      ...pushEndpoints,
+      otaCheckEndpoint,
+      createOtaPublishEndpoint(env.otaPublishSecret),
       ...(options.endpoints ?? []),
     ],
     plugins: [

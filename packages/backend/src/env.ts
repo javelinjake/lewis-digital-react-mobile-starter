@@ -28,6 +28,8 @@ export interface BackendEnv {
   captureDir: string
   revenuecatWebhookSecret?: string
   cronSecret?: string
+  /** `OTA_PUBLISH_SECRET`: lets `pnpm ota:publish` record live-update bundles. Unset: publishing is off. */
+  otaPublishSecret?: string
   /** Better Auth's built-in rate limiting. Only ever off outside production (tests). */
   authRateLimit: boolean
   /**
@@ -131,6 +133,7 @@ export function resolveBackendEnv(env: Env = process.env): BackendEnv {
     captureDir: env.EMAIL_CAPTURE_DIR || '.data/mail',
     revenuecatWebhookSecret: env.REVENUECAT_WEBHOOK_SECRET?.trim() || undefined,
     cronSecret: env.CRON_SECRET?.trim() || undefined,
+    otaPublishSecret: env.OTA_PUBLISH_SECRET?.trim() || undefined,
     authRateLimit: env.AUTH_RATE_LIMIT !== 'off',
     allowTimeTravel: env.ALLOW_TIME_TRAVEL === '1',
     mediaStorage: resolveMediaStorage(env, productionRuntime),

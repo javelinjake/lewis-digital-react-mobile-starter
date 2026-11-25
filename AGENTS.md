@@ -22,7 +22,7 @@ TanStack Query is server state. Zustand is session status and UI state. Zustand 
 
 The outbox is the only durable write queue. Do not also persist TanStack mutations. A feature that needs offline writes uses it; an online-only game does not.
 
-@ld/native is the only package that imports Capacitor plugins (including notifications, social sign-in and purchases). App `package.json` files still declare those plugins so `cap sync` can see them. The one exception is `@ld/telemetry`, which may import the Sentry Capacitor SDK.
+@ld/native is the only package that imports Capacitor plugins (including notifications, social sign-in, purchases and push). App `package.json` files still declare those plugins so `cap sync` can see them. The one exception is `@ld/telemetry`, which may import the Sentry Capacitor SDK. A plugin that needs a permission, an entitlement or a config file is opt-in: the app turns on its `capabilities` entry in `app.meta.ts` and declares the plugin. To add a plugin, follow docs/native.md ("Adding a new plugin").
 
 Do not read `navigator.onLine` or register service workers in apps.
 

@@ -59,6 +59,8 @@ apps/*/*/android/captures
 apps/*/*/android/keystore.properties
 
 apps/*/*/.trapeze
+# Live-update zips built by ota:publish
+apps/*/*/.ota
 
 # Local-only leftovers from removed apps (build output, .env). Never committed.
 .local-archive

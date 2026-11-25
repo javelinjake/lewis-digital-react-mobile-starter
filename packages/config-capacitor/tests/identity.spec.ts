@@ -30,4 +30,22 @@ describe('resolveIdentity', () => {
     expect(resolveIdentity(meta)).toMatchObject({ orientation: 'any', tablet: true })
     expect(resolveIdentity({ ...meta, orientation: 'portrait', tablet: false })).toMatchObject({ orientation: 'portrait', tablet: false })
   })
+
+  it('turns every capability off unless the app turns it on', () => {
+    const { capabilities } = resolveIdentity({ ...meta, capabilities: { push: true } })
+    expect(capabilities).toEqual({ push: true, location: false, biometrics: false, barcode: false, audio: false, filePicker: false, ota: false })
+  })
+
+  it('names the production app in permission prompts, and lets the app replace any string', () => {
+    const { usage } = resolveIdentity({ ...meta, usage: { location: 'To find pitches near you.' } }, 'dev')
+    expect(usage.camera).toContain('Pixel Pitch ')
+    expect(usage.camera).not.toContain('Dev')
+    expect(usage.location).toBe('To find pitches near you.')
+  })
+
+  it('takes the Android signing fingerprints per environment, since each bundle id is its own Play app', () => {
+    const result = resolveIdentity({ ...meta, appleTeamId: ' ABCDE12345 ', environments: { prod: { androidSha256: ['AA:BB'] } } }, 'prod')
+    expect(result).toMatchObject({ appleTeamId: 'ABCDE12345', androidSha256: ['AA:BB'] })
+    expect(resolveIdentity(meta, 'dev').androidSha256).toEqual([])
+  })
 })

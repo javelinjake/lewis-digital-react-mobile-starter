@@ -1,8 +1,10 @@
 import type { PwaConfigOptions } from './pwa.ts'
+import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig, type Plugin, type PluginOption, type UserConfig } from 'vite'
+import { defineConfig, loadEnv, type Plugin, type PluginOption, type UserConfig } from 'vite'
 import { createPwaPlugin } from './pwa.ts'
 
 export type { PwaConfigOptions } from './pwa.ts'
@@ -22,6 +24,18 @@ export interface CreateViteConfigOptions {
   apiProxy?: string
   /** Written into index.html, so the page has a description and a browser colour without a hand-kept copy. */
   meta?: { name: string, description: string, themeColor: string }
+  /**
+   * The api address for this `APP_ENV`, from `app.meta.ts` (`resolveIdentity(appMeta, APP_ENV).apiUrl`). A native
+   * build uses it when `VITE_API_URL` is not set. Web builds ignore it.
+   */
+  nativeApiUrl?: string
+  /** The app's `package.json` version, exposed as `import.meta.env.VITE_APP_VERSION`. */
+  version?: string
+  /**
+   * Files the web build adds at these paths, from `buildAppLinkFiles(appMeta)`: the Universal Links and App Links
+   * files under `/.well-known/`. Web builds only.
+   */
+  appLinks?: Record<string, string>
 }
 
 /**
@@ -57,9 +71,99 @@ function dataModeGuard(): Plugin {
   }
 }
 
+/**
+ * Build facts the app reads at runtime: the version and build number (for crash reports and live updates) and, for
+ * native, the api address from `app.meta.ts` so it cannot drift from the environment being built. An explicit
+ * `VITE_API_URL` still wins. A live native build with no api address at all fails here instead of on the phone.
+ */
+/**
+ * The build's identity for crash reports and live updates: `version+build`. Native release builds use the build
+ * number (the release script sets BUILD_NUMBER); a Vercel web build uses the commit. Both come from the environment,
+ * so a cached build replays its own release name and the source maps uploaded with it.
+ */
+export function releaseName(version: string | undefined, env: Record<string, string | undefined> = process.env) {
+  const build = env.BUILD_NUMBER?.trim() || env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 7) || ''
+  return { version: version ?? '0.0.0', build, release: build ? `${version ?? '0.0.0'}+${build}` : version ?? '0.0.0' }
+}
+
+function buildInfo(root: string, buildTarget: BuildTarget, nativeApiUrl: string | undefined, version: string | undefined): Plugin {
+  return {
+    name: 'ld-build-info',
+    config(_config, { mode, command }) {
+      const env = loadEnv(mode, root, 'VITE_')
+      const release = releaseName(version)
+      const define: Record<string, string> = {
+        'import.meta.env.VITE_APP_VERSION': JSON.stringify(release.version),
+        'import.meta.env.VITE_APP_BUILD': JSON.stringify(release.build),
+        'import.meta.env.VITE_APP_RELEASE': JSON.stringify(release.release),
+        // dev, staging or prod for a native build; the Vercel environment (production, preview) for the web.
+        'import.meta.env.VITE_APP_ENV': JSON.stringify(buildTarget === 'native' ? process.env.APP_ENV?.trim() || 'prod' : process.env.VERCEL_ENV?.trim() || mode),
+      }
+
+      if (buildTarget === 'native') {
+        const apiUrl = env.VITE_API_URL?.trim() || nativeApiUrl?.trim() || ''
+        define['import.meta.env.VITE_API_URL'] = JSON.stringify(apiUrl)
+        if (command === 'build' && env.VITE_DATA_MODE === 'live' && !apiUrl) {
+          throw new Error(`A live native build needs an api address. Set environments.${process.env.APP_ENV?.trim() || 'prod'}.apiUrl in app.meta.ts (APP_ENV picks the entry, default prod), or VITE_API_URL.`)
+        }
+      }
+
+      return { define }
+    },
+  }
+}
+
+/**
+ * Uploads source maps to Sentry when SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT are set (a release build on
+ * your Mac or on Vercel), so a crash shows the original code. The maps are built hidden (no `sourceMappingURL` in
+ * the bundle) and deleted after upload, so they never ship. Without the three variables nothing changes.
+ */
+function sentrySourceMaps(version: string | undefined): PluginOption[] {
+  const authToken = process.env.SENTRY_AUTH_TOKEN?.trim()
+  const org = process.env.SENTRY_ORG?.trim()
+  const project = process.env.SENTRY_PROJECT?.trim()
+  if (!authToken || !org || !project)
+    return []
+  return [
+    {
+      name: 'ld-hidden-source-maps',
+      apply: 'build',
+      config: () => ({ build: { sourcemap: 'hidden' } }),
+    },
+    sentryVitePlugin({
+      authToken,
+      org,
+      project,
+      release: { name: releaseName(version).release },
+      sourcemaps: { filesToDeleteAfterUpload: ['./dist/**/*.map'] },
+      telemetry: false,
+    }),
+  ]
+}
+
+/** Writes generated files into the build output, for the files that are derived from app.meta.ts. */
+function emitFiles(files: Record<string, string>): Plugin {
+  return {
+    name: 'ld-emit-files',
+    apply: 'build',
+    generateBundle() {
+      for (const [fileName, source] of Object.entries(files))
+        this.emitFile({ type: 'asset', fileName, source })
+    },
+  }
+}
+
 export function createViteConfig(options: CreateViteConfigOptions): UserConfig {
-  const { root, port = 5173, pwa, buildTarget = 'web', apiProxy, meta } = options
-  const plugins: PluginOption[] = [react(), tailwindcss(), dataModeGuard(), ...(meta ? [htmlMeta(meta)] : [])]
+  const { root, port = 5173, pwa, buildTarget = 'web', apiProxy, meta, nativeApiUrl, version, appLinks } = options
+  const plugins: PluginOption[] = [
+    react(),
+    tailwindcss(),
+    dataModeGuard(),
+    buildInfo(root, buildTarget, nativeApiUrl, version),
+    ...(meta ? [htmlMeta(meta)] : []),
+    ...(buildTarget === 'web' && appLinks ? [emitFiles(appLinks)] : []),
+    ...sentrySourceMaps(version),
+  ]
   const proxy = apiProxy ? { '/api': { target: apiProxy, changeOrigin: true } } : undefined
 
   if (buildTarget !== 'native' && pwa)
@@ -71,6 +175,8 @@ export function createViteConfig(options: CreateViteConfigOptions): UserConfig {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', `file://${root}/`)),
+        // No web push: the Firebase plugin's web version gets a stub instead of the Firebase SDK (see the file).
+        'firebase/messaging': fileURLToPath(new URL('./stubs/firebase-messaging.ts', import.meta.url)),
         ...(buildTarget === 'native'
           ? { 'virtual:pwa-register': fileURLToPath(new URL('../../pwa/src/register-stub.ts', import.meta.url)) }
           : {}),

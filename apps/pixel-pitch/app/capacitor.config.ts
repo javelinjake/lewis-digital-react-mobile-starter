@@ -10,4 +10,6 @@ export default createCapacitorConfig({
   appName: identity.name,
   backgroundColor: appMeta.backgroundColor,
   hostname: identity.hostname,
+  capabilities: identity.capabilities,
+  apiUrl: process.env.VITE_API_URL?.trim() || identity.apiUrl,
 })
