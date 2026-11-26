@@ -1,7 +1,7 @@
 import type { RoundKind } from '@ld/pixel-pitch-core'
 import { kickPoints, kickRounds, markerAt, targetAt } from '@ld/pixel-pitch-core'
 import { useMemo, useRef, useState } from 'react'
-import { useGameConfig } from '../queries/use-game'
+import { usePlayConfig } from '../queries/use-play-config'
 import { TimingBar } from './TimingBar'
 
 const VERDICT = ['Miss', 'Close', 'Good', 'Perfect!']
@@ -17,7 +17,7 @@ const FEEDBACK_MS = 800
  * round began, with the game's seed; what the player sees here is only the same maths, run early.
  */
 export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (taps: number[]) => void }) {
-  const config = useGameConfig()
+  const config = usePlayConfig()
   const rounds = useMemo(() => kickRounds(seed, config), [seed, config])
   const { perfect, good, ok } = config.minigames.kick
   const [round, setRound] = useState(0)

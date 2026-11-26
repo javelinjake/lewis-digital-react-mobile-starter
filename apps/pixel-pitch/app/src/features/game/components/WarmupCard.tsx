@@ -10,6 +10,7 @@ import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
 import { cabinetGame } from './cabinet-games'
 import { CabinetArt } from './CabinetArt'
+import { PlayTuning } from './PlayTuning'
 
 const ZONE_TEXT: Record<WarmupZone, string> = { gold: 'Gold!', green: 'Good warm-up', miss: 'Not your best' }
 
@@ -43,20 +44,22 @@ export function WarmupPanel({ game, onDone }: { game: GameResponse, onDone: () =
       <div className="flex flex-col gap-3">
         <h3 className="text-primary">{info.name}</h3>
         {finish.isPending ? <span className="text-muted">Checking your warm-up…</span> : null}
-        <Game
-          key={ticket.id}
-          seed={ticket.seed}
-          onFinish={taps => finish.mutate(taps, {
-            onSuccess: (response) => {
-              setResult({ cabinet: response.cabinet, score: response.score, max: response.max, zone: response.zone, bonus: response.bonus })
-              setPlaying(false)
-            },
-            onError: (error) => {
-              onError(error)
-              setPlaying(false)
-            },
-          })}
-        />
+        <PlayTuning ticket={ticket}>
+          <Game
+            key={ticket.id}
+            seed={ticket.seed}
+            onFinish={taps => finish.mutate(taps, {
+              onSuccess: (response) => {
+                setResult({ cabinet: response.cabinet, score: response.score, max: response.max, zone: response.zone, bonus: response.bonus })
+                setPlaying(false)
+              },
+              onError: (error) => {
+                onError(error)
+                setPlaying(false)
+              },
+            })}
+          />
+        </PlayTuning>
       </div>
     )
   }

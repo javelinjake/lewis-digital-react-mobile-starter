@@ -122,6 +122,19 @@ export function HubTiles({ game }: { game: GameResponse }) {
         </Link>
       </div>
 
+      {state.chances.length > 0
+        ? (
+            <Link to="/chances" className="relative flex min-h-11 items-center justify-between bg-base-100 px-3 shadow-[inset_0_0_0_2px_var(--color-accent)]">
+              <span>
+                <span className="font-bold text-accent">Big Chances</span>
+                <span className="text-sm text-muted">{` · ${state.chances.length} to play`}</span>
+              </span>
+              <span className="text-muted" aria-hidden="true">›</span>
+              <Corner label={`${state.chances.length} to play`}>{state.chances.length}</Corner>
+            </Link>
+          )
+        : null}
+
       <Link to="/album" className="relative flex min-h-11 items-center justify-between bg-base-100 px-3 shadow-[inset_0_0_0_2px_var(--color-slate)]">
         <span>
           <span className="font-bold text-primary">Album</span>

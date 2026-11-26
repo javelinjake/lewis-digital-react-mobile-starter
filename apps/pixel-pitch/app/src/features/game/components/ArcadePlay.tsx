@@ -11,6 +11,7 @@ import { useGameConfig } from '../queries/use-game'
 import { cabinetGame } from './cabinet-games'
 import { EnergyBar } from './EnergyBar'
 import { NextSteps } from './NextSteps'
+import { PlayTuning } from './PlayTuning'
 import { Icon } from './sprites'
 
 type Phase = 'intro' | 'playing' | 'result'
@@ -59,7 +60,7 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
       <div className="flex flex-col gap-3">
         <h2 className="text-primary">{info.name}</h2>
         {finish.isPending ? <span className="text-muted">Checking your play…</span> : null}
-        <Game key={ticket.id} seed={ticket.seed} onFinish={submit} />
+        <PlayTuning ticket={ticket}><Game key={ticket.id} seed={ticket.seed} onFinish={submit} /></PlayTuning>
       </div>
     )
   }

@@ -8,7 +8,7 @@ import { art } from '../lib/art'
 import { drawGoalFrame, drawGoalScene, drawNetRipple, toCanvas } from '../lib/goal-scene'
 import { drawKeeper, KEEPER_HEIGHT } from '../lib/goalkeeper-sprite'
 import { drawBall } from '../lib/pixel-sprite'
-import { useGameConfig } from '../queries/use-game'
+import { usePlayConfig } from '../queries/use-play-config'
 
 /** A tap sooner than this after the round starts is ignored: nobody can mean it, and the server refuses it. */
 const MIN_TAP_MS = 150
@@ -35,7 +35,7 @@ const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
  * came after its round began, with the game's seed: the ball and the keeper drawn here are the rules' own.
  */
 export function PenaltyGame({ seed, onFinish }: { seed: string, onFinish: (taps: number[]) => void }) {
-  const config = useGameConfig()
+  const config = usePlayConfig()
   const { pens } = config.minigames
   const rounds = useMemo(() => penaltyRounds(seed, config), [seed, config])
   const scene = useMemo<GoalScene>(() => {

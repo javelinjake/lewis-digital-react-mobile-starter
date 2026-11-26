@@ -5,7 +5,8 @@ import { defenderProgress, defendersBeaten, dribbleEndMs, dribbleRun, dribbleTac
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { kitOf, rivalKit } from '../lib/club'
 import { FRAME_HEIGHT, FRAME_WIDTH, runnerFrames } from '../lib/runner-frames'
-import { useCatalogue, useClub, useGameConfig } from '../queries/use-game'
+import { useCatalogue, useClub } from '../queries/use-game'
+import { usePlayConfig } from '../queries/use-play-config'
 
 /** The pitch, in art pixels; drawn three times the size. */
 const WIDTH = 112
@@ -77,7 +78,7 @@ function usePlayerSprite(): { sprite: SpriteParts, kit: readonly [string, string
  * run at them in the other side's kit and lunge as they close in. Drawn on a small canvas every frame.
  */
 export function DribbleGame({ seed, onFinish }: { seed: string, onFinish: (moves: LaneMove[]) => void }) {
-  const config = useGameConfig()
+  const config = usePlayConfig()
   /** The parent's handler, called from the timers without restarting them when it changes. */
   const finishRef = useRef(onFinish)
   useEffect(() => {

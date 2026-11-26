@@ -31,6 +31,8 @@ export function newIdleState(now: number): IdleState {
 export type WelcomeBackEvent =
   | { type: 'packs', gained: number }
   | { type: 'gems', amount: number }
+  /** Big Chances banked from matches missed while away. */
+  | { type: 'chances', banked: number }
   | {
     type: 'matches'
     played: number

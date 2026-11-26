@@ -6,6 +6,7 @@ import { appMeta } from '../app/app.meta'
 import { arcadeActions } from './cms/actions/arcade'
 import { duplicateNoteAction } from './cms/actions/duplicate-note'
 import { gameActions } from './cms/actions/game'
+import { momentActions } from './cms/actions/moments'
 import { packActions } from './cms/actions/packs'
 import { rewardActions } from './cms/actions/rewards'
 import { cardsCollection } from './cms/collections/cards'
@@ -29,6 +30,6 @@ export default buildConfig(createAppBackend({
   guestLink: keepAccountClub,
   collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, notesCollection],
   globals: [gameConfigGlobal],
-  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, duplicateNoteAction],
+  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, ...momentActions, duplicateNoteAction],
   adminMeta: { titleSuffix: `· ${appMeta.name} admin` },
 }))

@@ -4,7 +4,7 @@ import { loadImage, useCanvasLoop } from '@ld/game'
 import { ballCentre, KEEPY_STEPS_PER_SECOND, keepyMax, keepyScore, newKeepy, nextKickGolden, stepKeepy } from '@ld/pixel-pitch-core'
 import { useEffect, useRef, useState } from 'react'
 import { art } from '../lib/art'
-import { useGameConfig } from '../queries/use-game'
+import { usePlayConfig } from '../queries/use-play-config'
 
 const HEIGHT = 150
 const GROUND = 136
@@ -22,7 +22,7 @@ const MIN_GAP_STEPS = Math.ceil((120 * KEEPY_STEPS_PER_SECOND) / 1000)
  * With a keyboard, Space taps the middle of the ball wherever it is, so the game is still about timing.
  */
 export function KeepyGame({ seed, onFinish }: { seed: string, onFinish: (taps: KeepyTap[]) => void }) {
-  const config = useGameConfig()
+  const config = usePlayConfig()
   const { keepy } = config.minigames
   const width = Math.round(keepy.width * UNIT)
   const canvasRef = useRef<HTMLCanvasElement>(null)

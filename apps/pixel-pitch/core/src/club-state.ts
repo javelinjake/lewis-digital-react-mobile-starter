@@ -31,12 +31,39 @@ export type Cabinet = typeof CABINETS[number]
 
 export const isCabinet = (value: unknown): value is Cabinet => CABINETS.includes(value as Cabinet)
 
-/** One play of an arcade game or the warm-up. The server hands it out and checks the result against it. */
+/** A match moment: a penalty (Penalty Shootout), a free kick (Kick Timer) or a save (Keeper Reflex), one try. */
+export type ChanceKind = 'penalty' | 'freekick' | 'save'
+
+/**
+ * A match the player can still change with one moment. A Big Chance is banked from a league match they missed (a
+ * draw or a one-goal loss); a live moment comes from one they watched. It holds the result as it stands, so scoring
+ * can move it up without the match being played again.
+ */
+export interface Chance {
+  fixtureNo: number
+  kind: ChanceKind
+  /** When in the match it comes: the commentary stops here for a live moment. */
+  minute: number
+  /** The league the match was played in. */
+  tier: number
+  live: boolean
+  /** A live moment is offered until this server time; a Big Chance waits in the bank. */
+  expiresAt: number | null
+  goalsFor: number
+  goalsAgainst: number
+  result: 'win' | 'draw' | 'loss'
+}
+
+/** One play of an arcade game, the warm-up or a match moment. The server hands it out and checks the result against it. */
 export interface Ticket {
   id: string
-  kind: Cabinet | 'warmup'
-  /** For the warm-up: the arcade game it is a play of. */
+  kind: Cabinet | 'warmup' | 'chance'
+  /** For the warm-up and a match moment: the arcade game it is a play of. */
   cabinet?: Cabinet
+  /** The league the club was in when the play started: the games get harder each league. Older tickets have none (League 5). */
+  tier?: number
+  /** For a match moment: the match it can change. */
+  chance?: Chance
   /** Fixes the game's layout (target positions, ball kicks), so the server can replay the player's taps. */
   seed: string
   issuedAt: number
@@ -90,6 +117,10 @@ export interface ClubState {
   album: { collected: string[], completed: number, claimed: string[] }
   /** Friendlies played: `played` in all (seeds each one), and how many paid coins today. */
   friendlies: { played: number, paid: DayCounter }
+  /** Big Chances waiting to be played, oldest first. */
+  chances: Chance[]
+  /** The live moment of the match the player is watching, if there is one. */
+  live: Chance | null
 }
 
 export function newClubState(now: number, config: GameConfig): ClubState {
@@ -115,6 +146,8 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     pass: { season: -1, xp: 0, claimedFree: [], claimedPremium: [] },
     album: { collected: [], completed: 0, claimed: [] },
     friendlies: { played: 0, paid: { day: -1, count: 0 } },
+    chances: [],
+    live: null,
   }
 }
 
@@ -131,7 +164,7 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
   // A play of a game since taken out of the arcade, or a warm-up from when it was a timing bar, cannot be finished: it
   // goes. An unfinished warm-up gives its try back, since it never paid anything.
   const ticket = saved.ticket ?? null
-  const stale = ticket !== null && (ticket.kind === 'warmup' ? !isCabinet(ticket.cabinet) : !isCabinet(ticket.kind))
+  const stale = ticket !== null && (ticket.kind === 'warmup' ? !isCabinet(ticket.cabinet) : ticket.kind === 'chance' ? !isCabinet(ticket.cabinet) || !ticket.chance : !isCabinet(ticket.kind))
   const warmupBack = stale && ticket.kind === 'warmup' && saved.warmupTriedFor === saved.league.fixtureNo
   return {
     ...fresh,

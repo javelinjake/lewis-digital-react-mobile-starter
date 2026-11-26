@@ -17,6 +17,7 @@ export function WelcomeBack({ game, events, claims, claiming, onClaimAll, onClos
   const played = game.fixtures.filter(fixture => fixture.no >= 0).sort((a, b) => b.kickoffAt - a.kickoffAt)
   const toWatch = played.find(fixture => !wasWatched(fixture))
   const shown = played.slice(0, 3)
+  const waitingChances = game.club.state.chances.length
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-label="Welcome back">
       <div className="flex max-h-full w-full max-w-sm flex-col items-center gap-4 overflow-y-auto border-2 border-primary bg-base-100 p-5">
@@ -96,6 +97,8 @@ export function WelcomeBack({ game, events, claims, claiming, onClaimAll, onClos
                 </li>
               )
             }
+            if (event.type === 'chances')
+              return null
             return (
               <li key={event.type}>
                 <Icon path="icons/currency_gem.png" />
@@ -104,6 +107,15 @@ export function WelcomeBack({ game, events, claims, claiming, onClaimAll, onClos
             )
           })}
         </ul>
+        {waitingChances > 0
+          ? (
+              <div className="flex w-full flex-col gap-2 border-2 border-accent p-3" aria-label="Big Chances waiting">
+                <span className="text-lg">{`${waitingChances} Big ${waitingChances === 1 ? 'Chance' : 'Chances'} waiting`}</span>
+                <span className="text-sm text-muted">From matches you missed that ended level or a goal down. Score one to move the result up.</span>
+                <Link to="/chances" onClick={onClose} className="btn btn-accent min-h-12 font-display text-xs">Play</Link>
+              </div>
+            )
+          : null}
         {toWatch
           ? <Link to={`/match/${toWatch.no}`} onClick={onClose} className="btn btn-primary min-h-12 w-full font-display text-xs">{played.length === 1 ? 'Watch the match' : 'Watch the latest match'}</Link>
           : null}

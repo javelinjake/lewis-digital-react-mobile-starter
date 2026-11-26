@@ -1,10 +1,10 @@
 import type { ActionContext } from '@ld/backend'
-import type { ClubState, ClubView, FixtureResult, FlowContext, FlowResult, GameConfig, GameResponse, LedgerEntry, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
+import type { ClubState, ClubView, FixtureChange, FixtureResult, FlowContext, FlowResult, GameConfig, GameResponse, LedgerEntry, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
 import type { PayloadRequest } from 'payload'
 import type { Card, Club, Fixture } from '../../payload-types'
 import type { LoadedGame } from './load'
 import { lockRows } from '@ld/backend'
-import { isGameRuleError, NEW_CARD_PREFIX, syncClub, upgradeState } from '@ld/pixel-pitch-core'
+import { changeFixture, isGameRuleError, NEW_CARD_PREFIX, syncClub, upgradeState } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { serverNow } from './clock'
 import { loadGame } from './load'
@@ -15,6 +15,8 @@ type CardSource = Card['source']
 /** What a game action decided (the rules' `FlowResult`), plus matches an action played itself (the debut). */
 export interface Outcome<T> extends Omit<FlowResult<T>, 'extra'> {
   fixtures?: FixtureResult[]
+  /** Matches already stored whose result a scored moment changed. */
+  fixtureChanges?: FixtureChange[]
   /** Extra fields for the response. */
   extra?: T
 }
@@ -160,6 +162,24 @@ export async function saveClub<T>(ctx: ActionContext, input: GameInput, outcome:
   for (const fixture of fixtures)
     await req.payload.create({ collection: 'fixtures', data: fixtureData(user.id, fixture, game.config.version), depth: 0, overrideAccess: true, req })
 
+  const changed: FixtureResult[] = []
+  for (const change of outcome.fixtureChanges ?? []) {
+    const found = await req.payload.find({ collection: 'fixtures', where: { and: [{ owner: { equals: user.id } }, { no: { equals: change.no } }] }, limit: 1, depth: 0, overrideAccess: true, req })
+    const doc = found.docs[0]
+    if (!doc)
+      continue
+    const next = changeFixture(doc as unknown as FixtureResult, change)
+    await req.payload.update({
+      collection: 'fixtures',
+      id: doc.id,
+      data: { goalsFor: next.goalsFor, goalsAgainst: next.goalsAgainst, result: next.result, points: next.points, coins: next.coins, promotedTo: next.promotedTo, events: next.events },
+      depth: 0,
+      overrideAccess: true,
+      req,
+    })
+    changed.push(next)
+  }
+
   const ledger: LedgerEntry[] = []
   const matchCoins = caughtUp.fixtures.reduce((sum, fixture) => sum + fixture.coins, 0)
   if (matchCoins > 0)
@@ -196,6 +216,7 @@ export async function saveClub<T>(ctx: ActionContext, input: GameInput, outcome:
     club: toClubView(club, state, version),
     cards,
     fixtures,
+    ...(changed.length > 0 ? { changedFixtures: changed } : {}),
     events: caughtUp.events,
     now,
     configVersion: game.config.version,

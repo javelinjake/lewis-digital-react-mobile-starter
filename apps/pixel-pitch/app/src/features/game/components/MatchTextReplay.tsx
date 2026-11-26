@@ -87,7 +87,7 @@ function Scoreboard({ fixture, clubName, crest, score, minute, label }: { fixtur
  * `ended` (played through, skipped, or a match already seen) it shows the result, who scored, and the whole report
  * from kick-off, in a box of its own that scrolls.
  */
-export function MatchTextReplay({ fixture, clubName, crest, label, ended, onEnd, speed = 1 }: {
+export function MatchTextReplay({ fixture, clubName, crest, label, ended, onEnd, speed = 1, holdAt = null, jump = false, onHold }: {
   fixture: FixtureResult
   clubName: string
   crest: ReactNode
@@ -95,6 +95,11 @@ export function MatchTextReplay({ fixture, clubName, crest, label, ended, onEnd,
   ended: boolean
   onEnd: () => void
   speed?: number
+  /** A live moment's minute: the report stops just before it and calls `onHold`. */
+  holdAt?: number | null
+  /** Go straight to the hold (Skip to full time, with a live moment still to come). */
+  jump?: boolean
+  onHold?: () => void
 }) {
   const config = useGameConfig()
   const manual = useOsReducedMotion()
@@ -104,14 +109,29 @@ export function MatchTextReplay({ fixture, clubName, crest, label, ended, onEnd,
   )
   const beats = useMemo(() => beatsOf(moments), [moments])
   // How many beats are on screen. The kick-off is up from the start.
-  const [shown, setShown] = useState(1)
+  const [counted, setShown] = useState(1)
+  // With a live moment to come, the beats before its minute: the report waits there.
+  const holdIndex = useMemo(() => {
+    if (holdAt === null)
+      return null
+    const at = beats.findIndex(beat => moments[beat.moment].kind !== 'kickoff' && moments[beat.moment].minute >= holdAt)
+    return Math.max(1, at === -1 ? beats.length - 1 : at)
+  }, [holdAt, beats, moments])
+  // Skip to full time with a moment to come jumps to the moment.
+  const shown = jump && holdIndex !== null ? Math.max(counted, holdIndex) : counted
+  const holding = holdIndex !== null && shown >= holdIndex
 
   useEffect(() => {
-    if (manual || shown >= beats.length)
+    if (holding)
+      onHold?.()
+  }, [holding, onHold])
+
+  useEffect(() => {
+    if (manual || holding || shown >= beats.length)
       return
     const timer = setTimeout(() => setShown(count => Math.min(beats.length, count + 1)), beats[shown - 1].ms / speed)
     return () => clearTimeout(timer)
-  }, [manual, shown, beats, speed])
+  }, [manual, holding, shown, beats, speed])
 
   const finished = ended || shown >= beats.length
   useEffect(() => {
@@ -125,7 +145,7 @@ export function MatchTextReplay({ fixture, clubName, crest, label, ended, onEnd,
   const outcomeShown = beat.part === 'outcome' || moment.outcome === null
   const score = finished ? [fixture.goalsFor, fixture.goalsAgainst] as const : outcomeShown ? moment.score : (moments[index - 1]?.score ?? [0, 0])
   const earlier = moments.slice(0, index).reverse()
-  const next = () => setShown(count => Math.min(beats.length, count + 1))
+  const next = () => setShown(Math.min(holdIndex ?? beats.length, shown + 1))
   const minute = finished ? 'FT' : minuteOf(moment)
 
   const board = <Scoreboard fixture={fixture} clubName={clubName} crest={crest} score={score} minute={minute} label={label} />

@@ -17,6 +17,7 @@ export const pages = {
   packs: () => import('@/pages/PacksPage').then(m => ({ Component: m.PacksPage })),
   squad: () => import('@/pages/SquadPage').then(m => ({ Component: m.SquadPage })),
   league: () => import('@/pages/LeaguePage').then(m => ({ Component: m.LeaguePage })),
+  chances: () => import('@/pages/ChancesPage').then(m => ({ Component: m.ChancesPage })),
   match: () => import('@/pages/MatchPage').then(m => ({ Component: m.MatchPage })),
   settings: () => import('@/pages/SettingsPage').then(m => ({ Component: m.SettingsPage })),
   notFound: () => import('@/pages/NotFoundPage').then(m => ({ Component: m.NotFoundPage })),

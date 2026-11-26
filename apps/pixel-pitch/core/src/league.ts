@@ -175,8 +175,8 @@ export interface CatchUpResult {
   skipped: number
 }
 
-const pointsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winPoints : result === 'draw' ? config.league.drawPoints : config.league.lossPoints)
-const coinsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winCoins : result === 'draw' ? config.league.drawCoins : config.league.lossCoins)
+export const pointsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winPoints : result === 'draw' ? config.league.drawPoints : config.league.lossPoints)
+export const coinsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winCoins : result === 'draw' ? config.league.drawCoins : config.league.lossCoins)
 
 /**
  * Plays every match that fell due while the player was away, in order, each from its own seed (club + match number), so

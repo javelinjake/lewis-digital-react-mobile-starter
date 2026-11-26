@@ -16,10 +16,11 @@ import type { PoolPlayer } from './lineup'
 import type { ClubState } from './club-state'
 import { newClubState } from './club-state'
 import { playMatch } from './match'
+import { takeMoments } from './moments'
 import { rollStarterSquad } from './packs'
 import { FORMATIONS, isFormationId } from './positions'
 
-export type { Cabinet, ClubState, DailyGoal, DayCounter, PackSource, PendingPack, Ticket } from './club-state'
+export type { Cabinet, Chance, ChanceKind, ClubState, DailyGoal, DayCounter, PackSource, PendingPack, Ticket } from './club-state'
 export { newClubState, upgradeState } from './club-state'
 
 /** Looks up a catalogue player by id. The api passes the `players` collection, the app its cached copy. */
@@ -69,6 +70,9 @@ export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[],
       state = recordProgress(state, 'winMatches')
   }
 
+  const moments = takeMoments(state, league.results, clubId, config, now)
+  state = moments.state
+
   const events = [...idle.events]
   if (league.results.length > 0 || league.skipped > 0) {
     const count = (result: FixtureResult['result']) => league.results.filter(match => match.result === result).length
@@ -84,6 +88,8 @@ export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[],
       promotedTo: promotions.length > 0 ? Math.max(...promotions) : null,
     })
   }
+  if (moments.banked > 0)
+    events.push({ type: 'chances', banked: moments.banked })
 
   return {
     state: { ...state, league: league.league, coins: state.coins + league.coins },

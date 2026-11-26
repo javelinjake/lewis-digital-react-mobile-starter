@@ -6,6 +6,7 @@ import type { WarmupZone } from './match'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
 import { dayIndex, pendingTrayTokens } from './advance'
 import { scorePlay } from './arcade-taps'
+import { playConfig } from './play-config'
 import { CABINETS, isCabinet } from './club-state'
 import { spendEnergy } from './energy'
 import { GameRuleError } from './errors'
@@ -24,7 +25,7 @@ export function hotCabinet(now: number, config: FlowContext['config']): Cabinet 
 
 function issue(state: ClubState, kind: Ticket['kind'], paid: boolean, clubId: string | number, now: number, cabinet?: Cabinet): ClubState {
   const number = state.ticketsIssued + 1
-  const ticket: Ticket = { id: String(number), kind, seed: `${clubId}:${kind}:${number}`, issuedAt: now, paid, ...(cabinet ? { cabinet } : {}) }
+  const ticket: Ticket = { id: String(number), kind, seed: `${clubId}:${kind}:${number}`, issuedAt: now, paid, tier: state.league.tier, ...(cabinet ? { cabinet } : {}) }
   return { ...state, ticketsIssued: number, ticket }
 }
 
@@ -77,7 +78,7 @@ export interface PlayResult {
 }
 
 /** Checks a play's taps are those of a person, and that the play took at least as long as its taps say. */
-function checkTiming(ticket: Ticket, lastTapMs: number, ctx: FlowContext) {
+export function checkTiming(ticket: Ticket, lastTapMs: number, ctx: FlowContext) {
   const elapsed = ctx.now - ticket.issuedAt
   if (elapsed > TICKET_LIFE_MS)
     throw new GameRuleError('expired', 'That play timed out. Start another.')
@@ -94,7 +95,7 @@ export function finishPlay<C extends Cabinet>(ctx: FlowContext, cabinet: C, taps
   const ticket = state.ticket
   if (!ticket || ticket.kind !== cabinet)
     throw new GameRuleError('no-ticket', 'Start a play first.')
-  const { score, max, playMs } = scorePlay(cabinet, ticket.seed, taps, config)
+  const { score, max, playMs } = scorePlay(cabinet, ticket.seed, taps, playConfig(config, ticket))
   checkTiming(ticket, playMs, ctx)
 
   const hot = hotCabinet(ticket.issuedAt, config) === cabinet
@@ -166,7 +167,7 @@ export function finishWarmup(ctx: FlowContext, taps: AnyTaps): FlowResult<Warmup
   if (!ticket || ticket.kind !== 'warmup' || !isCabinet(ticket.cabinet))
     throw new GameRuleError('no-ticket', 'Start the warm-up first.')
   const cabinet = ticket.cabinet
-  const { score, max, playMs } = scorePlay(cabinet, ticket.seed, taps, config)
+  const { score, max, playMs } = scorePlay(cabinet, ticket.seed, taps, playConfig(config, ticket))
   checkTiming(ticket, playMs, ctx)
 
   const zone = warmupZone(score, max, config)

@@ -1,7 +1,8 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { Session } from './harness'
 import { randomUUID } from 'node:crypto'
-import { DEFAULT_CONFIG, perfectTaps, runKeepy } from '@ld/pixel-pitch-core'
+import type { Ticket } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, perfectTaps, playConfig, runKeepy } from '@ld/pixel-pitch-core'
 
 export const HOUR = 60 * 60 * 1000
 export const DAY = 24 * HOUR
@@ -29,14 +30,17 @@ export async function found(session: Session, at: number, name = newClub.name): 
 
 const config = DEFAULT_CONFIG
 
+/** The tuning a ticket's play runs at: the games are quicker in each league. */
+export const tuned = (ticket: Pick<Ticket, 'kind' | 'tier'>) => playConfig(config, ticket)
+
 /** The millisecond in each Kick Timer round at which the marker is nearest the target. */
-export const perfectKickTaps = (seed: string) => perfectTaps('kick', seed, config)
+export const perfectKickTaps = (ticket: Ticket) => perfectTaps('kick', ticket.seed, tuned(ticket))
 
 /** The millisecond in each penalty at which a shot goes in the corner, so a perfect shootout can be played. */
-export const perfectPenaltyTaps = (seed: string) => perfectTaps('pens', seed, config)
+export const perfectPenaltyTaps = (ticket: Ticket) => perfectTaps('pens', ticket.seed, tuned(ticket))
 
 /** Taps on the ball a step after it comes within reach (each with where it landed), and how many steps the play lasts. */
-export function perfectKeepyTaps(seed: string) {
-  const taps = perfectTaps('keepy', seed, config)
-  return { taps, steps: runKeepy(seed, taps, config).steps }
+export function perfectKeepyTaps(ticket: Ticket) {
+  const taps = perfectTaps('keepy', ticket.seed, tuned(ticket))
+  return { taps, steps: runKeepy(ticket.seed, taps, tuned(ticket)).steps }
 }

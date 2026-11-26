@@ -125,6 +125,22 @@ export const gameConfigSchema = z.object({
     paidPerDay: count,
   }).default({ winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 }),
 
+  /**
+   * Match moments: one penalty, free kick or save, played with an arcade game. A Big Chance is banked from a league
+   * match the player missed that ended in a draw or a one-goal loss; a live moment is offered in a match the player
+   * watches. Scoring one moves the result up. PLACEHOLDERS, to tune in playtest.
+   */
+  moments: z.object({
+    /** Big Chances kept at once. When full, the newest replaces the oldest. */
+    bank: z.number().int().min(1),
+    /** A match that kicked off at most this long before the player looked in was watched: it gets a live moment. */
+    liveWindowMinutes: positive,
+    /** How long the live moment waits for the player before it counts as a miss (the app's countdown). */
+    decideSeconds: positive,
+    /** Kick Timer points a free kick needs to go in (3 is the very middle). */
+    freeKickPoints: z.number().int().min(1).max(3),
+  }).default({ bank: 5, liveWindowMinutes: 5, decideSeconds: 10, freeKickPoints: 2 }),
+
   match: z.object({
     /**
      * Expected goals = baseXg × 2^((ATT − their DEF) ÷ doublingGap), at most maxXg. Every `doublingGap` points of
@@ -305,6 +321,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     openingGapsMinutes: [5, 8, 10, 12, 15],
   },
   friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 },
+  moments: { bank: 5, liveWindowMinutes: 5, decideSeconds: 10, freeKickPoints: 2 },
   match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.

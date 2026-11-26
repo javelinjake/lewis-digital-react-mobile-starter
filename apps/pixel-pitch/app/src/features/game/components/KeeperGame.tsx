@@ -9,7 +9,7 @@ import { art } from '../lib/art'
 import { drawGoalFrame, drawGoalScene, drawNetRipple, pointerOnCanvas, toCanvas, toGoal } from '../lib/goal-scene'
 import { drawKeeper, KEEPER_HEIGHT } from '../lib/goalkeeper-sprite'
 import { drawBall } from '../lib/pixel-sprite'
-import { useGameConfig } from '../queries/use-game'
+import { usePlayConfig } from '../queries/use-play-config'
 
 type Phase = 'wait' | 'shot' | 'done'
 const VERDICT: Record<KeeperOutcome, string> = { saved: 'Saved!', early: 'Too early!', missed: 'Goal!', late: 'Goal!' }
@@ -30,7 +30,7 @@ const clamp = (value: number, low: number, high: number) => Math.min(high, Math.
  * With a keyboard, Space taps the middle of the ball, so it is still about reactions.
  */
 export function KeeperGame({ seed, onFinish }: { seed: string, onFinish: (taps: Array<KeeperTap | null>) => void }) {
-  const config = useGameConfig()
+  const config = usePlayConfig()
   const { keeper } = config.minigames
   const shots = useMemo(() => keeperShots(seed, config), [seed, config])
   const scene = useMemo<GoalScene>(() => {

@@ -1,4 +1,4 @@
-import type { AnyTaps, Cabinet, CabinetTaps, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupResult } from '@ld/pixel-pitch-core'
+import type { AnyTaps, Cabinet, CabinetTaps, ChanceResult, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupResult } from '@ld/pixel-pitch-core'
 
 /** Everything the game screens ask the server for. `game.live.ts` calls the api; `game.mock.ts` runs the rules here. */
 export interface GameApi {
@@ -28,6 +28,12 @@ export interface GameApi {
   startWarmup: () => Promise<GameResponse>
   /** Sends the warm-up game's taps (that cabinet's shape); the server replays them and sets the match's attack bonus. */
   finishWarmup: (taps: AnyTaps) => Promise<GameResponse & WarmupResult>
+  /** Starts a Big Chance or the live moment for a league match: the ticket (one round of its arcade game) is in the state. */
+  startChance: (fixtureNo: number) => Promise<GameResponse>
+  /** Sends the moment's taps; the server replays them. A scored moment comes back in `changedFixtures`. */
+  finishChance: (taps: AnyTaps) => Promise<GameResponse & ChanceResult>
+  /** Lets a moment go ("Let it play", or no tap in time): a miss. */
+  skipChance: (fixtureNo: number) => Promise<GameResponse>
   /** Takes everything that is waiting (stadium, tray, calendar, free pack, goals, Pass, album) in one call. */
   claimAll: () => Promise<GameResponse & ClaimAllResult>
   claimGoal: (goalId: string) => Promise<GameResponse & { reward: Reward }>

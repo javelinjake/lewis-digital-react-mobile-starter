@@ -22,6 +22,8 @@ export interface GameResponse {
   cards: OwnedCard[]
   /** Matches played by this request, oldest first. */
   fixtures: FixtureResult[]
+  /** Matches played earlier whose result this request changed (a scored Big Chance or live moment). */
+  changedFixtures?: FixtureResult[]
   events: WelcomeBackEvent[]
   /** The server's time for this answer, so countdowns start from the server clock. */
   now: number

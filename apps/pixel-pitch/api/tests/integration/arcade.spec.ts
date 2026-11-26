@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import type { Session } from './harness'
 import { cabinetMax, DEFAULT_CONFIG, hotCabinet, keepyMax, perfectTaps, scorePlay, shareOf, warmupCabinet, warmupZone } from '@ld/pixel-pitch-core'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { act, DAY, found, HOUR, perfectKeepyTaps, perfectKickTaps, perfectPenaltyTaps } from './game-helpers'
+import { act, DAY, found, HOUR, perfectKeepyTaps, perfectKickTaps, perfectPenaltyTaps, tuned } from './game-helpers'
 import { boot, guest } from './harness'
 
 const config = DEFAULT_CONFIG
@@ -96,7 +96,7 @@ describe('kick Timer', () => {
     expect(ticket).toMatchObject({ kind: 'kick', paid: false, issuedAt: now })
     expect(typeof ticket.seed).toBe('string')
 
-    const taps = perfectKickTaps(ticket.seed)
+    const taps = perfectKickTaps(ticket)
     const before = started.json.club.state.tokens
     const finished = await act(alice, 'arcade/finish', { cabinet: 'kick', taps, score: 999, tokens: 99_999 }, { at: now + taps.reduce((a, b) => a + b, 0) + 3000 })
     expect(finished.status).toBe(200)
@@ -118,7 +118,7 @@ describe('kick Timer', () => {
   it('refuses a result sent faster than the play could have been played', async () => {
     now += HOUR
     const started = await act(alice, 'arcade/start', { cabinet: 'kick' }, { at: now })
-    const taps = perfectKickTaps(started.json.club.state.ticket.seed)
+    const taps = perfectKickTaps(started.json.club.state.ticket)
     const early = await act(alice, 'arcade/finish', { cabinet: 'kick', taps }, { at: now + 200 })
     expect(early.status).toBe(400)
     expect(JSON.stringify(early.json)).toContain('too-fast')
@@ -154,7 +154,7 @@ describe('kick Timer', () => {
     const paid = await act(alice, 'arcade/start', { cabinet: 'kick', paid: true }, { at: now })
     expect(paid.status).toBe(200)
     expect(paid.json.club.state.idle.gems).toBe(80)
-    const taps = perfectKickTaps(paid.json.club.state.ticket.seed)
+    const taps = perfectKickTaps(paid.json.club.state.ticket)
     const tokens = paid.json.club.state.tokens
     const finished = await act(alice, 'arcade/finish', { cabinet: 'kick', taps }, { at: now + 60_000 })
     expect(finished.json).toMatchObject({ tokens: 0, coins: config.cabinets.gemPlayCoins })
@@ -167,7 +167,7 @@ describe('keepy-Uppy', () => {
     now += DAY
     const started = await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })
     expect(started.status).toBe(200)
-    const { taps, steps } = perfectKeepyTaps(started.json.club.state.ticket.seed)
+    const { taps, steps } = perfectKeepyTaps(started.json.club.state.ticket)
     const finished = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps }, { at: now + Math.ceil((steps / 60) * 1000) + 1000 })
     expect(finished.status).toBe(200)
     expect(finished.json).toMatchObject({ score: keepyMax(config), max: keepyMax(config), tokens: payout('keepy', now, keepyMax(config), keepyMax(config)) })
@@ -176,7 +176,7 @@ describe('keepy-Uppy', () => {
   it('pays for fewer kicks if the taps stop, and refuses taps no person could make', async () => {
     now += 2 * HOUR
     const started = await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })
-    const { taps } = perfectKeepyTaps(started.json.club.state.ticket.seed)
+    const { taps } = perfectKeepyTaps(started.json.club.state.ticket)
     const cheat = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: [10, 11, 12, 13].map(t => ({ t, x: 37, y: 10 })) }, { at: now + 60_000 })
     expect(cheat.status).toBe(400)
     // A tap is a step and a place: the old shape, bare steps, is refused.
@@ -199,7 +199,7 @@ describe('penalty Shootout', () => {
     const spent = before.energy.fullAt
     expect(started.json.club.state.energy.fullAt).toBeGreaterThan(spent)
 
-    const taps = perfectPenaltyTaps(started.json.club.state.ticket.seed)
+    const taps = perfectPenaltyTaps(started.json.club.state.ticket)
     // The phone's own claims are ignored: the server replays the taps.
     const finished = await act(alice, 'arcade/finish', { cabinet: 'pens', taps, score: 99, tokens: 99_999 }, { at: now + taps.reduce((a, b) => a + b, 0) + 3000 })
     expect(finished.status).toBe(200)
@@ -210,7 +210,7 @@ describe('penalty Shootout', () => {
   it('refuses taps no person could make, and the wrong number of them', async () => {
     now += DAY
     const started = await act(alice, 'arcade/start', { cabinet: 'pens' }, { at: now })
-    const taps = perfectPenaltyTaps(started.json.club.state.ticket.seed)
+    const taps = perfectPenaltyTaps(started.json.club.state.ticket)
     const fast = await act(alice, 'arcade/finish', { cabinet: 'pens', taps: [5, 5, 5, 5, 5] }, { at: now + 60_000 })
     expect(fast.status).toBe(400)
     const few = await act(alice, 'arcade/finish', { cabinet: 'pens', taps: taps.slice(0, 2) }, { at: now + 60_000 })
@@ -221,7 +221,7 @@ describe('penalty Shootout', () => {
   it('cannot be played with another player\'s ticket', async () => {
     now += DAY
     const started = await act(alice, 'arcade/start', { cabinet: 'pens' }, { at: now })
-    const taps = perfectPenaltyTaps(started.json.club.state.ticket.seed)
+    const taps = perfectPenaltyTaps(started.json.club.state.ticket)
     const stolen = await act(bob, 'arcade/finish', { cabinet: 'pens', taps }, { at: now + 60_000 })
     expect(stolen.status).toBe(400)
     expect(JSON.stringify(stolen.json)).toContain('no-ticket')
@@ -232,7 +232,7 @@ describe('keepy-Uppy taps on the ball', () => {
   it('scores nothing for taps that miss the ball, wherever the phone says it was', async () => {
     now += DAY
     const started = await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })
-    const { taps } = perfectKeepyTaps(started.json.club.state.ticket.seed)
+    const { taps } = perfectKeepyTaps(started.json.club.state.ticket)
     const wide = taps.map(tap => ({ ...tap, x: tap.x + config.minigames.keepy.hitRadius + 5 }))
     const finished = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: wide, score: 33 }, { at: now + 60_000 })
     expect(finished.status).toBe(200)
@@ -244,7 +244,7 @@ describe('keeper Reflex taps on the ball', () => {
   it('saves only taps on the ball, wherever the phone says it was, and refuses the old dive shape', async () => {
     now += DAY
     const started = await act(alice, 'arcade/start', { cabinet: 'keeper' }, { at: now })
-    const taps = perfectTaps('keeper', started.json.club.state.ticket.seed, config)
+    const taps = perfectTaps('keeper', started.json.club.state.ticket.seed, tuned(started.json.club.state.ticket))
     const sides = await act(alice, 'arcade/finish', { cabinet: 'keeper', taps: taps.map(tap => ({ side: 'left', ms: tap!.ms })) }, { at: now + 60_000 })
     expect(sides.status).toBe(400)
     expect(JSON.stringify(sides.json)).toContain('taps')
@@ -264,7 +264,7 @@ describe('the newer cabinets', () => {
       const started = await act(alice, 'arcade/start', { cabinet }, { at: now })
       expect(started.status, cabinet).toBe(200)
       expect(started.json.club.state.ticket).toMatchObject({ kind: cabinet, paid: false })
-      const taps = perfectTaps(cabinet, started.json.club.state.ticket.seed, config)
+      const taps = perfectTaps(cabinet, started.json.club.state.ticket.seed, tuned(started.json.club.state.ticket))
       const max = cabinetMax(cabinet, config)
       const finished = await act(alice, 'arcade/finish', { cabinet, taps, score: 999 }, { at: now + 60_000 })
       expect(finished.status, cabinet).toBe(200)
@@ -276,7 +276,7 @@ describe('the newer cabinets', () => {
   it('refuse a play sent faster than it could be played, or in the wrong shape', async () => {
     now += DAY
     const started = await act(alice, 'arcade/start', { cabinet: 'dribble' }, { at: now })
-    const taps = perfectTaps('dribble', started.json.club.state.ticket.seed, config)
+    const taps = perfectTaps('dribble', started.json.club.state.ticket.seed, tuned(started.json.club.state.ticket))
     const fast = await act(alice, 'arcade/finish', { cabinet: 'dribble', taps }, { at: now + 300 })
     expect(JSON.stringify(fast.json)).toContain('too-fast')
     const shape = await act(alice, 'arcade/finish', { cabinet: 'dribble', taps: taps.map(move => move.ms) }, { at: now + 60_000 })
@@ -304,7 +304,7 @@ describe('the games taken out of the arcade', () => {
     // Playing on works as before.
     const started = await act(alice, 'arcade/start', { cabinet: 'kick' }, { at: now })
     expect(started.status).toBe(200)
-    const finished = await act(alice, 'arcade/finish', { cabinet: 'kick', taps: perfectKickTaps(started.json.club.state.ticket.seed) }, { at: now + 60_000 })
+    const finished = await act(alice, 'arcade/finish', { cabinet: 'kick', taps: perfectKickTaps(started.json.club.state.ticket) }, { at: now + 60_000 })
     expect(finished.status).toBe(200)
   })
 })
@@ -325,7 +325,7 @@ describe('the warm-up', () => {
     expect(JSON.stringify(second.json)).toContain('warmup-used')
 
     // The arcade's finish does not take a warm-up's taps.
-    const taps = perfectTaps(cabinet, ticket.seed, config)
+    const taps = perfectTaps(cabinet, ticket.seed, tuned(ticket))
     expect((await act(alice, 'arcade/finish', { cabinet, taps }, { at: now + 60_000 })).status).toBe(400)
 
     const finished = await act(alice, 'warmup/finish', { taps, score: 0 }, { at: now + 60_000 })
@@ -353,9 +353,9 @@ describe('the warm-up', () => {
     const started = await act(alice, 'warmup/start', {}, { at: now })
     expect(started.status).toBe(200)
     const { cabinet, seed } = started.json.club.state.ticket
-    const perfect = perfectTaps(cabinet, seed, config) as unknown[]
+    const perfect = perfectTaps(cabinet, seed, tuned(started.json.club.state.ticket)) as unknown[]
     const poor = cabinet === 'kick' || cabinet === 'pens' ? perfect.map(() => 3000) : cabinet === 'keeper' ? perfect.map(() => null) : []
-    const { score, max } = scorePlay(cabinet, seed, poor, config)
+    const { score, max } = scorePlay(cabinet, seed, poor, tuned(started.json.club.state.ticket))
     const zone = warmupZone(score, max, config)
     const finished = await act(alice, 'warmup/finish', { taps: poor }, { at: now + 60_000 })
     expect(finished.status).toBe(200)
@@ -371,7 +371,7 @@ describe('the warm-up', () => {
     const started = await act(alice, 'warmup/start', {}, { at: now })
     expect(started.status).toBe(200)
     const { cabinet, seed } = started.json.club.state.ticket
-    const taps = perfectTaps(cabinet, seed, config)
+    const taps = perfectTaps(cabinet, seed, tuned(started.json.club.state.ticket))
     const fast = await act(alice, 'warmup/finish', { taps }, { at: now + 100 })
     expect(JSON.stringify(fast.json)).toContain('too-fast')
     expect((await act(alice, 'warmup/finish', {}, { at: now + 60_000 })).status).toBe(400)
@@ -387,7 +387,7 @@ describe('privacy', () => {
     const started = await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })
     expect(started.status).toBe(200)
     // Bob has no ticket, so he cannot finish Alice's play with her taps.
-    const taps = perfectKickTaps(started.json.club.state.ticket.seed)
+    const taps = perfectKickTaps(started.json.club.state.ticket)
     const stolen = await act(bob, 'arcade/finish', { cabinet: 'kick', taps }, { at: now + 60_000 })
     expect(stolen.status).toBe(400)
     const bobs = await state(bob, now)

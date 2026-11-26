@@ -148,9 +148,45 @@ export const minigamesSchema = z.object({
     gold: z.number().min(0).max(1).default(0.8),
     green: z.number().min(0).max(1).default(0.45),
   }).default({ gold: 0.8, green: 0.45 }),
+  /**
+   * Every game gets harder in each league: each tier above League 5 makes it `perLeague` quicker (0.08 is 8%), up to
+   * `max` in all. The keeper moves faster, the marker crosses quicker, shots fly sooner. PLACEHOLDER.
+   */
+  difficulty: z.object({
+    perLeague: z.number().min(0).max(0.5).default(0.08),
+    max: z.number().min(0).max(2).default(0.6),
+  }).default({ perLeague: 0.08, max: 0.6 }),
 })
 
-export const DEFAULT_MINIGAMES: z.infer<typeof minigamesSchema> = {
+export type Minigames = z.infer<typeof minigamesSchema>
+
+/** How much quicker the games are in `tier` than in League 5: 0 there, `perLeague` more each tier, at most `max`. */
+export function difficultyAt(minigames: Minigames, tier: number): number {
+  return Math.min(minigames.difficulty.max, Math.max(0, tier - 1) * minigames.difficulty.perLeague)
+}
+
+/**
+ * The games' tuning in a league: speeds multiplied and times divided by 1 + `difficultyAt`. League 5 is the tuning
+ * as written. Only times and speeds change, never the number of rounds or the size of a target, so a top score is the
+ * same in every league.
+ */
+export function minigamesAt(minigames: Minigames, tier: number): Minigames {
+  const boost = 1 + difficultyAt(minigames, tier)
+  if (boost === 1)
+    return minigames
+  const quicker = (ms: number) => ms / boost
+  const { kick, pens, keepy, keeper, dribble } = minigames
+  return {
+    ...minigames,
+    kick: { ...kick, minSpeed: kick.minSpeed * boost, maxSpeed: kick.maxSpeed * boost },
+    pens: { ...pens, aimLegMinMs: quicker(pens.aimLegMinMs), aimLegMaxMs: quicker(pens.aimLegMaxMs), keeperLegMinMs: quicker(pens.keeperLegMinMs), keeperLegMaxMs: quicker(pens.keeperLegMaxMs) },
+    keepy: { ...keepy, gravity: keepy.gravity * boost },
+    keeper: { ...keeper, firstWindowMs: quicker(keeper.firstWindowMs), lastWindowMs: quicker(keeper.lastWindowMs) },
+    dribble: { ...dribble, firstGapMs: quicker(dribble.firstGapMs), lastGapMs: quicker(dribble.lastGapMs), firstFallMs: quicker(dribble.firstFallMs), lastFallMs: quicker(dribble.lastFallMs) },
+  }
+}
+
+export const DEFAULT_MINIGAMES: Minigames = {
   minTapGapMs: 120,
   clockSlack: 0.85,
   kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14 },
@@ -159,4 +195,5 @@ export const DEFAULT_MINIGAMES: z.infer<typeof minigamesSchema> = {
   keeper: { shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 1000, lastWindowMs: 520, minReactionMs: 100, width: 100, height: 40, margin: 6, spotDepth: 46, maxCurve: 14, spotRadius: 6, lineRadius: 3.5, hitRadius: 14 },
   dribble: { lanes: 3, defenders: 32, firstAtMs: 900, firstGapMs: 950, lastGapMs: 430, gapJitterMs: 120, firstFallMs: 1700, lastFallMs: 950, tackleFrom: 0.8, tackleTo: 0.96 },
   warmup: { gold: 0.8, green: 0.45 },
+  difficulty: { perLeague: 0.08, max: 0.6 },
 }
