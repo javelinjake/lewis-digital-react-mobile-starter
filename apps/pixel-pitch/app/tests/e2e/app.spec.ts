@@ -43,12 +43,12 @@ test.describe('First session @game', () => {
     await expect(page.getByRole('heading', { name: 'Your squad' })).toBeVisible()
     await page.getByRole('button', { name: 'Got it' }).click()
     await expect(page.getByRole('button', { name: /^(GK|DEF|MID|FWD): .+rated \d+/ })).toHaveCount(5)
-    await expect(page.getByText(/win \d+% · draw \d+% · loss \d+%/)).toBeVisible()
+    await expect(page.getByText(/^Win \d+% · Draw \d+% · Loss \d+%$/)).toBeVisible()
     // The squad is longer than the screen: the tab bar and Auto-pick stay on screen while it scrolls.
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
-    await page.getByText('Team score').scrollIntoViewIfNeeded()
+    await page.getByText('Lineup score').scrollIntoViewIfNeeded()
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
-    await expect(page.getByRole('button', { name: 'Auto-pick my best five' })).toBeInViewport()
+    await expect(page.getByRole('button', { name: 'Auto-pick best' })).toBeInViewport()
   })
 
   test('a weak phone gets the same paced report, not an instant one', async ({ page }) => {
@@ -124,7 +124,7 @@ test.describe('First session @game', () => {
 
   test('the formation changes the lineup, the odds and the hint', async ({ page }) => {
     await foundClub(page)
-    const odds = page.getByText(/win \d+% · draw \d+% · loss \d+%/)
+    const odds = page.getByText(/^Win \d+% · Draw \d+% · Loss \d+%$/)
     const before = await odds.textContent()
     await page.getByRole('radio', { name: /Wall/ }).click()
     await expect(page.getByRole('radio', { name: /Wall/ })).toHaveAttribute('aria-checked', 'true')
@@ -178,7 +178,7 @@ test.describe('Packs @game', () => {
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
     await expect(page.getByLabel('3 of 10 packs')).toBeVisible()
     await tab(page, 'Squad').click()
-    await expect(page.getByRole('tab', { name: 'Players (7)' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Players (7)' })).toBeVisible()
   })
 
   test('a pack left half-opened is still waiting afterwards', async ({ page }) => {

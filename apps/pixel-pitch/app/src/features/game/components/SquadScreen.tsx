@@ -1,13 +1,12 @@
 import type { FormationId, GameResponse, Position } from '@ld/pixel-pitch-core'
 import type { SquadCard } from '../lib/club'
-import { BottomActions, BottomSheet, SegmentedControl } from '@ld/mobile-ui'
+import { BottomActions, BottomSheet } from '@ld/mobile-ui'
 import { albumPower, autoPick, bestFormation, FORMATION_IDS, FORMATIONS, matchOdds, mergeable, positionFit, scoreLineup, sellValue, trainingCost } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
-import { art } from '../lib/art'
 import { currentScore, kitOf, nextRival, rivalSide, squadCards, squadPool } from '../lib/club'
 import { markCardsSeen, unseenCards } from '../lib/seen-cards'
 import { useGameAction } from '../mutations/use-game-action'
@@ -31,13 +30,13 @@ const surname = (name: string) => name.split(' ').at(-1) ?? name
 
 function Bar({ label, value, max, colour }: { label: string, value: number, max: number, colour: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="w-10">{label}</span>
-      <div className="h-3 flex-1 bg-base-300" role="meter" aria-label={label} aria-valuenow={Math.round(value)} aria-valuemin={0} aria-valuemax={max}>
+    <>
+      <span className="text-sm font-bold">{label}</span>
+      <div className="h-2.5 bg-base-200" role="meter" aria-label={label} aria-valuenow={Math.round(value)} aria-valuemin={0} aria-valuemax={max}>
         <div className="h-full" style={{ width: `${Math.min(100, (value / max) * 100)}%`, background: colour }} />
       </div>
-      <span className="w-8 text-right tabular-nums">{Math.round(value)}</span>
-    </div>
+      <span className="text-right tabular-nums">{Math.round(value)}</span>
+    </>
   )
 }
 
@@ -86,6 +85,8 @@ export function SquadScreen({ game }: { game: GameResponse }) {
   const options = useMemo(() => bestFormation(pool, rivalSide(rival), config, bonus), [pool, rival, config, bonus])
   const best = options[0]
   const currentOption = options.find(option => option.formation === state.formation)
+  // Already the best formation against this rival, or close enough that switching would not help.
+  const isBest = !best || !currentOption || best.formation === state.formation || best.points - currentOption.points <= 0.02
   const positions = slotPositions(state.formation)
 
   // New signings since the squad was last looked at on this phone. Worked out once on arrival, then all marked seen.
@@ -178,52 +179,35 @@ export function SquadScreen({ game }: { game: GameResponse }) {
           )
         : null}
 
-      <SegmentedControl
-        options={[{ value: 'lineup', label: 'Lineup' }, { value: 'players', label: `Players (${squad.length})` }]}
-        value={view}
-        onChange={value => setView(value === 'players' ? 'players' : 'lineup')}
-      />
-
       {view === 'lineup'
         ? (
             <>
-              <section className="flex flex-col gap-1 border-2 border-slate bg-base-100 p-3" aria-label="Next match">
-                <span className="text-muted">Next match</span>
-                <span className="text-lg">{`v ${rival.name} · ${FORMATIONS[rival.formation].name}, rated ${rival.rating}`}</span>
-                <div className="flex h-4 w-full text-xs" aria-label={`Win ${percent(odds.win)}, draw ${percent(odds.draw)}, loss ${percent(odds.loss)}`}>
-                  <span className="bg-success" style={{ width: percent(odds.win) }} />
-                  <span className="bg-warning" style={{ width: percent(odds.draw) }} />
-                  <span className="bg-error" style={{ width: percent(odds.loss) }} />
-                </div>
-                <span className="tabular-nums">{`Your chances with this lineup: win ${percent(odds.win)} · draw ${percent(odds.draw)} · loss ${percent(odds.loss)}`}</span>
-                {warmup > 0 ? <span className="text-success">{`Includes your warm-up: +${Math.round(warmup * 100)}% attack.`}</span> : null}
-              </section>
-
-              <div className="flex flex-col gap-1">
-                <h2>Formation</h2>
-                <div role="radiogroup" aria-label="Formation" className="grid grid-cols-5 gap-1">
-                  {FORMATION_IDS.map(formation => (
-                    <button
-                      key={formation}
-                      type="button"
-                      role="radio"
-                      aria-checked={formation === state.formation}
-                      className={`flex min-h-11 flex-col items-center justify-center border-2 text-sm leading-tight ${formation === state.formation ? 'border-primary bg-base-100' : 'border-base-300'}`}
-                      onClick={() => {
-                        const picked = autoPick(formation, pool).ids
-                        save(formation, picked.length === 5 ? picked : state.lineup)
-                      }}
-                    >
-                      <span>{FORMATIONS[formation].name}</span>
-                      <span className="text-muted">{formation}</span>
-                    </button>
-                  ))}
-                </div>
-                <span className="text-muted">Choosing a formation picks your best five for it.</span>
+              <div role="radiogroup" aria-label="Formation" className="grid grid-cols-5 gap-1.5">
+                {FORMATION_IDS.map(formation => (
+                  <button
+                    key={formation}
+                    type="button"
+                    role="radio"
+                    aria-checked={formation === state.formation}
+                    className={`flex h-13 flex-col items-center justify-center leading-tight ${formation === state.formation ? 'bg-raised shadow-[inset_0_0_0_3px_var(--color-primary)]' : 'bg-base-100 shadow-[inset_0_0_0_2px_var(--color-slate)]'}`}
+                    onClick={() => {
+                      const picked = autoPick(formation, pool).ids
+                      save(formation, picked.length === 5 ? picked : state.lineup)
+                    }}
+                  >
+                    <span className="text-sm font-bold">{FORMATIONS[formation].name}</span>
+                    <span className="text-xs text-muted">{formation}</span>
+                  </button>
+                ))}
               </div>
 
-              <div className="relative w-full" style={{ aspectRatio: '176 / 130' }}>
-                <img src={art('pitch/pitch_squad_176x130.png')} alt="" className="pixel absolute inset-0 h-full w-full" />
+              <section
+                aria-label="Pitch"
+                className="relative h-72 overflow-hidden shadow-[inset_0_0_0_3px_var(--color-slate)]"
+                style={{ background: 'repeating-linear-gradient(0deg, var(--color-pitch) 0 36px, var(--color-pitch-dark) 36px 72px)' }}
+              >
+                <div aria-hidden="true" className="absolute top-0 left-1/2 h-11 w-24 -translate-x-1/2 rounded-b-full border-2 border-t-0 border-white/45" />
+                <div aria-hidden="true" className="absolute bottom-0 left-1/2 h-14 w-38 -translate-x-1/2 border-2 border-b-0 border-white/45" />
                 {positions.map(({ role, x, y }, slot) => {
                   const cardId = state.lineup[slot]
                   const entry = cardId ? byId.get(cardId) : undefined
@@ -241,60 +225,81 @@ export function SquadScreen({ game }: { game: GameResponse }) {
                         ? (
                             <>
                               <PlayerSprite player={entry.player} kit={kit} role={role} scale={2} />
-                              <span className="bg-base-300/80 px-1 text-sm leading-none">{surname(entry.player.name)}</span>
-                              <span className={`px-1 text-sm leading-none ${fitTone(fit)}`}>
+                              <span className="mt-0.5 bg-base-200 px-1.5 text-sm font-semibold text-white">{surname(entry.player.name)}</span>
+                              <span className={`px-1.5 text-sm font-bold ${fitTone(fit)}`}>
                                 {fit < 1 ? `${Math.round(entry.fielded.rating * fit)} (${entry.player.position})` : `${entry.fielded.rating}`}
                               </span>
                             </>
                           )
-                        : <span className="flex h-11 w-11 items-center justify-center border-2 border-dashed border-base-content/60 bg-base-300/50">{role}</span>}
+                        : <span className="flex h-11 w-11 items-center justify-center border-2 border-dashed border-white/60 bg-base-200/50 font-bold">{role}</span>}
                     </button>
                   )
                 })}
-              </div>
-              <div className="flex flex-col gap-1 text-sm" aria-label="What the colours mean">
+              </section>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs" aria-label="What the colours mean">
                 <span>
-                  <span className="bg-success px-1 text-success-content">70</span>
-                  {' In their own position: full rating.'}
+                  <span className="bg-success px-1 font-bold text-success-content">70</span>
+                  {' own position'}
                 </span>
                 <span>
-                  <span className="bg-warning px-1 text-warning-content">63 (MID)</span>
-                  {' Close: their second position plays at 90%, one line away at 75%.'}
+                  <span className="bg-warning px-1 font-bold text-warning-content">63 (MID)</span>
+                  {' close: 90% or 75%'}
                 </span>
                 <span>
-                  <span className="bg-error px-1 text-error-content">39 (DEF)</span>
-                  {' Out of position: 55%, or 30% for a keeper out of goal.'}
+                  <span className="bg-error px-1 font-bold text-error-content">39 (DEF)</span>
+                  {' out of position: 55%'}
                 </span>
               </div>
 
-              <section className="flex flex-col gap-2 border-2 border-slate bg-base-100 p-3" aria-label="Lineup strength">
-                <div className="flex items-baseline justify-between">
-                  <span className="font-display text-xs">Team score</span>
-                  <span className="font-display text-lg text-primary tabular-nums">{score.overall}</span>
+              <section className="flex flex-col gap-2 bg-base-100 p-3 shadow-[inset_0_0_0_2px_var(--color-slate)]" aria-label="Lineup strength">
+                <div className="flex items-center justify-between">
+                  <span className="pp-label">Lineup score</span>
+                  <span className="text-3xl leading-none font-bold text-primary tabular-nums">{score.overall}</span>
                 </div>
-                <span className="text-muted">The average of your five as they play in these positions, plus bonuses.</span>
-                {score.chemistry > 0 ? <span className="text-success">{`Chemistry +${Math.round(score.chemistry * 100)}% (players from one nation)`}</span> : null}
-                {bonus > 0 ? <span className="text-success">{`Album +${Math.round(bonus * 100)}% team power`}</span> : null}
-                <Bar label="ATT" value={score.att} max={120} colour="#ff4f79" />
-                <Bar label="DEF" value={score.def} max={120} colour="#5ec8ff" />
-                {best && currentOption && best.formation !== state.formation && best.points - currentOption.points > 0.02
-                  ? (
-                      <button type="button" className="btn btn-accent min-h-11 text-lg" onClick={() => save(best.formation, best.ids)}>
-                        {`Switch to ${FORMATIONS[best.formation].name} with your best five: win ${percent(best.odds.win)}`}
+                {score.chemistry > 0 ? <span className="text-sm text-success">{`Chemistry +${Math.round(score.chemistry * 100)}% (players from one nation)`}</span> : null}
+                {bonus > 0 ? <span className="text-sm text-success">{`Album +${Math.round(bonus * 100)}% team power`}</span> : null}
+                <div className="grid grid-cols-[2.75rem_1fr_2rem] items-center gap-x-2.5 gap-y-1.5">
+                  <Bar label="ATT" value={score.att} max={120} colour="var(--color-error)" />
+                  <Bar label="DEF" value={score.def} max={120} colour="var(--color-accent)" />
+                </div>
+                <span className="mt-1 text-sm text-muted">{`Next: ${rival.name} (${FORMATIONS[rival.formation].name}, rated ${rival.rating})`}</span>
+                <div className="flex h-2.5 gap-0.5" aria-hidden="true">
+                  <span className="bg-success" style={{ width: percent(odds.win) }} />
+                  <span className="bg-warning" style={{ width: percent(odds.draw) }} />
+                  <span className="bg-error" style={{ width: percent(odds.loss) }} />
+                </div>
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="tabular-nums">{`Win ${percent(odds.win)} · Draw ${percent(odds.draw)} · Loss ${percent(odds.loss)}`}</span>
+                  {isBest ? <span className="bg-success px-1.5 font-bold text-success-content" title={`${FORMATIONS[state.formation].name} is your best formation against them.`}>BEST</span> : null}
+                </div>
+                {warmup > 0 ? <span className="text-sm text-success">{`Includes your warm-up: +${Math.round(warmup * 100)}% attack.`}</span> : null}
+                {isBest
+                  ? <span className="sr-only">{`${FORMATIONS[state.formation].name} is your best formation against them.`}</span>
+                  : (
+                      <button type="button" className="btn btn-outline min-h-11" onClick={() => save(best!.formation, best!.ids)}>
+                        {`Switch to ${FORMATIONS[best!.formation].name} with your best five: win ${percent(best!.odds.win)}`}
                       </button>
-                    )
-                  : <span className="text-muted">{`${FORMATIONS[state.formation].name} is your best formation against them.`}</span>}
+                    )}
               </section>
 
               <BottomActions>
-                <button type="button" className="btn btn-primary min-h-12 w-full font-display text-xs" onClick={() => save(state.formation, autoPick(state.formation, pool).ids)} disabled={pool.length === 0}>
-                  Auto-pick my best five
-                </button>
+                <div className="flex gap-2.5">
+                  <button type="button" className="btn btn-accent h-12 flex-1" onClick={() => save(state.formation, autoPick(state.formation, pool).ids)} disabled={pool.length === 0}>
+                    Auto-pick best
+                  </button>
+                  <button type="button" className="btn btn-outline h-12 flex-1" onClick={() => setView('players')}>
+                    {`Players (${squad.length})`}
+                  </button>
+                </div>
               </BottomActions>
             </>
           )
         : (
             <>
+              <div className="flex items-center gap-3">
+                <button type="button" className="btn btn-outline btn-sm min-h-11" onClick={() => setView('lineup')}>‹ Lineup</button>
+                <h2>{`Players (${squad.length})`}</h2>
+              </div>
               {groups.length > 0
                 ? (
                     <section className="flex flex-col gap-2 border-2 border-accent bg-base-100 p-3" aria-label="Ready to merge">
@@ -316,14 +321,14 @@ export function SquadScreen({ game }: { game: GameResponse }) {
               <div className="flex flex-col gap-2">
                 <div role="radiogroup" aria-label="Show" className="flex flex-wrap gap-1">
                   {FILTERS.map(entry => (
-                    <button key={entry.value} type="button" role="radio" aria-checked={filter === entry.value} className={`min-h-11 border-2 px-2 text-sm ${filter === entry.value ? 'border-primary bg-base-100' : 'border-base-300'}`} onClick={() => setFilter(entry.value)}>
+                    <button key={entry.value} type="button" role="radio" aria-checked={filter === entry.value} className={`min-h-11 px-3 text-sm font-semibold ${filter === entry.value ? 'bg-raised text-primary shadow-[inset_0_0_0_3px_var(--color-primary)]' : 'bg-base-100 shadow-[inset_0_0_0_2px_var(--color-slate)]'}`} onClick={() => setFilter(entry.value)}>
                       {entry.label}
                     </button>
                   ))}
                 </div>
                 <label className="flex items-center gap-2">
                   <span className="text-muted">Sort</span>
-                  <select className="select select-sm min-h-11 flex-1" value={sort} onChange={event => setSort(event.target.value as Sort)}>
+                  <select className="select select-sm min-h-11 flex-1 bg-base-100" value={sort} onChange={event => setSort(event.target.value as Sort)}>
                     <option value="newest">Newest first</option>
                     <option value="rating">Highest rated</option>
                     <option value="position">By position</option>
@@ -336,10 +341,10 @@ export function SquadScreen({ game }: { game: GameResponse }) {
                 {shown.length === 0
                   ? <span className="py-4 text-center text-muted">{filter === 'train' ? 'Nobody you can afford to train right now.' : filter === 'merge' ? `No player with ${config.cards.mergeCopies} copies yet.` : 'Nobody here.'}</span>
                   : null}
-                <ul className="flex flex-col">
+                <ul className="flex flex-col gap-1.5">
                   {shown.map(entry => (
                     <li key={entry.card.id}>
-                      <button type="button" className="flex min-h-11 w-full items-center gap-2 border-b border-base-300 py-1 text-left" onClick={() => setSheet({ kind: 'card', cardId: entry.card.id })}>
+                      <button type="button" className="flex min-h-14 w-full items-center gap-2.5 bg-base-100 px-3 py-1.5 text-left shadow-[inset_0_0_0_2px_var(--color-slate)]" onClick={() => setSheet({ kind: 'card', cardId: entry.card.id })}>
                         <PlayerSprite player={entry.player} kit={kit} scale={2} />
                         <span className="flex flex-1 flex-col leading-tight">
                           <span>
@@ -349,7 +354,7 @@ export function SquadScreen({ game }: { game: GameResponse }) {
                           <span className="text-muted">{`${entry.player.position}${entry.player.altPosition ? `/${entry.player.altPosition}` : ''} · ${'★'.repeat(entry.card.stars)}${inGroup.has(entry.card.id) ? ' · can merge' : ''}`}</span>
                         </span>
                         {canTrain(entry) ? <span className="text-success" aria-label="Can train">▲</span> : null}
-                        <span className="text-xl tabular-nums">{entry.fielded.rating}</span>
+                        <span className="text-xl font-bold text-primary tabular-nums">{entry.fielded.rating}</span>
                         {state.lineup.includes(entry.card.id) ? <span className="badge badge-primary">XI</span> : null}
                       </button>
                     </li>
