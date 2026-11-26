@@ -1,6 +1,5 @@
 import { ActionSheet } from '@ld/mobile-ui'
 import { getPlatform, isNativePlatform } from '@ld/native'
-import { usePushNotifications } from '@ld/native/push'
 import { ConfirmDialog, useToast } from '@ld/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -24,7 +23,6 @@ export function SettingsOverview() {
   const toast = useToast()
   const [alerts, setAlert] = useNotificationSettings()
   const [sound, setSound] = useSoundSetting()
-  const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [sharing, setSharing] = useState(() => telemetry.consent.analytics)
@@ -78,15 +76,6 @@ export function SettingsOverview() {
             }}
           />
         ))}
-        <SettingsRow
-          title="Push notifications"
-          subtitle={`This phone: ${push.permission}`}
-          onClick={() => {
-            void push.register().then((permission) => {
-              toast.push(permission === 'granted' ? 'Notifications enabled' : `Notifications ${permission}`, 'info')
-            })
-          }}
-        />
       </SettingsGroup>
 
       {/* A playtest build is offline, with no server to save to. */}
