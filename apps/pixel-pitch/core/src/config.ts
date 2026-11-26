@@ -87,8 +87,13 @@ export const gameConfigSchema = z.object({
   league: z.object({
     matchIntervalHours: positive,
     teams: z.number().int().min(2),
-    pointsToPromote: z.number().int().positive(),
-    /** Points and coins for every result, so a loss still pays. */
+    /**
+     * Points to go up from each tier, League 5 first. Each promotion is harder than the last. Past the end of the list
+     * (the Prestige tiers) each gate is `prestigeGateStep` more than the one before. Defaults keep an older config valid.
+     */
+    promotionPoints: z.array(z.number().int().positive()).min(1).default([30, 36, 42, 50, 60]),
+    prestigeGateStep: count.default(10),
+    /** Points for each result (a loss pays none), and coins for every result, so a losing club still grows. */
     winPoints: count,
     drawPoints: count,
     lossPoints: count,
@@ -253,7 +258,7 @@ function passTiers() {
 }
 
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 4,
+  version: 5,
   shelf: {
     intervalMinutes: 45,
     capacity: 10,
@@ -285,10 +290,11 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   league: {
     matchIntervalHours: 3,
     teams: 6,
-    pointsToPromote: 30,
+    promotionPoints: [30, 36, 42, 50, 60],
+    prestigeGateStep: 10,
     winPoints: 3,
-    drawPoints: 2,
-    lossPoints: 1,
+    drawPoints: 1,
+    lossPoints: 0,
     lossCoins: 250,
     winCoins: 600,
     drawCoins: 400,

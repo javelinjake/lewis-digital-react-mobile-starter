@@ -1,7 +1,7 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { ReactNode } from 'react'
 import type { IconTab } from '@/components/layout/GameChrome'
-import { albumSets, energyAt } from '@ld/pixel-pitch-core'
+import { albumSets, energyAt, promotionGate } from '@ld/pixel-pitch-core'
 import { useMemo } from 'react'
 import { useLocation } from 'react-router'
 import { HeaderButton, ScreenHeader } from '@/components/layout/GameChrome'
@@ -73,7 +73,7 @@ export function GameTabs() {
         <ScreenHeader
           highlight
           title={game.club.name}
-          sub={`${leagueName(state.league.tier)} · ${state.league.points}/${config.league.pointsToPromote} pts`}
+          sub={`${leagueName(state.league.tier)} · ${state.league.points}/${promotionGate(state.league.tier, config)} pts`}
           crest={<Crest crest={game.club.crest} kit={kitOf(game)} scale={3} label={`${game.club.name} crest`} />}
           end={end}
           below={wallet}
@@ -101,7 +101,7 @@ export function GameTabs() {
       )
     }
     else if (screen === 'league') {
-      header = <ScreenHeader title={leagueName(state.league.tier)} sub={`${config.league.pointsToPromote} pts to go up · no relegation`} end={end} />
+      header = <ScreenHeader title={leagueName(state.league.tier)} sub={`${promotionGate(state.league.tier, config)} pts to go up · no relegation`} end={end} />
     }
   }
 

@@ -1,7 +1,7 @@
 import type { Fielded, LineupForMatch, LeagueState } from '../src'
 import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CONFIG, FORMATIONS, generateRivals, leagueLabel, leagueTable, newLeagueState, playDueFixtures, tierRating } from '../src'
+import { DEFAULT_CONFIG, FORMATIONS, generateRivals, leagueLabel, leagueTable, newLeagueState, playDueFixtures, promotionGate, tierRating } from '../src'
 
 // Matches the full interval apart from the start; the quick opening has its own tests.
 const config = { ...DEFAULT_CONFIG, league: { ...DEFAULT_CONFIG.league, openingGapsMinutes: [] } }
@@ -79,7 +79,7 @@ describe('playing due fixtures', () => {
   it('pays something for every result: 3, 2 or 1 point, and 250 coins for a loss', () => {
     const results = play(start, average, T0 + 56 * 3 * HOUR).results
     for (const match of results) {
-      expect(match.points).toBe(match.result === 'win' ? 3 : match.result === 'draw' ? 2 : 1)
+      expect(match.points).toBe(match.result === 'win' ? 3 : match.result === 'draw' ? 1 : 0)
       expect(match.coins).toBe(match.result === 'win' ? 600 : match.result === 'draw' ? 400 : 250)
     }
     expect(new Set(results.map(match => match.result)).size).toBeGreaterThan(1)
@@ -138,18 +138,33 @@ describe('promotion', () => {
     expect(result.league.tier).toBeGreaterThan(1)
   })
 
+  it('asks more points of each league than the one below, and keeps climbing in Prestige', () => {
+    const gates = [1, 2, 3, 4, 5, 6, 7].map(tier => promotionGate(tier, config))
+    expect(gates).toEqual([30, 36, 42, 50, 60, 70, 80])
+  })
+
+  it('does not promote one point short of the gate, and does at it', () => {
+    const second = { ...newLeagueState(T0, config), tier: 2 }
+    const result = play({ ...second, points: 33 }, strong, T0 + 3 * HOUR)
+    expect(result.results[0].result).toBe('win')
+    expect(result.results[0].promotedTo).toBe(3)
+    const short = play({ ...second, points: 32 }, strong, T0 + 3 * HOUR)
+    expect(short.results[0].promotedTo).toBeNull()
+    expect(short.league.points).toBe(35)
+  })
+
   it('keeps climbing past League 1 into Prestige', () => {
-    const result = play({ ...newLeagueState(T0, config), tier: 5, points: 28 }, strong, T0 + 30 * HOUR)
+    const result = play({ ...newLeagueState(T0, config), tier: 5, points: 58 }, strong, T0 + 30 * HOUR)
     expect(result.results.some(match => match.promotedTo === 6)).toBe(true)
     expect(leagueLabel(result.league.tier).kind).toBe('prestige')
   })
 })
 
 describe('no relegation', () => {
-  it('never goes back, however badly the team plays, and a loss still pays 1 point and 250 coins', () => {
+  it('never goes back, however badly the team plays, and a loss pays no points but still 250 coins', () => {
     const result = play({ ...newLeagueState(T0, config), tier: 3 }, empty, T0 + 56 * 3 * HOUR)
     expect(result.results.every(match => match.result === 'loss')).toBe(true)
-    expect(result.results.every(match => match.points === 1 && match.coins === 250)).toBe(true)
+    expect(result.results.every(match => match.points === 0 && match.coins === 250)).toBe(true)
     expect(result.results.every(match => match.tier >= 3)).toBe(true)
     expect(result.league.tier).toBeGreaterThanOrEqual(3)
   })

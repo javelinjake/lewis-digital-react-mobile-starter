@@ -66,6 +66,13 @@ function skipMatches(league: LeagueState, count: number, config: GameConfig): Le
   return { ...league, fixtureNo: no + left, nextKickoffAt: at + left * config.league.matchIntervalHours * HOUR }
 }
 
+/** Points needed to go up from `tier`. Each league asks more than the last; the Prestige tiers keep climbing. */
+export function promotionGate(tier: number, config: GameConfig): number {
+  const gates = config.league.promotionPoints
+  const index = Math.max(1, tier) - 1
+  return index < gates.length ? gates[index] : gates[gates.length - 1] + (index - gates.length + 1) * config.league.prestigeGateStep
+}
+
 export type LeagueLabel = { kind: 'league', league: number } | { kind: 'prestige', level: number }
 
 /** "League 5" for tier 1 up to "League 1" for tier 5, then Prestige 1, 2, 3… */
@@ -174,7 +181,7 @@ const coinsFor = (result: MatchResult, config: GameConfig) => (result === 'win' 
 /**
  * Plays every match that fell due while the player was away, in order, each from its own seed (club + match number), so
  * playing them later gives the same results as playing them on time. They use the lineup as it is now, because a
- * player who is away cannot change it. Every result pays something. 30 points promotes; there is no relegation.
+ * player who is away cannot change it. Every result pays coins; a loss pays no points. Reaching the tier's gate (`promotionGate`) promotes; there is no relegation.
  */
 export function playDueFixtures(input: { league: LeagueState, lineup: LineupForMatch, clubId: string | number, config: GameConfig, now: number }): CatchUpResult {
   const { lineup, clubId, config, now } = input
@@ -215,7 +222,7 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
     let promotedTo: number | null = null
     let nextPoints = league.points + points
     let nextTier = league.tier
-    if (nextPoints >= config.league.pointsToPromote) {
+    if (nextPoints >= promotionGate(league.tier, config)) {
       nextTier += 1
       nextPoints = 0
       promotedTo = nextTier

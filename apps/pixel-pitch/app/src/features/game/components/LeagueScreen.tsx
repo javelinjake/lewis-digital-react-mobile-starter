@@ -1,5 +1,5 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
-import { leagueTable } from '@ld/pixel-pitch-core'
+import { leagueTable, promotionGate } from '@ld/pixel-pitch-core'
 import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { nextRival, serverOffset } from '../lib/club'
@@ -23,7 +23,7 @@ export function LeagueScreen({ game }: { game: GameResponse }) {
   const { league } = game.club.state
   const table = leagueTable({ league, clubName: game.club.name, clubId: game.club.id, config })
   const offset = useMemo(() => serverOffset(game, Date.now()), [game])
-  const target = config.league.pointsToPromote
+  const target = promotionGate(league.tier, config)
   const blocks = 10
   const filled = Math.min(blocks, Math.floor((league.points / target) * blocks))
 
@@ -39,7 +39,7 @@ export function LeagueScreen({ game }: { game: GameResponse }) {
             <span key={block} className={`h-3 ${block < filled ? 'bg-primary' : 'bg-base-200 shadow-[inset_0_0_0_1px_var(--color-slate)]'}`} />
           ))}
         </div>
-        <span className="text-sm text-muted">{`Win ${config.league.winPoints} · Draw ${config.league.drawPoints} · Loss ${config.league.lossPoints}. Every match pays coins, even a loss.`}</span>
+        <span className="text-sm text-muted">{`Win ${config.league.winPoints} · Draw ${config.league.drawPoints} · Loss ${config.league.lossPoints}. Every match pays coins, even a loss. Each league asks more points than the last.`}</span>
       </section>
 
       <section className="bg-base-100 shadow-[inset_0_0_0_2px_var(--color-slate)]" aria-label="League table">

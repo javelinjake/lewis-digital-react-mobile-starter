@@ -148,7 +148,7 @@ describe('notificationTimes', () => {
 describe('config', () => {
   it('ships the spec\'s numbers and keeps paid random items off', () => {
     expect(config.shelf).toMatchObject({ intervalMinutes: 45, capacity: 10, capacityWithPass: 16, playersPerPack: 3, extraPackCoins: 2000, extraPacksPerDay: 3, gemRefillEnabled: false })
-    expect(config.league).toMatchObject({ matchIntervalHours: 3, pointsToPromote: 30, lossPoints: 1, lossCoins: 250 })
+    expect(config.league).toMatchObject({ matchIntervalHours: 3, promotionPoints: [30, 36, 42, 50, 60], winPoints: 3, drawPoints: 1, lossPoints: 0, lossCoins: 250 })
     expect(config.cabinets).toMatchObject({ energy: { max: 5, maxWithPass: 6, regenMinutes: 90 }, arcadePackTokens: 300 })
     expect(config.stadium.coinsPerHour).toHaveLength(10)
   })
