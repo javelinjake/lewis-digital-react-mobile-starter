@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DEFAULT_MINIGAMES, minigamesSchema } from './config-minigames'
 
 const byRarity = <T extends z.ZodType>(value: T) => z.object({ grassroots: value, semipro: value, pro: value, star: value, legend: value })
 
@@ -81,68 +82,7 @@ export const gameConfigSchema = z.object({
   }),
 
   /** Tuning of the arcade games and the warm-up kick. PLACEHOLDERS: balance in the first playtest. */
-  minigames: z.object({
-    /** A tap sooner than this after the last one is not a person. */
-    minTapGapMs: positive,
-    /** The server's clock must have run at least this fraction of the play's own length (leaves room for latency). */
-    clockSlack: z.number().min(0.5).max(1),
-    kick: z.object({
-      rounds: z.number().int().positive(),
-      /** Bar crossings a second, per round: between these two. */
-      minSpeed: positive,
-      maxSpeed: positive,
-      /** Half-widths of the scoring zones, as a fraction of the bar: 3, 2 and 1 point. */
-      perfect: positive,
-      good: positive,
-      ok: positive,
-      /** A fast round: the marker is this many times quicker. */
-      fastFactor: positive.default(1.4),
-      /** A narrow round: the zones are this fraction of their usual width. */
-      narrowZone: positive.default(0.6),
-      /** A moving round: the target swings this far either side of its middle, as a fraction of the bar. */
-      drift: z.number().min(0).max(0.3).default(0.14),
-    }),
-    /** Penalty Shootout: five penalties, an aim sweeping across the goal and a keeper shuffling along the line. */
-    pens: z.object({
-      rounds: z.number().int().positive(),
-      aimMinSpeed: positive,
-      aimMaxSpeed: positive,
-      keeperMinSpeed: positive,
-      keeperMaxSpeed: positive,
-      /** The posts: an aim closer to the edge than this (a fraction of the width) is wide. */
-      post: z.number().min(0).max(0.3),
-      /** An aim this close to a post is in the corner, worth 2. */
-      corner: z.number().min(0).max(0.5),
-      /** The keeper saves anything within this of where they stand. */
-      reach: positive,
-    }).default({ rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 }),
-    keepy: z.object({
-      /** Gravity at the start, in pitch units a second squared; the ball is 100 units from the ground up to the top. */
-      gravity: positive,
-      /** How much harder it gets with each kick: gravity grows by this fraction. */
-      ramp: z.number().nonnegative(),
-      /** A kick lands the ball between these heights. */
-      minPeak: positive,
-      maxPeak: positive,
-      /** The foot reaches the ball when it is this low and falling. */
-      reach: positive,
-      /** After a badly timed tap the player cannot kick for this many 60 Hz steps. */
-      stumbleSteps: z.number().int().nonnegative(),
-      /** The game ends at this many kicks. */
-      maxKicks: z.number().int().positive(),
-      /** And at this many seconds, whatever the score: a play is short. */
-      maxSeconds: positive.default(30),
-      /** Every this-many-th kick is a golden ball and counts double. */
-      goldenEvery: z.number().int().positive().default(10),
-    }),
-    warmup: z.object({
-      minSpeed: positive,
-      maxSpeed: positive,
-      /** Widths of the gold and green zones, as a fraction of the bar. */
-      goldWidth: positive,
-      greenWidth: positive,
-    }),
-  }),
+  minigames: minigamesSchema,
 
   league: z.object({
     matchIntervalHours: positive,
@@ -399,14 +339,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     positionBoost: 2,
   },
   onboarding: { starterPositions: ['FWD', 'FWD', 'DEF', 'DEF', 'GK'], starterPros: 1 },
-  minigames: {
-    minTapGapMs: 120,
-    clockSlack: 0.85,
-    kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14 },
-    pens: { rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 },
-    keepy: { gravity: 110, ramp: 0.18, minPeak: 40, maxPeak: 54, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10 },
-    warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
-  },
+  minigames: DEFAULT_MINIGAMES,
   daily: {
     gems: 15,
     gemsWithPass: 35,
@@ -467,8 +400,8 @@ export function parseConfig(raw: unknown): GameConfig {
     throw new Error('daily.goals has two goals with the same id.')
   if (new Set(config.daily.goals.map(goal => goal.kind)).size < config.daily.goalsPerDay)
     throw new Error('daily.goals needs at least as many different kinds as goalsPerDay.')
-  const { kick, keepy, warmup } = config.minigames
-  if (kick.minSpeed > kick.maxSpeed || warmup.minSpeed > warmup.maxSpeed || keepy.minPeak > keepy.maxPeak)
+  const { kick, keepy, warmup, keeper, dribble } = config.minigames
+  if (kick.minSpeed > kick.maxSpeed || warmup.minSpeed > warmup.maxSpeed || keepy.minPeak > keepy.maxPeak || keeper.minDelayMs > keeper.maxDelayMs || dribble.tackleFrom > dribble.tackleTo)
     throw new Error('A minigames range has its low end above its high end.')
   const pairs = new Set<string>()
   for (const edge of config.formations.edges) {

@@ -1,4 +1,5 @@
-import type { Cabinet, GameResponse, PlayResult } from '@ld/pixel-pitch-core'
+import type { AnyTaps, Cabinet, CabinetTaps, GameResponse, PlayResult } from '@ld/pixel-pitch-core'
+import type { ComponentType } from 'react'
 import { energyAt, hotCabinet } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useState } from 'react'
@@ -8,14 +9,31 @@ import { gameApi } from '../api/game-api'
 import { CABINETS, topScore } from '../lib/cabinets'
 import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
+import { ConeGame } from './ConeGame'
+import { DribbleGame } from './DribbleGame'
 import { EnergyBar } from './EnergyBar'
+import { KeeperGame } from './KeeperGame'
 import { KeepyGame } from './KeepyGame'
 import { KickTimerGame } from './KickTimerGame'
 import { NextSteps } from './NextSteps'
+import { PassGame } from './PassGame'
 import { PenaltyGame } from './PenaltyGame'
 import { Icon } from './sprites'
+import { TargetGame } from './TargetGame'
 
 type Phase = 'intro' | 'playing' | 'result'
+
+/** Each cabinet's game. It records what the player did, in that cabinet's shape, and hands it over at the end. */
+const GAMES: { [C in Cabinet]: ComponentType<{ seed: string, onFinish: (taps: CabinetTaps[C]) => void }> } = {
+  kick: KickTimerGame,
+  keepy: KeepyGame,
+  pens: PenaltyGame,
+  keeper: KeeperGame,
+  pass: PassGame,
+  dribble: DribbleGame,
+  targets: TargetGame,
+  cones: ConeGame,
+}
 
 /** One play of a cabinet: start (the server issues the ticket), play, send the taps, see what it paid. */
 export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cabinet }) {
@@ -25,7 +43,7 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   const [phase, setPhase] = useState<Phase>('intro')
   const [result, setResult] = useState<(GameResponse & PlayResult) | null>(null)
   const start = useGameAction((paid: boolean) => gameApi.startPlay(cabinet, paid))
-  const finish = useGameAction((taps: number[]) => gameApi.finishPlay(cabinet, taps))
+  const finish = useGameAction((taps: AnyTaps) => gameApi.finishPlay(cabinet, taps))
   const info = CABINETS.find(entry => entry.cabinet === cabinet)!
   const { state } = game.club
   const energy = energyAt(state, config, game.now)
@@ -33,12 +51,18 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   const hot = hotCabinet(game.now, config) === cabinet
   const best = state.arcade.best[cabinet]
   const ticket = state.ticket?.kind === cabinet ? state.ticket : null
+  const bonus = Math.round(config.cabinets.hotBonus * 100)
+  /** Whether the play being finished (or just finished) was bought with gems: it pays coins, not tokens. */
+  const [ticketPaid, setTicketPaid] = useState(false)
 
   const begin = () => start.mutate(paid, {
-    onSuccess: () => setPhase('playing'),
+    onSuccess: () => {
+      setTicketPaid(paid)
+      setPhase('playing')
+    },
     onError: error => toast.push(formatError(error), 'error'),
   })
-  const submit = (taps: number[]) => finish.mutate(taps, {
+  const submit = (taps: AnyTaps) => finish.mutate(taps, {
     onSuccess: (response) => {
       setResult(response)
       setPhase('result')
@@ -50,15 +74,13 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   })
 
   if (phase === 'playing' && ticket) {
+    // Every game hands over its own cabinet's shape; the union is what the api takes.
+    const Game = GAMES[cabinet] as ComponentType<{ seed: string, onFinish: (taps: AnyTaps) => void }>
     return (
       <div className="flex flex-col gap-3">
         <h2 className="text-primary">{info.name}</h2>
         {finish.isPending ? <span className="text-muted">Checking your play…</span> : null}
-        {cabinet === 'kick'
-          ? <KickTimerGame key={ticket.id} seed={ticket.seed} onFinish={submit} />
-          : cabinet === 'pens'
-            ? <PenaltyGame key={ticket.id} seed={ticket.seed} onFinish={submit} />
-            : <KeepyGame key={ticket.id} seed={ticket.seed} onFinish={submit} />}
+        <Game key={ticket.id} seed={ticket.seed} onFinish={submit} />
       </div>
     )
   }
@@ -77,25 +99,21 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
       <div className="flex flex-col gap-3">
         <div className="flex flex-col items-center gap-3 border-2 border-primary bg-base-100 p-4" aria-label="Result">
           <h2 className="text-primary">{info.name}</h2>
-          <span className="font-display text-lg tabular-nums">{`${result.score} / ${top}`}</span>
-          <span className={result.newBest ? 'text-xl text-success' : 'text-lg text-muted'} role="status">{verdict}</span>
-          {result.tokens > 0
+          {ticketPaid
             ? (
-                <span className="text-xl">
-                  <Icon path="icons/currency_token.png" />
-                  {` +${result.tokens} tokens`}
-                  {result.hot ? ' (today\'s game)' : ''}
-                </span>
-              )
-            : null}
-          {result.coins > 0
-            ? (
-                <span className="text-xl">
+                <span className="flex items-center gap-2 text-center font-display text-sm tabular-nums">
                   <Icon path="icons/currency_coin.png" />
-                  {` +${result.coins} coins`}
+                  {`Score ${result.score} of ${top} → ${result.coins} coins`}
                 </span>
               )
-            : null}
+            : (
+                <span className="flex items-center gap-2 text-center font-display text-sm tabular-nums">
+                  <Icon path="icons/currency_token.png" />
+                  {`Score ${result.score} of ${top} → ${result.tokens} tokens`}
+                </span>
+              )}
+          {result.hot && !ticketPaid ? <span className="text-warning">{`Includes +${bonus}% for today's game.`}</span> : null}
+          <span className={result.newBest ? 'text-xl text-success' : 'text-lg text-muted'} role="status">{verdict}</span>
           {result.tokens === 0 && result.coins === 0 ? <span className="text-muted">Nothing this time. Try again.</span> : null}
         </div>
         {energyLeft > 0
@@ -115,9 +133,10 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   return (
     <div className="flex flex-col gap-3">
       <h2 className="text-primary">{info.name}</h2>
-      <span className="text-lg">{info.blurb}</span>
+      <span className="text-lg">{info.how}</span>
       <span className="text-lg tabular-nums">{best > 0 ? `Your best: ${best} / ${topScore(cabinet, config)}` : 'Not played yet'}</span>
-      {hot ? <span className="text-warning">{`Today's game: +${Math.round(config.cabinets.hotBonus * 100)}% tokens.`}</span> : null}
+      <span className="text-muted">{`Up to ${config.cabinets.playMaxTokens} tokens a play, in proportion to your score; +${bonus}% on today's game.`}</span>
+      {hot ? <span className="text-warning">{`This is today's game: +${bonus}% tokens.`}</span> : null}
       <EnergyBar game={game} />
       {paid
         ? <span className="text-muted">{`Out of energy. An extra play costs ${config.cabinets.gemPlayCost} gems and pays coins and Pass XP, not tokens.`}</span>

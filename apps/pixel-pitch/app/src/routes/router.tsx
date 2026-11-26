@@ -55,9 +55,8 @@ export const router = createBrowserRouter([
                   { path: '/pass', lazy: pages.pass, handle: { title: 'League Pass' } },
                   { path: '/album', lazy: pages.album, handle: { title: 'Album' } },
                   { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
-                  { path: '/lab', lazy: pages.lab, handle: { title: 'Test games' } },
-                  { path: '/lab/:game', lazy: pages.labPlay, handle: { title: 'Test games' } },
-                  { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade' } },
+                  // The back button on a game goes to the arcade, wherever the game was opened from.
+                  { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade', backTo: '/arcade' } },
                 ],
               },
             ],

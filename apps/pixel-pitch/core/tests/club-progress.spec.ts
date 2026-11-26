@@ -103,7 +103,7 @@ describe('upgradeState', () => {
     expect(upgraded.pass.season).toBe(-1)
     expect(upgraded.album).toEqual({ collected: [], completed: 0, claimed: [] })
     expect(upgraded.energy).toEqual({ fullAt: 0 })
-    expect(upgraded.arcade.best).toEqual({ kick: 0, keepy: 0, pens: 0 })
+    expect(upgraded.arcade.best).toEqual({ kick: 0, keepy: 0, pens: 0, keeper: 0, pass: 0, dribble: 0, targets: 0, cones: 0 })
     expect(setLineup(upgraded, '2-2', [null, null, null, null, null], []).formation).toBe('2-2')
   })
 

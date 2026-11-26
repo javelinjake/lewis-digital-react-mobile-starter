@@ -173,20 +173,29 @@ export function warmupZone(seed: string, tapMs: number, config: Pick<GameConfig,
   return distance <= goldWidth / 2 ? 'gold' : distance <= greenWidth / 2 ? 'green' : 'miss'
 }
 
-// ---- Keepy-Uppy: tap to keep the ball up, which gets faster. ----
+// ---- Keepy-Uppy: tap the ball to keep it up. It drifts about and gets faster. ----
 
 /** The game runs at 60 steps a second whatever the phone's frame rate. */
 export const KEEPY_STEPS_PER_SECOND = 60
 const DT = 1 / KEEPY_STEPS_PER_SECOND
 
+/** A tap in Keepy-Uppy: the 60 Hz step it came on, and where, in pitch units (`x` from the left wall, `y` up from the ground). */
+export interface KeepyTap {
+  t: number
+  x: number
+  y: number
+}
+
 export interface KeepySim {
   seed: string
-  /** Height above the ground, in pitch units (the ball starts at 60). */
+  /** Where the ball is, in pitch units: `x` its middle from the left wall, `y` its underside up from the ground (it starts at 60, in the middle). */
+  x: number
   y: number
+  vx: number
   vy: number
   step: number
   kicks: number
-  /** Steps left in which a tap does nothing, after one badly timed. */
+  /** Steps left in which a tap does nothing, after one that missed the ball or came too early. */
   stumble: number
   dropped: boolean
   /** The game is over: the ball dropped, the player reached the kick cap, or the clock ran out. */
@@ -195,27 +204,52 @@ export interface KeepySim {
   timeUp: boolean
 }
 
-export function newKeepy(seed: string): KeepySim {
-  return { seed, y: 60, vy: 0, step: 0, kicks: 0, stumble: 0, dropped: false, over: false, timeUp: false }
+export function newKeepy(seed: string, config: Pick<GameConfig, 'minigames'>): KeepySim {
+  return { seed, x: config.minigames.keepy.width / 2, y: 60, vx: 0, vy: 0, step: 0, kicks: 0, stumble: 0, dropped: false, over: false, timeUp: false }
 }
 
 const gravityAt = (kicks: number, config: Pick<GameConfig, 'minigames'>) => config.minigames.keepy.gravity * (1 + config.minigames.keepy.ramp * kicks)
 
-/** One 60th of a second. `tap` is whether the player tapped during it. Pure: returns the next state. */
-export function stepKeepy(sim: KeepySim, tap: boolean, config: Pick<GameConfig, 'minigames'>): KeepySim {
+/** The middle of the ball, in pitch units: `y` is the height of its underside. */
+export function ballCentre(sim: Pick<KeepySim, 'x' | 'y'>, config: Pick<GameConfig, 'minigames'>) {
+  return { x: sim.x, y: sim.y + config.minigames.keepy.ballRadius }
+}
+
+/** Whether a tap at (`x`, `y`) touches the ball. Squared distances, so every device and the server agree to the last bit. */
+export function touchesBall(sim: Pick<KeepySim, 'x' | 'y'>, tap: { x: number, y: number }, config: Pick<GameConfig, 'minigames'>) {
+  const centre = ballCentre(sim, config)
+  const dx = tap.x - centre.x
+  const dy = tap.y - centre.y
+  const { hitRadius } = config.minigames.keepy
+  return dx * dx + dy * dy <= hitRadius * hitRadius
+}
+
+/** Whether the ball is low enough, and falling, for the foot to reach it. */
+export function inReach(sim: Pick<KeepySim, 'y' | 'vy'>, config: Pick<GameConfig, 'minigames'>) {
+  return sim.vy < 0 && sim.y <= config.minigames.keepy.reach
+}
+
+/**
+ * One 60th of a second. `tap` is where the player tapped during it, or null. A tap on the ball while it is low and
+ * falling kicks it up to a height, and off to one side, drawn from the seed (the same for the server's replay). A tap
+ * that misses the ball, or touches it too early, is a stumble. Pure: returns the next state.
+ */
+export function stepKeepy(sim: KeepySim, tap: { x: number, y: number } | null, config: Pick<GameConfig, 'minigames'>): KeepySim {
   if (sim.over)
     return sim
-  const { reach, stumbleSteps, minPeak, maxPeak, maxKicks, maxSeconds } = config.minigames.keepy
-  let { y, vy, kicks, stumble } = sim
+  const { stumbleSteps, minPeak, maxPeak, maxKicks, maxSeconds, width, ballRadius, drift } = config.minigames.keepy
+  let { x, y, vx, vy, kicks, stumble } = sim
 
-  if (stumble > 0)
+  if (stumble > 0) {
     stumble -= 1
+  }
   else if (tap) {
-    if (vy < 0 && y <= reach) {
-      // The foot meets the ball: kick it to a height drawn from the seed (the same for the server's replay).
+    if (touchesBall(sim, tap, config) && inReach(sim, config)) {
       kicks += 1
-      const peak = minPeak + createRng(hashSeed(sim.seed, 'kick', kicks)).next() * (maxPeak - minPeak)
+      const rng = createRng(hashSeed(sim.seed, 'kick', kicks))
+      const peak = minPeak + rng.next() * (maxPeak - minPeak)
       vy = Math.sqrt(2 * gravityAt(kicks, config) * Math.max(0, peak - y))
+      vx = (rng.next() * 2 - 1) * drift
     }
     else {
       stumble = stumbleSteps
@@ -224,10 +258,20 @@ export function stepKeepy(sim: KeepySim, tap: boolean, config: Pick<GameConfig, 
 
   vy -= gravityAt(kicks, config) * DT
   y += vy * DT
+  x += vx * DT
+  // Off the side walls.
+  if (x < ballRadius) {
+    x = 2 * ballRadius - x
+    vx = -vx
+  }
+  else if (x > width - ballRadius) {
+    x = 2 * (width - ballRadius) - x
+    vx = -vx
+  }
   const dropped = y <= 0
   const step = sim.step + 1
   const timeUp = !dropped && step >= maxSeconds * KEEPY_STEPS_PER_SECOND
-  return { ...sim, y: Math.max(0, y), vy, step, kicks, stumble, dropped, timeUp, over: dropped || timeUp || kicks >= maxKicks }
+  return { ...sim, x, y: Math.max(0, y), vx, vy, step, kicks, stumble, dropped, timeUp, over: dropped || timeUp || kicks >= maxKicks }
 }
 
 export interface KeepyResult {
@@ -253,14 +297,14 @@ export function nextKickGolden(kicks: number, config: Pick<GameConfig, 'minigame
   return (kicks + 1) % config.minigames.keepy.goldenEvery === 0
 }
 
-/** Replays a Keepy-Uppy play from the steps (0, 1, 2…) at which the player tapped. */
-export function runKeepy(seed: string, tapSteps: readonly number[], config: Pick<GameConfig, 'minigames'>): KeepyResult {
-  const taps = new Set(tapSteps)
-  let sim = newKeepy(seed)
+/** Replays a Keepy-Uppy play from its taps: the step of each and where it landed. */
+export function runKeepy(seed: string, taps: readonly KeepyTap[], config: Pick<GameConfig, 'minigames'>): KeepyResult {
+  const byStep = new Map(taps.map(tap => [tap.t, tap]))
+  let sim = newKeepy(seed, config)
   // The clock ends every play, so this always finishes; the bound is only a guard against a bad config.
   const bound = (config.minigames.keepy.maxSeconds + 1) * KEEPY_STEPS_PER_SECOND
   while (!sim.over && sim.step < bound)
-    sim = stepKeepy(sim, taps.has(sim.step), config)
+    sim = stepKeepy(sim, byStep.get(sim.step) ?? null, config)
   return { kicks: sim.kicks, score: keepyScore(sim.kicks, config), steps: sim.step, dropped: sim.dropped }
 }
 

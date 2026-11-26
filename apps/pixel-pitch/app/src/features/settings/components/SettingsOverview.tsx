@@ -5,7 +5,6 @@ import { ConfirmDialog, useToast } from '@ld/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { clearUserData } from '@/app/session-data'
-import { getDataMode } from '@/config/env.config'
 import { NOTIFICATION_TYPES, useNotificationSettings } from '@/hooks/use-notification-settings'
 import { authApi } from '@/lib/auth/auth-api'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
@@ -62,13 +61,6 @@ export function SettingsOverview() {
               <ListItem title="Save to the cloud" subtitle="Keep your club safe and play on any device" onClick={() => navigate('/register?link=1')} />
               <ListItem title="Sign in to the cloud" subtitle="Already have a cloud club? Play it here" onClick={() => navigate('/login?redirect=/club')} />
               <ListItem title="This device" subtitle="Export or delete" onClick={() => setSheetOpen(true)} />
-            </ListGroup>
-          )
-        : null}
-      {getDataMode() === 'mock'
-        ? (
-            <ListGroup label="Testing">
-              <ListItem title="Test games" subtitle="Five prototype mini-games to try" onClick={() => navigate('/lab')} />
             </ListGroup>
           )
         : null}
