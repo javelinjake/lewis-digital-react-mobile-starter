@@ -101,7 +101,7 @@ export function GameTabs() {
       )
     }
     else if (screen === 'league') {
-      header = <ScreenHeader title={leagueName(state.league.tier)} sub={`Reach ${config.league.pointsToPromote} pts to go up · no relegation`} end={end} />
+      header = <ScreenHeader title={leagueName(state.league.tier)} sub={`${config.league.pointsToPromote} pts to go up · no relegation`} end={end} />
     }
   }
 
