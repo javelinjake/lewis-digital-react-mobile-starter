@@ -3,7 +3,7 @@ import type { AnyTaps, BoardEntry, ChallengeBoard, ChallengeEntry } from '@ld/pi
 import type { Where } from 'payload'
 import type { ChallengeEntry as EntryDoc } from '../../payload-types'
 import { defineAction } from '@ld/backend'
-import { challengeCabinet, claimWeekly, dayIndex, finishChallenge, startChallenge, weekOf, weeklyTable } from '@ld/pixel-pitch-core'
+import { challengeCabinet, claimWeekly, dayIndex, finishChallenge, startChallenge, weeklyTable, weekOf } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { serverNow } from '../game/clock'
 import { loadGame } from '../game/load'

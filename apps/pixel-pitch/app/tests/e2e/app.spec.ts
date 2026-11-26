@@ -147,12 +147,12 @@ test.describe('First session @game', () => {
 })
 
 test.describe('Packs @game', () => {
-  /** Founds a club and lets three hours pass, so four packs are on the shelf. */
+  /** Founds a club and lets twelve hours pass, so the shelf is full: three packs. */
   async function withPacks(page: Page) {
     await foundClub(page)
-    await advanceClock(page, 3 * HOUR + 60_000)
+    await advanceClock(page, 12 * HOUR + 60_000)
     await page.goto('/packs')
-    await expect(page.getByLabel('4 of 10 packs')).toBeVisible()
+    await expect(page.getByLabel('3 of 3 packs')).toBeVisible()
   }
 
   async function flipAll(page: Page) {
@@ -178,7 +178,7 @@ test.describe('Packs @game', () => {
     await page.getByRole('button', { name: 'Done', exact: true }).click()
 
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
-    await expect(page.getByLabel('3 of 10 packs')).toBeVisible()
+    await expect(page.getByLabel('2 of 3 packs')).toBeVisible()
     await tab(page, 'Squad').click()
     await expect(page.getByRole('button', { name: 'Players (7)' })).toBeVisible()
   })
@@ -212,17 +212,17 @@ test.describe('Packs @game', () => {
     await expect(odds.getByText(/guaranteed within 40 players/)).toBeVisible()
   })
 
-  test('extra packs cost coins, are limited to three a day, and arcade packs need tokens', async ({ page }) => {
+  test('an extra pack costs coins, one a day, and arcade packs need tokens', async ({ page }) => {
     await foundClub(page)
     await advanceClock(page, 2 * 24 * HOUR)
     await page.goto('/packs')
     const buy = page.getByRole('button', { name: /^Buy a pack/ })
     await expect(buy).toBeEnabled()
-    await expect(page.getByText(/3 left today/)).toBeVisible()
+    await expect(page.getByText(/1 left today/)).toBeVisible()
     await buy.click()
     await flipAll(page)
     await page.getByRole('button', { name: 'Done', exact: true }).click()
-    await expect(page.getByText(/2 left today/)).toBeVisible()
+    await expect(page.getByText(/None left today/)).toBeVisible()
     await expect(page.getByRole('button', { name: /^Arcade pack/ })).toBeDisabled()
   })
 })
@@ -232,7 +232,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await foundClub(page)
     await advanceClock(page, 3 * HOUR + 60_000)
     await page.goto('/club')
-    await page.getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
+    await page.getByRole('dialog', { name: 'Welcome back' }).getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
     const stadium = page.getByRole('region', { name: 'Stadium' })
     await expect(stadium.getByText(/Level 1/)).toBeVisible()
     const collect = stadium.getByRole('button', { name: /^Collect 1[89]\d$/ })
@@ -245,7 +245,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await foundClub(page)
     await advanceClock(page, 4 * 24 * HOUR)
     await page.goto('/club')
-    await page.getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
+    await page.getByRole('dialog', { name: 'Welcome back' }).getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
     const stadium = page.getByRole('region', { name: 'Stadium' })
     const upgrade = stadium.getByRole('button', { name: /^Upgrade/ })
     await expect(upgrade).toBeEnabled()

@@ -94,7 +94,8 @@ test.describe('The next tap is always on screen @flow', () => {
 
   test('opening a pack can be rushed: Reveal all goes straight to sign or sell, and the next pack is one tap away', async ({ page }) => {
     await foundClub(page)
-    await advanceClock(page, 3 * HOUR + 60_000)
+    // A full shelf: three packs, one every four hours.
+    await advanceClock(page, 12 * HOUR + 60_000)
     await page.goto('/packs')
     await page.getByRole('button', { name: 'Open a pack' }).click()
     await page.getByRole('button', { name: 'Tear open the pack' }).click()

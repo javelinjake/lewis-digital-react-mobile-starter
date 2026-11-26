@@ -22,7 +22,8 @@ test.describe('Time away @game', () => {
 
   test('a match played while away can be watched from the welcome-back summary', async ({ page }) => {
     await foundClub(page)
-    await advanceClock(page, 6 * 60_000)
+    // The first match kicks off 5 minutes in; 12 minutes in it was well before the player looked, so it was missed.
+    await advanceClock(page, 12 * 60_000)
     await page.goto('/club')
     const welcome = page.getByRole('dialog', { name: 'Welcome back' })
     await welcome.getByRole('link', { name: 'Watch the match' }).click()
@@ -35,6 +36,31 @@ test.describe('Time away @game', () => {
     await page.goto('/match/0')
     await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Skip to full time' })).toHaveCount(0)
+  })
+
+  test('a match the player is there for stops at its live moment, which can be let go', async ({ page }) => {
+    await foundClub(page)
+    // A minute after the first kick-off: the player was there for it.
+    await advanceClock(page, 6 * 60_000)
+    await page.goto('/club')
+    await page.getByRole('dialog', { name: 'Welcome back' }).getByRole('link', { name: 'Watch the match' }).click()
+    await expect(page).toHaveURL(/\/match\/0$/)
+    const moment = page.getByRole('region', { name: 'Live moment' })
+    // An early moment stops the report on its own; otherwise Skip to full time stops at it.
+    const skip = page.getByRole('button', { name: 'Skip to full time' })
+    await expect(moment.or(skip)).toBeVisible()
+    if (await skip.isVisible())
+      await skip.click()
+    await expect(moment).toBeVisible()
+    await expect(moment.getByRole('button', { name: /^Take it · \d+s$/ })).toBeVisible()
+    await moment.getByRole('button', { name: 'Let it play' }).click()
+    await expect(moment).toHaveCount(0)
+    // Let go, the report carries on from the moment (or ends, if Skip brought it there).
+    const scorers = page.getByLabel('Scorers').or(page.getByText('No goals.'))
+    await expect(scorers.or(skip)).toBeVisible()
+    if (await skip.isVisible())
+      await skip.click()
+    await expect(scorers).toBeVisible()
   })
 
   test('a friendly plays now, pays coins and no league points', async ({ page }) => {

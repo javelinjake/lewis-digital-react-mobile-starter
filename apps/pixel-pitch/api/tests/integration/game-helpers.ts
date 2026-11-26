@@ -1,7 +1,6 @@
-import type { GameResponse } from '@ld/pixel-pitch-core'
+import type { GameResponse, Ticket } from '@ld/pixel-pitch-core'
 import type { Session } from './harness'
 import { randomUUID } from 'node:crypto'
-import type { Ticket } from '@ld/pixel-pitch-core'
 import { DEFAULT_CONFIG, perfectTaps, playConfig, runKeepy } from '@ld/pixel-pitch-core'
 
 export const HOUR = 60 * 60 * 1000

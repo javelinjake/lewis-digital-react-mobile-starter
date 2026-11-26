@@ -42,7 +42,7 @@ beforeAll(async () => {
   now = T0 + HOUR
 })
 
-describe('Big Chances', () => {
+describe('big Chances', () => {
   it('a scored penalty rewrites the stored match, pays the difference and can be played once', async () => {
     const game = await sync(alice)
     const fixture = await aliceFixture(game.club.id)
