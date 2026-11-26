@@ -1,5 +1,5 @@
 import type { GameConfig, GameResponse, Player } from '@ld/pixel-pitch-core'
-import { DEFAULT_CONFIG } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, parseConfig } from '@ld/pixel-pitch-core'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { gameApi } from '../api/game-api'
@@ -27,9 +27,23 @@ export function useCatalogue() {
 }
 
 /** The live config, or the built-in defaults until it arrives. */
+/**
+ * The game's numbers. The answer is kept in the persisted cache, so after an update the first one seen can be from
+ * the old version, without settings added since. It goes through the schema again here, which fills those with their
+ * defaults, so a new game never reads a number that is not there.
+ */
 export function useGameConfig(): GameConfig {
   const query = useQuery<GameConfig>({ queryKey: gameKeys.config(), queryFn: gameApi.readConfig, staleTime: 10 * 60_000 })
-  return query.data ?? DEFAULT_CONFIG
+  return useMemo(() => {
+    if (!query.data)
+      return DEFAULT_CONFIG
+    try {
+      return parseConfig(query.data)
+    }
+    catch {
+      return DEFAULT_CONFIG
+    }
+  }, [query.data])
 }
 
 export function useFixtures(limit = 10) {
