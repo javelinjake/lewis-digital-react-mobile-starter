@@ -390,11 +390,12 @@ test.describe('Goals, Pass and album @game', () => {
   test('the hub shows what is waiting to be claimed', async ({ page }) => {
     await foundClub(page)
     await page.goto('/club')
-    // A new club can take its free pack and its first calendar day.
-    await expect(page.getByRole('link', { name: /^Goals/ }).getByLabel(/to claim$/)).toHaveText('2')
+    // A new club can take its first calendar day on Goals; its free pack is on the Packs tile.
+    await expect(page.getByRole('link', { name: /^Goals/ }).getByLabel(/to claim$/)).toHaveText('1')
+    await expect(page.getByRole('navigation', { name: 'More to do' }).getByRole('button', { name: /Daily pack/ })).toBeVisible()
   })
 
-  test('three goals a day, a free pack, and a login calendar that moves on each day', async ({ page }) => {
+  test('three goals a day, a free pack each day, and a login calendar that moves on each day', async ({ page }) => {
     await foundClub(page)
     await page.goto('/goals')
     const goals = page.getByRole('region', { name: 'Daily goals' })
@@ -403,14 +404,14 @@ test.describe('Goals, Pass and album @game', () => {
     await expect(goals.getByRole('button', { name: 'Claim' })).toHaveCount(0)
     await expect(goals.getByRole('link', { name: /›$/ })).toHaveCount(3)
 
-    // The free pack opens straight away.
+    // The free pack is on the Packs screen, and opens straight away.
+    await page.goto('/packs')
     await page.getByRole('button', { name: 'Open your free pack' }).click()
-    await expect(page).toHaveURL(/\/packs/)
     await expect(page.getByRole('button', { name: 'Tear open the pack' })).toBeVisible()
     await page.getByRole('button', { name: 'Later' }).click()
+    await expect(page.getByRole('region', { name: 'Daily free pack' })).toHaveCount(0)
     await page.goto('/goals')
-    await expect(page.getByRole('button', { name: /Taken today/ })).toBeDisabled()
-    await page.getByRole('button', { name: 'Claim day 1' }).click()
+    await page.getByRole('button', { name: /^Claim day 1/ }).click()
     await expect(page.getByRole('button', { name: /Claimed today/ })).toBeDisabled()
     await expect(page.getByLabel('Day 1, claimed')).toBeVisible()
 
@@ -419,20 +420,21 @@ test.describe('Goals, Pass and album @game', () => {
     await expect(page.getByText('A pack is waiting for you')).toBeVisible()
 
     await advanceClock(page, 24 * HOUR + 60_000)
+    await page.goto('/packs')
+    await expect(page.getByRole('button', { name: 'Open your free pack' })).toBeVisible()
     await page.goto('/goals')
-    await expect(page.getByRole('button', { name: 'Claim day 2' })).toBeEnabled()
-    await expect(page.getByRole('button', { name: 'Open your free pack' })).toBeEnabled()
-    await page.getByRole('button', { name: 'Claim day 2' }).click()
+    await expect(page.getByRole('button', { name: /^Claim day 2/ })).toBeEnabled()
+    await page.getByRole('button', { name: /^Claim day 2/ }).click()
     await expect(page.getByLabel('Day 2, claimed')).toBeVisible()
   })
 
   test('a missed day starts the calendar again', async ({ page }) => {
     await foundClub(page)
     await page.goto('/goals')
-    await page.getByRole('button', { name: 'Claim day 1' }).click()
+    await page.getByRole('button', { name: /^Claim day 1/ }).click()
     await advanceClock(page, 3 * 24 * HOUR)
     await page.goto('/goals')
-    await expect(page.getByRole('button', { name: 'Claim day 1' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: /^Claim day 1/ })).toBeEnabled()
   })
 
   test('the League Pass fills with XP from matches, and its premium track needs the Pass', async ({ page }) => {

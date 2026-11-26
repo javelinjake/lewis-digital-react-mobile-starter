@@ -27,7 +27,7 @@ export function readyItems(game: GameResponse, config: GameConfig, catalogue: re
   if (waiting.calendarDay !== null)
     items.push({ id: 'calendar', claim: true, label: `Calendar reward, day ${waiting.calendarDay}`, to: '/goals' })
   if (waiting.freePack)
-    items.push({ id: 'freePack', claim: true, label: config.daily.freePackCount === 1 ? 'Your free pack' : `Your ${config.daily.freePackCount} free packs`, to: '/goals' })
+    items.push({ id: 'freePack', claim: true, label: config.daily.freePackCount === 1 ? 'Your free pack' : `Your ${config.daily.freePackCount} free packs`, to: '/packs' })
   if (waiting.goals > 0)
     items.push({ id: 'goals', claim: true, label: `${plural(waiting.goals, 'goal', 'goals')} finished`, to: '/goals' })
   if (waiting.passTiers > 0)

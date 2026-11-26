@@ -14,8 +14,9 @@ test.describe('live backend @live', () => {
     await page.getByLabel('Club name').fill('Live Rovers')
     await page.getByRole('button', { name: 'Found the club' }).click()
     await expect(page).toHaveURL(/\/match\/-1/)
-    await page.getByRole('button', { name: 'Skip' }).click()
-    await page.getByRole('button', { name: 'Continue' }).click()
+    await page.getByRole('button', { name: 'Kick off' }).click()
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
+    await page.getByRole('button', { name: 'Meet your squad' }).click()
     await expect(page).toHaveURL(/\/squad/)
 
     const clubs = await page.evaluate(async () => {
@@ -33,17 +34,16 @@ test.describe('live backend @live', () => {
     await page.goto('/')
     await page.getByLabel('Club name').fill('Live Packs')
     await page.getByRole('button', { name: 'Found the club' }).click()
-    await page.getByRole('button', { name: 'Skip' }).click()
-    await page.getByRole('button', { name: 'Continue' }).click()
+    await page.getByRole('button', { name: 'Kick off' }).click()
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
+    await page.getByRole('button', { name: 'Meet your squad' }).click()
 
     await page.goto('/goals')
-    await page.getByRole('button', { name: /^Take 1 free pack/ }).click()
-    await expect(page.getByRole('button', { name: /Taken today/ })).toBeDisabled()
-    await page.getByRole('button', { name: 'Claim day 1' }).click()
+    await page.getByRole('button', { name: /^Claim day 1/ }).click()
     await expect(page.getByLabel('Day 1, claimed')).toBeVisible()
 
     await page.goto('/packs')
-    await page.getByRole('button', { name: 'Open a pack' }).click()
+    await page.getByRole('button', { name: 'Open your free pack' }).click()
     await page.getByRole('button', { name: 'Tear open the pack' }).click()
     for (let card = 0; card < 3; card++) {
       await page.getByRole('button', { name: 'Turn the card over' }).click()

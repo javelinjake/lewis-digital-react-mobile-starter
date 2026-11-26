@@ -65,7 +65,7 @@ test.describe('The next tap is always on screen @flow', () => {
     await page.goto('/club')
     const ready = page.getByRole('region', { name: 'Ready now' })
     await ready.getByRole('link', { name: /Your free pack/ }).click()
-    await expect(page).toHaveURL(/\/goals/)
+    await expect(page).toHaveURL(/\/packs/)
   })
 
   test('the welcome-back screen offers Claim all, and takes it', async ({ page }) => {
