@@ -1,6 +1,6 @@
 import type { Cabinet, LaneMove } from '../src'
 import { describe, expect, it } from 'vitest'
-import { ballSlot, cabinetMax, CABINETS, coneRound, defenderProgress, defendersBeaten, DEFAULT_CONFIG, DIVE_SIDES, dribbleEndMs, dribbleRun, dribbleTackle, hitsTarget, isGameRuleError, keeperOutcome, keeperShots, laneAt, passLength, passSequence, perfectTaps, scoreCones, scoreDribble, scoreKeeper, scorePass, scorePlay, scoreTargets, startLane, targetSpots } from '../src'
+import { cabinetMax, CABINETS, defenderProgress, defendersBeaten, DEFAULT_CONFIG, DIVE_SIDES, dribbleEndMs, dribbleRun, dribbleTackle, isGameRuleError, keeperOutcome, keeperShots, laneAt, parseConfig, perfectTaps, scoreDribble, scoreKeeper, scorePlay, startLane } from '../src'
 
 const config = DEFAULT_CONFIG
 const games = config.minigames
@@ -35,7 +35,7 @@ describe('every cabinet', () => {
   })
 
   it('has a top score for each', () => {
-    expect(Object.fromEntries(CABINETS.map(cabinet => [cabinet, cabinetMax(cabinet, config)]))).toEqual({ kick: 27, keepy: 33, pens: 10, keeper: 10, pass: 8, dribble: 32, targets: 15, cones: 5 })
+    expect(Object.fromEntries(CABINETS.map(cabinet => [cabinet, cabinetMax(cabinet, config)]))).toEqual({ kick: 27, keepy: 33, pens: 10, keeper: 10, dribble: 32 })
   })
 })
 
@@ -79,44 +79,6 @@ describe('Keeper Reflex', () => {
     expect(scoreKeeper('d', dives, config)).toMatchObject({ total: 5, max: 10 })
     expect(code(() => scorePlay('keeper', 'd', dives.slice(1), config))).toBe('taps')
     expect(code(() => scorePlay('keeper', 'd', dives.map(() => ({ side: 'up', ms: 900 })), config))).toBe('taps')
-  })
-})
-
-describe('Pass Master', () => {
-  const { players, start, rounds } = games.pass
-
-  it('is one move that grows a pass a round, among four players, never to the same player twice running', () => {
-    for (const seed of seeds) {
-      const sequence = passSequence(seed, config)
-      expect(sequence).toHaveLength(start + rounds - 1)
-      expect(passSequence(seed, config)).toEqual(sequence)
-      for (const [index, player] of sequence.entries()) {
-        expect(player).toBeGreaterThanOrEqual(0)
-        expect(player).toBeLessThan(players)
-        if (index > 0)
-          expect(player).not.toBe(sequence[index - 1])
-      }
-    }
-    expect(new Set(seeds.map(seed => passSequence(seed, config).join())).size).toBeGreaterThan(50)
-  })
-
-  it('counts the rounds repeated exactly, up to the first mistake, which ends the play', () => {
-    const sequence = passSequence('e', config)
-    const right = (round: number) => sequence.slice(0, passLength(round, config))
-    const wrong = [...right(2).slice(0, 1), (right(2)[1] + 1) % players]
-    expect(scorePass('e', [right(0), right(1), wrong], config).total).toBe(2)
-    expect(scorePass('e', [right(0), right(1)], config).total).toBe(2)
-    expect(scorePass('e', [], config).total).toBe(0)
-    // Nothing may follow a wrong round, and a round is not right with a pass missing.
-    expect(code(() => scorePlay('pass', 'e', [right(0), wrong, right(2)], config))).toBe('taps')
-    expect(scorePass('e', [right(0).slice(0, -1)], config).total).toBe(0)
-    expect(code(() => scorePlay('pass', 'e', [[0, players]], config))).toBe('taps')
-  })
-
-  it('takes at least as long as it takes to show each move', () => {
-    const sequence = passSequence('f', config)
-    const { playMs } = scorePass('f', [sequence.slice(0, start)], config)
-    expect(playMs).toBeGreaterThanOrEqual(start * games.pass.showMs)
   })
 })
 
@@ -181,86 +143,21 @@ describe('Dribble Dash', () => {
   })
 })
 
-describe('Target Practice', () => {
-  const { count, width, height, margin, minJump, hitRadius } = games.targets
-
-  it('shows fifteen targets inside the goal, each for less time, each well away from the last', () => {
-    for (const seed of seeds) {
-      const spots = targetSpots(seed, config)
-      expect(spots).toHaveLength(count)
-      for (const [index, spot] of spots.entries()) {
-        expect(spot.x).toBeGreaterThanOrEqual(margin)
-        expect(spot.x).toBeLessThanOrEqual(width - margin)
-        expect(spot.y).toBeGreaterThanOrEqual(margin)
-        expect(spot.y).toBeLessThanOrEqual(height - margin)
-        if (index > 0) {
-          expect(spot.lifeMs).toBeLessThan(spots[index - 1].lifeMs)
-          expect(Math.hypot(spot.x - spots[index - 1].x, spot.y - spots[index - 1].y)).toBeGreaterThanOrEqual(minJump)
-        }
-      }
-    }
-    expect(targetSpots('a', config)).toEqual(targetSpots('a', config))
+describe('the arcade', () => {
+  it('has five games: Cone Shuffle, Target Practice and Pass Master are gone', () => {
+    expect([...CABINETS]).toEqual(['kick', 'keepy', 'pens', 'keeper', 'dribble'])
+    for (const gone of ['pass', 'targets', 'cones'])
+      expect(code(() => scorePlay(gone as Cabinet, 's', [], config))).not.toBe('accepted')
   })
 
-  it('hits a target tapped on (within a forgiving circle) before it goes, and misses one tapped wide or late', () => {
-    const [target] = targetSpots('b', config)
-    expect(hitsTarget(target, { ms: 300, x: target.x, y: target.y }, config)).toBe(true)
-    expect(hitsTarget(target, { ms: 300, x: target.x + hitRadius - 1, y: target.y }, config)).toBe(true)
-    expect(hitsTarget(target, { ms: 300, x: target.x + hitRadius + 1, y: target.y }, config)).toBe(false)
-    expect(hitsTarget(target, { ms: target.lifeMs + 1, x: target.x, y: target.y }, config)).toBe(false)
-    expect(hitsTarget(target, null, config)).toBe(false)
-  })
-
-  it('scores the hits, and refuses a tap quicker than a person could make', () => {
-    const spots = targetSpots('c', config)
-    const taps = spots.map((spot, index) => (index < 5 ? { ms: 400, x: spot.x, y: spot.y } : null))
-    expect(scoreTargets('c', taps, config)).toMatchObject({ total: 5, max: count })
-    expect(code(() => scorePlay('targets', 'c', taps.map(tap => tap && { ...tap, ms: 20 }), config))).toBe('taps')
-    expect(code(() => scorePlay('targets', 'c', taps.slice(2), config))).toBe('taps')
-  })
-})
-
-describe('Cone Shuffle', () => {
-  const { cones, rounds, firstSwaps, swapsPerRound } = games.cones
-
-  it('swaps more, and quicker, every round, always two different cones', () => {
-    for (const seed of seeds) {
-      for (let round = 0; round < rounds; round++) {
-        const layout = coneRound(seed, round, config)
-        expect(layout.swaps).toHaveLength(firstSwaps + round * swapsPerRound)
-        expect(layout.ball).toBeGreaterThanOrEqual(0)
-        expect(layout.ball).toBeLessThan(cones)
-        for (const [a, b] of layout.swaps) {
-          expect(a).not.toBe(b)
-          expect(Math.max(a, b)).toBeLessThan(cones)
-        }
-        if (round > 0)
-          expect(layout.swapMs).toBeLessThan(coneRound(seed, round - 1, config).swapMs)
-      }
-    }
-  })
-
-  it('follows the ball through the swaps', () => {
-    expect(ballSlot({ ball: 0, swaps: [] })).toBe(0)
-    expect(ballSlot({ ball: 0, swaps: [[0, 2]] })).toBe(2)
-    expect(ballSlot({ ball: 0, swaps: [[1, 2]] })).toBe(0)
-    expect(ballSlot({ ball: 1, swaps: [[1, 0], [0, 2], [2, 1]] })).toBe(1)
-    // The ball ends in every slot over many games: there is nothing to guess from.
-    expect(new Set(seeds.map(seed => ballSlot(coneRound(seed, rounds - 1, config))))).toEqual(new Set([0, 1, 2]))
-  })
-
-  it('scores the right picks, one for each round', () => {
-    const right = perfectTaps('cones', 'g', config)
-    const two = right.map((slot, round) => (round < 2 ? slot : (slot + 1) % cones))
-    expect(scoreCones('g', two, config)).toMatchObject({ total: 2, max: rounds })
-    expect(code(() => scorePlay('cones', 'g', two.slice(1), config))).toBe('taps')
-    expect(code(() => scorePlay('cones', 'g', two.map(() => cones), config))).toBe('taps')
-  })
-})
-
-describe('the new cabinets', () => {
-  it('are in the arcade with the first three', () => {
-    const fresh: Cabinet[] = ['keeper', 'pass', 'dribble', 'targets', 'cones']
-    expect(CABINETS).toEqual(expect.arrayContaining([...fresh, 'kick', 'keepy', 'pens']))
+  it('still reads a saved config with the old games and the old warm-up bar in it', () => {
+    const saved = JSON.parse(JSON.stringify(DEFAULT_CONFIG)) as Record<string, any>
+    saved.minigames.pass = { players: 4, start: 3, rounds: 8, showMs: 480, gapMs: 160 }
+    saved.minigames.targets = { count: 15, width: 100, height: 80, margin: 12, minJump: 30, radius: 8, hitRadius: 11, firstLifeMs: 1150, lastLifeMs: 560 }
+    saved.minigames.cones = { cones: 3, rounds: 5, firstSwaps: 3, swapsPerRound: 1, firstSwapMs: 520, lastSwapMs: 240, revealMs: 1100 }
+    saved.minigames.warmup = { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 }
+    const parsed = parseConfig(saved)
+    expect(Object.keys(parsed.minigames)).not.toContain('cones')
+    expect(parsed.minigames.warmup).toEqual({ gold: 0.8, green: 0.45 })
   })
 })

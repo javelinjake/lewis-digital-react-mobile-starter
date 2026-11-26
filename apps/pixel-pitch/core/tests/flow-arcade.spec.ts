@@ -1,8 +1,8 @@
 import type { ClubState, FlowContext } from '../src'
 import { describe, expect, it } from 'vitest'
-import { CABINETS, collectStadium, collectTray, DEFAULT_CONFIG, energyAt, finishPlay, finishWarmup, generateCatalogue, hotCabinet, isGameRuleError, keepyMax, newClubState, pendingStadiumCoins, startPlay, startWarmup, upgradeStadium, warmupBar } from '../src'
+import { CABINETS, collectStadium, collectTray, DEFAULT_CONFIG, energyAt, finishPlay, finishWarmup, generateCatalogue, hotCabinet, isGameRuleError, keepyMax, newClubState, pendingStadiumCoins, scorePlay, startPlay, startWarmup, upgradeStadium, warmupCabinet, warmupZone } from '../src'
 import { stadiumStage } from '../src/flow-stadium'
-import { cabinetMax, markerAt, perfectTaps, runKeepy } from '../src'
+import { cabinetMax, perfectTaps, runKeepy } from '../src'
 
 /** Payout tests run with no hot cabinet, so a play pays the plain amount; the hot cabinet has its own test. */
 const config = { ...DEFAULT_CONFIG, cabinets: { ...DEFAULT_CONFIG.cabinets, hotBonus: 0 } }
@@ -281,22 +281,67 @@ describe('a play bought with gems', () => {
   })
 })
 
-describe('the warm-up kick', () => {
-  it('gives one try for each match, and a bonus for the next match from the zone hit', () => {
-    const ctx = apply(context(), startWarmup(context()))
-    expect(ctx.state.ticket).toMatchObject({ kind: 'warmup' })
-    expect(code(() => startWarmup(ctx))).toBe('warmup-used')
+describe('the warm-up', () => {
+  it('is a play of one arcade game, the same for a match however often it is asked, and a different one from match to match', () => {
+    for (let fixture = 0; fixture < 40; fixture++)
+      expect(warmupCabinet('club-1', fixture)).toBe(warmupCabinet('club-1', fixture))
+    expect(new Set(Array.from({ length: 60 }, (_, fixture) => warmupCabinet('club-1', fixture)))).toEqual(new Set(CABINETS))
+    expect(new Set(Array.from({ length: 60 }, (_, club) => warmupCabinet(`club-${club}`, 3)))).toEqual(new Set(CABINETS))
 
-    const bar = warmupBar(ctx.state.ticket!.seed, config)
-    let best = 150
-    for (let ms = 150; ms < 4000; ms++) {
-      if (Math.abs(markerAt(bar, ms) - bar.centre) < Math.abs(markerAt(bar, best) - bar.centre))
-        best = ms
+    const ctx = apply(context(), startWarmup(context()))
+    expect(ctx.state.ticket).toMatchObject({ kind: 'warmup', cabinet: warmupCabinet('club-1', ctx.state.league.fixtureNo), paid: false })
+    expect(code(() => startWarmup(ctx))).toBe('warmup-used')
+  })
+
+  it('turns the share of the game\'s top score into gold, green or a miss, at the thresholds in the config', () => {
+    const { gold, green } = config.minigames.warmup
+    expect([gold, green]).toEqual([0.8, 0.45])
+    expect(warmupZone(10, 10, config)).toBe('gold')
+    expect(warmupZone(8, 10, config)).toBe('gold')
+    expect(warmupZone(7, 10, config)).toBe('green')
+    expect(warmupZone(45, 100, config)).toBe('green')
+    expect(warmupZone(44, 100, config)).toBe('miss')
+    expect(warmupZone(0, 10, config)).toBe('miss')
+    expect(warmupZone(0, 0, config)).toBe('miss')
+    const strict = { minigames: { ...config.minigames, warmup: { gold: 1, green: 0.9 } } }
+    expect([warmupZone(9, 10, strict), warmupZone(10, 10, strict), warmupZone(8, 10, strict)]).toEqual(['green', 'gold', 'miss'])
+  })
+
+  it('pays only the attack bonus: no energy, tokens, coins, best score, goal progress or Pass XP', () => {
+    for (let fixture = 0; fixture < 12; fixture++) {
+      const base = context(state => ({ ...state, league: { ...state.league, fixtureNo: fixture } }))
+      const ctx = apply(base, startWarmup(base))
+      const cabinet = ctx.state.ticket!.cabinet!
+      expect(energyAt(ctx.state, config, ctx.now)).toBe(energyAt(base.state, config, base.now))
+      const finished = finishWarmup(withNow(ctx, T0 + 60_000), perfectTaps(cabinet, ctx.state.ticket!.seed, config))
+      const max = cabinetMax(cabinet, config)
+      expect(finished.extra).toEqual({ cabinet, score: max, max, zone: 'gold', bonus: config.match.warmupGold })
+      expect(finished.state.league.warmupBonus).toBe(config.match.warmupGold)
+      expect(finished.state.ticket).toBeNull()
+      expect(finished.ledger ?? []).toEqual([])
+      const { tokens, coins, arcade, daily, pass, energy } = finished.state
+      expect({ tokens, coins, arcade, daily, pass, energy }).toEqual({ tokens: base.state.tokens, coins: base.state.coins, arcade: base.state.arcade, daily: base.state.daily, pass: base.state.pass, energy: base.state.energy })
     }
-    const finished = finishWarmup(withNow(ctx, T0 + best + 1000), best)
-    expect(finished.extra).toEqual({ zone: 'gold', bonus: config.match.warmupGold })
-    expect(finished.state.league.warmupBonus).toBe(config.match.warmupGold)
-    expect(finished.state.ticket).toBeNull()
+  })
+
+  it('scores a poor play from its taps, the same as the arcade would', () => {
+    // A warm-up for each game, played badly: no taps, or late ones. Whatever comes of it is the zone of its share.
+    const seen = new Set<string>()
+    for (let fixture = 0; fixture < 30; fixture++) {
+      const base = context(state => ({ ...state, league: { ...state.league, fixtureNo: fixture } }))
+      const ctx = apply(base, startWarmup(base))
+      const { cabinet, seed } = ctx.state.ticket!
+      if (seen.has(cabinet!))
+        continue
+      seen.add(cabinet!)
+      const perfect = perfectTaps(cabinet!, seed, config) as unknown[]
+      const poor = cabinet === 'kick' || cabinet === 'pens' ? perfect.map(() => 3000) : cabinet === 'keeper' ? perfect.map(() => null) : []
+      const { score, max } = scorePlay(cabinet!, seed, poor, config)
+      const finished = finishWarmup(withNow(ctx, T0 + 60_000), poor as never)
+      expect(finished.extra, cabinet).toMatchObject({ cabinet, score, max, zone: warmupZone(score, max, config) })
+      expect(finished.state.league.warmupBonus).toBe(finished.extra!.zone === 'gold' ? config.match.warmupGold : finished.extra!.zone === 'green' ? config.match.warmupGreen : config.match.warmupMiss)
+    }
+    expect(seen).toEqual(new Set(CABINETS))
   })
 
   it('may be tried again for the next match', () => {
@@ -305,11 +350,16 @@ describe('the warm-up kick', () => {
     expect(code(() => startWarmup(next))).toBe('accepted')
   })
 
-  it('refuses a result with no warm-up started, a made-up tap time, or a result faster than the clock', () => {
-    expect(code(() => finishWarmup(withNow(context(), T0 + 5000), 2000))).toBe('no-ticket')
+  it('refuses a result with no warm-up started, taps that are not the game\'s, or a result faster than the clock', () => {
+    expect(code(() => finishWarmup(withNow(context(), T0 + 5000), []))).toBe('no-ticket')
     const ctx = apply(context(), startWarmup(context()))
-    expect(code(() => finishWarmup(withNow(ctx, T0 + 5000), -5))).toBe('taps')
-    expect(code(() => finishWarmup(withNow(ctx, T0 + 100), 2000))).toBe('too-fast')
+    const { cabinet, seed } = ctx.state.ticket!
+    expect(code(() => finishWarmup(withNow(ctx, T0 + 60_000), 'lots' as never))).toBe('taps')
+    expect(code(() => finishWarmup(withNow(ctx, T0 + 60_000), [{ evil: true }] as never))).toBe('taps')
+    expect(code(() => finishWarmup(withNow(ctx, T0 + 100), perfectTaps(cabinet!, seed, config)))).toBe('too-fast')
+    // A play of the arcade is not a warm-up.
+    const arcade = apply(context(), startPlay(context(), cabinet!, false))
+    expect(code(() => finishWarmup(withNow(arcade, T0 + 60_000), perfectTaps(cabinet!, arcade.state.ticket!.seed, config)))).toBe('no-ticket')
   })
 })
 
@@ -384,8 +434,8 @@ describe('the penalty shootout in the arcade', () => {
   })
 })
 
-describe('the five newer cabinets', () => {
-  const fresh = ['keeper', 'pass', 'dribble', 'targets', 'cones'] as const
+describe('the newer cabinets', () => {
+  const fresh = ['keeper', 'dribble'] as const
 
   it('each cost energy, are scored by the server from what the phone sent, pay tokens for the score and keep a best', () => {
     for (const cabinet of fresh) {
@@ -404,11 +454,11 @@ describe('the five newer cabinets', () => {
 
   it('pay a share of the tokens for a part score, by the same sum as the others', () => {
     const base = context()
-    const started = apply(base, startPlay(base, 'cones', false))
-    const right = perfectTaps('cones', started.state.ticket!.seed, config)
-    const wrong = right.map((slot, round) => (round < 3 ? slot : (slot + 1) % config.minigames.cones.cones))
-    const done = finishPlay(withNow(started, T0 + 60_000), 'cones', wrong)
-    expect(done.extra).toMatchObject({ score: 3, max: 5, tokens: Math.floor((config.cabinets.playMaxTokens * 3) / 5) })
+    const started = apply(base, startPlay(base, 'dribble', false))
+    const { score, max } = scorePlay('dribble', started.state.ticket!.seed, [], config)
+    expect(score).toBeLessThan(max)
+    const done = finishPlay(withNow(started, T0 + 60_000), 'dribble', [])
+    expect(done.extra).toMatchObject({ score, max, tokens: Math.floor((config.cabinets.playMaxTokens * score) / max) })
   })
 
   it('refuse a result sent faster than the play could have been played', () => {
@@ -423,6 +473,6 @@ describe('the five newer cabinets', () => {
   it('refuse a play of one cabinet sent to another', () => {
     const base = context()
     const started = apply(base, startPlay(base, 'keeper', false))
-    expect(code(() => finishPlay(withNow(started, T0 + 60_000), 'cones', [0, 0, 0, 0, 0]))).toBe('no-ticket')
+    expect(code(() => finishPlay(withNow(started, T0 + 60_000), 'dribble', []))).toBe('no-ticket')
   })
 })

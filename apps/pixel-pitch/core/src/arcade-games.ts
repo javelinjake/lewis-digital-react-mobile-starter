@@ -1,7 +1,7 @@
 import type { GameConfig } from './config'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
 
-// Five more arcade games, each a different skill. Like the first three, each layout is a pure function of the play's
+// Two more arcade games, each a different skill. Like the first three, each layout is a pure function of the play's
 // seed and each score a pure function of the layout and what the player did, so the server can replay a play and
 // pay what it is worth. Every number is in `config.minigames`.
 
@@ -72,51 +72,6 @@ export function scoreKeeper(seed: string, dives: ReadonlyArray<KeeperDive | null
     max: shots.length,
     playMs: shots.reduce((sum, shot, index) => sum + keeperRoundMs(shot, dives[index]), 0),
   }
-}
-
-// ---- Pass Master: watch the passing move, then repeat it. One pass longer each round. ----
-
-/** The whole move: round `n` (from 0) uses the first `start + n` passes. No player passes to themself. */
-export function passSequence(seed: string, config: Config): number[] {
-  const { players, start, rounds } = config.minigames.pass
-  const rng = createRng(hashSeed(seed, 'pass'))
-  const sequence: number[] = []
-  for (let index = 0; index < start + rounds - 1; index++) {
-    const others = Array.from({ length: players }, (_, player) => player).filter(player => player !== sequence[index - 1])
-    sequence.push(rng.pick(others))
-  }
-  return sequence
-}
-
-/** How many passes round `round` (from 0) asks for. */
-export function passLength(round: number, config: Config) {
-  return config.minigames.pass.start + round
-}
-
-/**
- * Scores a Pass Master play from the players tapped in each round. A round counts if it repeats the move exactly; the
- * first that does not ends the play, so no round may follow it.
- */
-export function scorePass(seed: string, rounds: ReadonlyArray<readonly number[]>, config: Config): GameScore {
-  const { showMs, gapMs } = config.minigames.pass
-  const sequence = passSequence(seed, config)
-  const max = config.minigames.pass.rounds
-  if (rounds.length > max)
-    throw new Error(`A Pass Master play has at most ${max} rounds.`)
-  let total = 0
-  let playMs = 0
-  for (const [round, picks] of rounds.entries()) {
-    const length = passLength(round, config)
-    playMs += length * (showMs + gapMs) + picks.length * config.minigames.minTapGapMs
-    const right = picks.length === length && picks.every((player, index) => player === sequence[index])
-    if (!right) {
-      if (round !== rounds.length - 1)
-        throw new Error('A round follows a wrong one.')
-      break
-    }
-    total += 1
-  }
-  return { total, max, playMs }
 }
 
 // ---- Dribble Dash: run up the pitch, switching lane to go round the defenders. ----
@@ -216,96 +171,4 @@ export function scoreDribble(seed: string, moves: readonly LaneMove[], config: C
   const tackle = dribbleTackle(defenders, moves, config)
   const playMs = tackle ? tackle.atMs : dribbleEndMs(defenders)
   return { total: tackle ? defendersBeaten(defenders, tackle.atMs, config) : defenders.length, max: defenders.length, playMs, tackled: tackle !== null }
-}
-
-// ---- Target Practice: a target appears somewhere in the goal for a moment; hit it before it goes. ----
-
-export interface Target {
-  /** Where in the goal, in the goal's own units (`config.minigames.targets.width` by `height`). */
-  x: number
-  y: number
-  /** How long it stays. Shorter with every target. */
-  lifeMs: number
-}
-
-/** A tap at a target: when (milliseconds after it appeared) and where, in the goal's units. */
-export interface TargetTap {
-  ms: number
-  x: number
-  y: number
-}
-
-export function targetSpots(seed: string, config: Config): Target[] {
-  const { count, width, height, margin, minJump, firstLifeMs, lastLifeMs } = config.minigames.targets
-  const rng = createRng(hashSeed(seed, 'targets'))
-  let last = { x: width / 2, y: height / 2 }
-  return Array.from({ length: count }, (_, index) => {
-    // Far enough from the last one that the finger has to travel.
-    let spot = last
-    for (let tries = 0; tries < 20 && distanceSquared(spot, last) < minJump * minJump; tries++)
-      spot = { x: rng.int(Math.ceil(margin), Math.floor(width - margin)), y: rng.int(Math.ceil(margin), Math.floor(height - margin)) }
-    last = spot
-    return { ...spot, lifeMs: Math.round(lerp(firstLifeMs, lastLifeMs, along(index, count))) }
-  })
-}
-
-function distanceSquared(a: { x: number, y: number }, b: { x: number, y: number }) {
-  return (a.x - b.x) ** 2 + (a.y - b.y) ** 2
-}
-
-/** Whether a tap hits a target: on it (within the forgiving radius) while it is still there. */
-export function hitsTarget(target: Target, tap: TargetTap | null, config: Config) {
-  const { hitRadius } = config.minigames.targets
-  return tap !== null && tap.ms <= target.lifeMs && distanceSquared(target, tap) <= hitRadius * hitRadius
-}
-
-export function scoreTargets(seed: string, taps: ReadonlyArray<TargetTap | null>, config: Config): GameScore {
-  const targets = targetSpots(seed, config)
-  if (taps.length !== targets.length)
-    throw new Error(`A Target Practice play has ${targets.length} targets.`)
-  return {
-    total: targets.filter((target, index) => hitsTarget(target, taps[index], config)).length,
-    max: targets.length,
-    playMs: targets.reduce((sum, target, index) => sum + Math.min(target.lifeMs, taps[index]?.ms ?? target.lifeMs), 0),
-  }
-}
-
-// ---- Cone Shuffle: the ball goes under a cone, the cones swap places, pick the right one. ----
-
-export interface ConeRound {
-  /** The slot the ball starts in. */
-  ball: number
-  /** Pairs of slots swapped, in order. */
-  swaps: Array<[number, number]>
-  /** How long each swap takes. Quicker every round. */
-  swapMs: number
-}
-
-export function coneRound(seed: string, round: number, config: Config): ConeRound {
-  const { cones, rounds, firstSwaps, swapsPerRound, firstSwapMs, lastSwapMs } = config.minigames.cones
-  const rng = createRng(hashSeed(seed, 'cones', round))
-  const swaps = Array.from({ length: firstSwaps + round * swapsPerRound }, (): [number, number] => {
-    const a = rng.int(0, cones - 1)
-    const b = (a + rng.int(1, cones - 1)) % cones
-    return [a, b]
-  })
-  return { ball: rng.int(0, cones - 1), swaps, swapMs: Math.round(lerp(firstSwapMs, lastSwapMs, along(round, rounds))) }
-}
-
-/** Where the ball ends up: follow it through the swaps. */
-export function ballSlot(round: Pick<ConeRound, 'ball' | 'swaps'>) {
-  return round.swaps.reduce((slot, [a, b]) => (slot === a ? b : slot === b ? a : slot), round.ball)
-}
-
-/** Scores a Cone Shuffle play from the slot picked in each round. */
-export function scoreCones(seed: string, picks: readonly number[], config: Config): GameScore {
-  const { rounds, revealMs } = config.minigames.cones
-  if (picks.length !== rounds)
-    throw new Error(`A Cone Shuffle play has ${rounds} rounds.`)
-  const all = Array.from({ length: rounds }, (_, round) => coneRound(seed, round, config))
-  return {
-    total: all.filter((round, index) => ballSlot(round) === picks[index]).length,
-    max: rounds,
-    playMs: all.reduce((sum, round) => sum + revealMs + round.swaps.length * round.swapMs, 0),
-  }
 }

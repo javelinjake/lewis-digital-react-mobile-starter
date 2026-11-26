@@ -1,7 +1,7 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { Session } from './harness'
 import { randomUUID } from 'node:crypto'
-import { DEFAULT_CONFIG, markerAt, perfectTaps, runKeepy, warmupBar } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, perfectTaps, runKeepy } from '@ld/pixel-pitch-core'
 
 export const HOUR = 60 * 60 * 1000
 export const DAY = 24 * HOUR
@@ -39,14 +39,4 @@ export const perfectPenaltyTaps = (seed: string) => perfectTaps('pens', seed, co
 export function perfectKeepyTaps(seed: string) {
   const taps = perfectTaps('keepy', seed, config)
   return { taps, steps: runKeepy(seed, taps, config).steps }
-}
-
-export function bestWarmupTap(seed: string) {
-  const bar = warmupBar(seed, config)
-  let best = 150
-  for (let ms = 150; ms < 4000; ms++) {
-    if (Math.abs(markerAt(bar, ms) - bar.centre) < Math.abs(markerAt(bar, best) - bar.centre))
-      best = ms
-  }
-  return best
 }

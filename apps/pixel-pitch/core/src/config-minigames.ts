@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
-// The arcade games' and the warm-up kick's numbers, kept apart from the rest of the config because there are many.
+// The arcade games' and the warm-up's numbers, kept apart from the rest of the config because there are many.
 
 const positive = z.number().positive()
 
-/** Tuning of the arcade games and the warm-up kick. PLACEHOLDERS: balance in the first playtest. */
+/** Tuning of the arcade games and the warm-up. PLACEHOLDERS: balance in the first playtest. */
 export const minigamesSchema = z.object({
   /** A tap sooner than this after the last one is not a person. */
   minTapGapMs: positive,
@@ -79,16 +79,6 @@ export const minigamesSchema = z.object({
     /** A dive sooner than this after the shot is a guess, and counts as diving early. */
     minReactionMs: z.number().nonnegative(),
   }).default({ shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 900, lastWindowMs: 420, minReactionMs: 100 }),
-  /** Pass Master: watch the passing move, then repeat it. A pass longer every round. */
-  pass: z.object({
-    players: z.number().int().min(2),
-    /** Passes in the first round. */
-    start: z.number().int().positive(),
-    rounds: z.number().int().positive(),
-    /** How long each pass is shown, and the gap before the next. */
-    showMs: positive,
-    gapMs: z.number().nonnegative(),
-  }).default({ players: 4, start: 3, rounds: 8, showMs: 480, gapMs: 160 }),
   /** Dribble Dash: defenders come down the lanes; switch lane to go round them. One tackle ends it. */
   dribble: z.object({
     lanes: z.number().int().min(2),
@@ -107,42 +97,15 @@ export const minigamesSchema = z.object({
     tackleFrom: z.number().min(0).max(1),
     tackleTo: z.number().min(0).max(1),
   }).default({ lanes: 3, defenders: 32, firstAtMs: 900, firstGapMs: 950, lastGapMs: 430, gapJitterMs: 120, firstFallMs: 1700, lastFallMs: 950, tackleFrom: 0.8, tackleTo: 0.96 }),
-  /** Target Practice: a target shows somewhere in the goal for a moment; tap it before it goes. */
-  targets: z.object({
-    count: z.number().int().positive(),
-    /** The goal's size in its own units (a target's position and a tap's are in these). */
-    width: positive,
-    height: positive,
-    /** Targets keep at least this far from the edges, and at least `minJump` from the last one. */
-    margin: z.number().nonnegative(),
-    minJump: z.number().nonnegative(),
-    /** The target drawn, and the forgiving circle a tap must land in. */
-    radius: positive,
-    hitRadius: positive,
-    /** How long a target stays: the first one's, falling evenly to the last one's. */
-    firstLifeMs: positive,
-    lastLifeMs: positive,
-  }).default({ count: 15, width: 100, height: 80, margin: 12, minJump: 30, radius: 8, hitRadius: 11, firstLifeMs: 1150, lastLifeMs: 560 }),
-  /** Cone Shuffle: the ball goes under a cone, the cones swap places; pick the one with the ball. */
-  cones: z.object({
-    cones: z.number().int().min(2),
-    rounds: z.number().int().positive(),
-    /** Swaps in the first round, and how many more each round after. */
-    firstSwaps: z.number().int().positive(),
-    swapsPerRound: z.number().int().nonnegative(),
-    /** How long a swap takes: the first round's, falling evenly to the last round's. */
-    firstSwapMs: positive,
-    lastSwapMs: positive,
-    /** How long the ball is shown before the cones move. */
-    revealMs: positive,
-  }).default({ cones: 3, rounds: 5, firstSwaps: 3, swapsPerRound: 1, firstSwapMs: 520, lastSwapMs: 240, revealMs: 1100 }),
+  /**
+   * The warm-up before a league match is a play of one of the arcade games (picked for the match). The share of that
+   * game's top score it reaches decides the attack bonus: at least `gold` is `match.warmupGold`, at least `green` is
+   * `match.warmupGreen`, anything less `match.warmupMiss`.
+   */
   warmup: z.object({
-    minSpeed: positive,
-    maxSpeed: positive,
-    /** Widths of the gold and green zones, as a fraction of the bar. */
-    goldWidth: positive,
-    greenWidth: positive,
-  }),
+    gold: z.number().min(0).max(1).default(0.8),
+    green: z.number().min(0).max(1).default(0.45),
+  }).default({ gold: 0.8, green: 0.45 }),
 })
 
 export const DEFAULT_MINIGAMES: z.infer<typeof minigamesSchema> = {
@@ -152,9 +115,6 @@ export const DEFAULT_MINIGAMES: z.infer<typeof minigamesSchema> = {
   pens: { rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 },
   keepy: { gravity: 110, ramp: 0.18, minPeak: 36, maxPeak: 56, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10, width: 75, ballRadius: 5, hitRadius: 12, drift: 22 },
   keeper: { shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 900, lastWindowMs: 420, minReactionMs: 100 },
-  pass: { players: 4, start: 3, rounds: 8, showMs: 480, gapMs: 160 },
   dribble: { lanes: 3, defenders: 32, firstAtMs: 900, firstGapMs: 950, lastGapMs: 430, gapJitterMs: 120, firstFallMs: 1700, lastFallMs: 950, tackleFrom: 0.8, tackleTo: 0.96 },
-  targets: { count: 15, width: 100, height: 80, margin: 12, minJump: 30, radius: 8, hitRadius: 11, firstLifeMs: 1150, lastLifeMs: 560 },
-  cones: { cones: 3, rounds: 5, firstSwaps: 3, swapsPerRound: 1, firstSwapMs: 520, lastSwapMs: 240, revealMs: 1100 },
-  warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
+  warmup: { gold: 0.8, green: 0.45 },
 }

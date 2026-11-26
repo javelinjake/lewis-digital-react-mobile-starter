@@ -119,7 +119,7 @@ export function MatchHero({ game, onKickoff }: { game: GameResponse, onKickoff: 
       </button>
       <span className="-mt-1 text-center text-sm text-white">The league match plays itself at kick-off with your lineup.</span>
 
-      <BottomSheet open={warming} title="Warm-up kick" onClose={() => setWarming(false)}>
+      <BottomSheet open={warming} title="Warm-up" onClose={() => setWarming(false)}>
         <WarmupPanel game={game} onDone={() => setWarming(false)} />
       </BottomSheet>
     </section>

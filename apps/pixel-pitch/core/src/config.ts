@@ -81,7 +81,7 @@ export const gameConfigSchema = z.object({
     gemPlayCoins: count,
   }),
 
-  /** Tuning of the arcade games and the warm-up kick. PLACEHOLDERS: balance in the first playtest. */
+  /** Tuning of the arcade games and the warm-up. PLACEHOLDERS: balance in the first playtest. */
   minigames: minigamesSchema,
 
   league: z.object({
@@ -140,7 +140,7 @@ export const gameConfigSchema = z.object({
       /** Colour moments with no effect on the score, at most this many a match. */
       incidents: z.number().int().min(0).max(5),
     }).default({ maxMoments: 6, minChances: 4, incidents: 2 }),
-    /** Pre-match kick: how much of the team's ATT the next match gets. */
+    /** The warm-up: how much of the team's ATT the next match gets, for a gold, a green or a missed warm-up (see `minigames.warmup`). */
     warmupGold: z.number().min(0).max(0.5),
     warmupGreen: z.number().min(0).max(0.5),
     warmupMiss: z.number().min(0).max(0.5),
@@ -401,7 +401,7 @@ export function parseConfig(raw: unknown): GameConfig {
   if (new Set(config.daily.goals.map(goal => goal.kind)).size < config.daily.goalsPerDay)
     throw new Error('daily.goals needs at least as many different kinds as goalsPerDay.')
   const { kick, keepy, warmup, keeper, dribble } = config.minigames
-  if (kick.minSpeed > kick.maxSpeed || warmup.minSpeed > warmup.maxSpeed || keepy.minPeak > keepy.maxPeak || keeper.minDelayMs > keeper.maxDelayMs || dribble.tackleFrom > dribble.tackleTo)
+  if (kick.minSpeed > kick.maxSpeed || warmup.green > warmup.gold || keepy.minPeak > keepy.maxPeak || keeper.minDelayMs > keeper.maxDelayMs || dribble.tackleFrom > dribble.tackleTo)
     throw new Error('A minigames range has its low end above its high end.')
   const pairs = new Set<string>()
   for (const edge of config.formations.edges) {

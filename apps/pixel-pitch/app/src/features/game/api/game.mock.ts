@@ -206,7 +206,7 @@ export const gameApi: GameApi = {
   startPlay: (cabinet, paid) => respond((_mock, _at, ctx) => wrap(() => startPlay(ctx, cabinet, paid))),
   finishPlay: (cabinet, taps) => respond((_mock, _at, ctx) => wrap(() => finishPlay(ctx, cabinet, taps))),
   startWarmup: () => respond((_mock, _at, ctx) => wrap(() => startWarmup(ctx))),
-  finishWarmup: tapMs => respond((_mock, _at, ctx) => wrap(() => finishWarmup(ctx, tapMs))),
+  finishWarmup: taps => respond((_mock, _at, ctx) => wrap(() => finishWarmup(ctx, taps))),
   claimGoal: goalId => respond((_mock, _at, ctx) => wrap(() => claimGoal(ctx, goalId))),
   claimFreePack: () => respond((_mock, _at, ctx) => wrap(() => claimFreePack(ctx))),
   claimCalendar: () => respond((_mock, _at, ctx) => wrap(() => claimCalendar(ctx))),
