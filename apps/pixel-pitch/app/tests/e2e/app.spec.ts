@@ -244,13 +244,18 @@ test.describe('Stadium, warm-up and arcade @game', () => {
   test('the warm-up kick can be tried once for a match, and the result is kept', async ({ page }) => {
     await foundClub(page)
     await page.goto('/club')
-    const warmup = page.getByRole('region', { name: 'Warm-up kick' })
-    await warmup.getByRole('button', { name: 'Warm up' }).click()
+    const match = page.getByRole('region', { name: 'Next match' })
+    await match.getByRole('button', { name: 'Warm up' }).click()
+    const warmup = page.getByRole('dialog', { name: 'Warm-up kick' })
+    await warmup.getByRole('button', { name: 'Take the kick' }).click()
     await page.waitForTimeout(400)
     await warmup.getByRole('button', { name: 'KICK!' }).click()
     await expect(warmup.getByText(/^(Perfect!|Good|Missed)$/)).toBeVisible()
-    await expect(warmup.getByText(/attack in your next (league )?match|warmed up for this match/)).toBeVisible()
-    await expect(warmup.getByRole('button', { name: 'Warm up' })).toHaveCount(0)
+    await expect(warmup.getByText(/attack in your next league match only|warmed up for this match/)).toBeVisible()
+    await warmup.getByRole('button', { name: 'Done' }).click()
+    // One try a match: the card now shows what it gave instead of offering another.
+    await expect(match.getByRole('button', { name: 'Warm up' })).toHaveCount(0)
+    await expect(match.getByRole('button', { name: /^Warmed up: \+\d+% attack$/ })).toBeVisible()
   })
 
   test('Kick Timer: five kicks, scored by the server, paying tokens, and costing one energy', async ({ page }) => {

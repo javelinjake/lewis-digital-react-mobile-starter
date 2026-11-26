@@ -21,9 +21,9 @@ export function readyItems(game: GameResponse, config: GameConfig, catalogue: re
   const waiting = waitingToClaim({ state, catalogue, config, now: game.now })
   const items: ReadyItem[] = []
   if (waiting.stadiumCoins >= 1)
-    items.push({ id: 'stadium', claim: true, label: `${waiting.stadiumCoins.toLocaleString('en-GB')} coins in the stadium`, to: '/club' })
+    items.push({ id: 'stadium', claim: true, label: `${waiting.stadiumCoins.toLocaleString('en-GB')} ${waiting.stadiumCoins === 1 ? 'coin' : 'coins'} in the stadium`, to: '/club' })
   if (waiting.trayTokens >= 1)
-    items.push({ id: 'tray', claim: true, label: `${waiting.trayTokens} tokens in the arcade tray`, to: '/arcade' })
+    items.push({ id: 'tray', claim: true, label: `${plural(waiting.trayTokens, 'token', 'tokens')} in the arcade tray`, to: '/arcade' })
   if (waiting.calendarDay !== null)
     items.push({ id: 'calendar', claim: true, label: `Calendar reward, day ${waiting.calendarDay}`, to: '/goals' })
   if (waiting.freePack)

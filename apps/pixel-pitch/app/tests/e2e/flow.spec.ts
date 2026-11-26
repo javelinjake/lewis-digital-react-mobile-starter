@@ -39,8 +39,10 @@ test.describe('The next tap is always on screen @flow', () => {
     await expect(ready.getByText(/tokens in the arcade tray/)).toBeVisible()
     await expect(ready.getByText(/Calendar reward, day 1/)).toBeVisible()
     await expect(ready.getByText(/Your free pack/)).toBeVisible()
-    await expect(ready.getByText(/packs? to open/)).toBeVisible()
-    await expect(ready.getByText(/Arcade: 5 energy to spend/)).toBeVisible()
+    // The things to go and do (not claim) are on the tiles under the match card.
+    const tiles = page.getByRole('navigation', { name: 'More to do' })
+    await expect(tiles.getByText(/\d+ to open/)).toBeVisible()
+    await expect(tiles.getByText('5 plays ready')).toBeVisible()
 
     await ready.getByRole('button', { name: /^Claim all/ }).click()
     const pop = page.getByRole('dialog', { name: 'Claimed' })
@@ -52,9 +54,9 @@ test.describe('The next tap is always on screen @flow', () => {
     await expect(pop.getByRole('link', { name: /^Open packs/ })).toBeVisible()
     await pop.getByRole('button', { name: 'Not now' }).click()
 
-    // Nothing is left to claim: the card moves on to what is coming.
-    await expect(page.getByRole('region', { name: 'Ready now' }).getByText(/Claim all/)).toHaveCount(0)
-    await expect(page.getByRole('region', { name: 'Ready now' }).getByText(/packs? to open/)).toBeVisible()
+    // Nothing is left to claim: the bar goes, and the packs it put on the shelf are waiting on their tile.
+    await expect(page.getByRole('region', { name: 'Ready now' })).toHaveCount(0)
+    await expect(tiles.getByText(/\d+ to open/)).toBeVisible()
     await expect(page.getByRole('region', { name: 'Stadium' }).getByRole('button', { name: /^Collect 0$/ })).toBeDisabled()
   })
 
@@ -102,13 +104,18 @@ test.describe('The next tap is always on screen @flow', () => {
     await expect(page.getByRole('button', { name: 'Tear open the pack' })).toBeVisible()
   })
 
-  test('the warm-up result points to the lineup', async ({ page }) => {
+  test('the match card has everything before kick-off: the lineup, the warm-up and a friendly', async ({ page }) => {
     await foundClub(page)
     await page.goto('/club')
-    const warmup = page.getByRole('region', { name: 'Warm-up kick' })
-    await warmup.getByRole('button', { name: 'Warm up' }).click()
+    const match = page.getByRole('region', { name: 'Next match' })
+    await expect(match.getByText(/^Win \d+%$/)).toBeVisible()
+    await match.getByRole('button', { name: 'Warm up' }).click()
+    const warmup = page.getByRole('dialog', { name: 'Warm-up kick' })
+    await warmup.getByRole('button', { name: 'Take the kick' }).click()
     await page.waitForTimeout(400)
     await warmup.getByRole('button', { name: 'KICK!' }).click()
-    await expect(warmup.getByRole('link', { name: /Set the lineup/ })).toBeVisible()
+    await warmup.getByRole('button', { name: 'Done' }).click()
+    await match.getByRole('link', { name: 'Set lineup' }).click()
+    await expect(page).toHaveURL(/\/squad/)
   })
 })
