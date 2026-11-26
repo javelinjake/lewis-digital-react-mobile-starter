@@ -26,8 +26,8 @@ export function paidFriendliesLeft(state: FlowContext['state'], config: GameConf
 const coinsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.friendly.winCoins : result === 'draw' ? config.friendly.drawCoins : config.friendly.lossCoins)
 
 /**
- * A friendly, played now, against one of the league's own sides in turn, with the lineup as it is. The first few each
- * day pay coins; after that they are for fun. No league points, no Pass XP and no goal progress, so they can not be
+ * A friendly, played now, against one of the league's own sides in turn, with the lineup as it is. Up to
+ * `friendly.maxPerDay` a day (the first `paidPerDay` pay coins), so there is always a reason to play one. No league points, no Pass XP and no goal progress, so they can not be
  * farmed for more than the daily coins.
  */
 export function playFriendly(ctx: FlowContext): FlowResult<{ fixture: FixtureResult }> {
@@ -50,6 +50,8 @@ export function playFriendly(ctx: FlowContext): FlowResult<{ fixture: FixtureRes
   }, config)
 
   const day = dayIndex(now, config)
+  if (usedToday(state.friendlies.paid, day) >= config.friendly.maxPerDay)
+    throw new GameRuleError('daily-limit', `That is ${config.friendly.maxPerDay} friendlies today. More tomorrow.`)
   const pays = paidFriendliesLeft(state, config, now) > 0
   const coins = pays ? coinsFor(outcome.result, config) : 0
   const fixture: FixtureResult = {
@@ -73,7 +75,8 @@ export function playFriendly(ctx: FlowContext): FlowResult<{ fixture: FixtureRes
     state: {
       ...state,
       coins: state.coins + coins,
-      friendlies: { played: played + 1, paid: pays ? bump(state.friendlies.paid, day) : state.friendlies.paid },
+      // Every friendly counts towards the day's limit; the first `paidPerDay` of them pay.
+      friendlies: { played: played + 1, paid: bump(state.friendlies.paid, day) },
     },
     ledger: coins > 0 ? [{ currency: 'coins', amount: coins, reason: 'friendly', ref: String(fixture.no) }] : [],
     extra: { fixture },

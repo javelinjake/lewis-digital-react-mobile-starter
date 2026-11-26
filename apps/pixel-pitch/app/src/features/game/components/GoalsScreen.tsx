@@ -19,6 +19,9 @@ const GOAL_ROUTE: Record<GoalKind, { to: string, label: string }> = {
   trainPlayers: { to: '/squad?view=train', label: 'Train a player' },
   signPlayers: { to: '/packs', label: 'Open packs' },
   collectStadium: { to: '/club', label: 'Go to the stadium' },
+  playChances: { to: '/chances', label: 'Big Chances' },
+  playChallenge: { to: '/challenge', label: 'Daily challenge' },
+  earnMedals: { to: '/arcade', label: 'Go to the arcade' },
 }
 
 const DAY = 24 * 60 * 60 * 1000

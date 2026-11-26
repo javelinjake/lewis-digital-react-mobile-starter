@@ -87,7 +87,7 @@ describe('the daily free pack', () => {
 })
 
 describe('the login calendar', () => {
-  it('pays the next reward for each day in a row, ending in a Star pack on day 7', () => {
+  it('pays the next reward for each day in a row, ending in three Star packs on day 7', () => {
     let ctx = context()
     for (let day = 1; day <= 7; day++) {
       ctx = { ...ctx, now: T0 + (day - 1) * DAY }
@@ -95,19 +95,20 @@ describe('the login calendar', () => {
       expect(claimed.extra).toMatchObject({ day, reward: config.calendar.rewards[day - 1] })
       ctx = { ...ctx, state: claimed.state }
     }
-    expect(ctx.state.starPacks).toBe(1)
-    expect(config.calendar.rewards[6].kind).toBe('starPacks')
+    expect(ctx.state.starPacks).toBe(3)
+    expect(config.calendar.rewards[6]).toEqual({ kind: 'starPacks', amount: 3 })
   })
 
-  it('can be claimed once a day, starts again after a missed day, and again after day 7', () => {
+  it('can be claimed once a day, pauses over a missed day, and starts again after day 7', () => {
     const first = claimCalendar(context())
     const ctx = { ...context(), state: first.state }
     expect(code(() => claimCalendar(ctx))).toBe('claimed')
     expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 1)).toBe(4)
-    expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 2)).toBe(1)
+    expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 2)).toBe(4)
+    expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 20)).toBe(4)
     expect(nextCalendarDay({ streak: 7, lastClaimDay: day0 }, day0 + 1)).toBe(1)
     expect(nextCalendarDay({ streak: 2, lastClaimDay: day0 }, day0)).toBeNull()
-    expect(claimCalendar({ ...ctx, now: T0 + 3 * DAY }).extra!.day).toBe(1)
+    expect(claimCalendar({ ...ctx, now: T0 + 3 * DAY }).extra!.day).toBe(2)
   })
 })
 

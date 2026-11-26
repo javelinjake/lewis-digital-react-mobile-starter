@@ -10,7 +10,7 @@ import { GameRuleError } from './errors'
 import { checkTiming } from './flow-arcade'
 import { coinsFor, pointsFor, promotionGate } from './league'
 import { playConfig } from './play-config'
-import { addXp } from './progress'
+import { addXp, recordProgress } from './progress'
 
 // Match moments. A league match the player missed can bank one Big Chance; a match they watch can offer one live
 // moment. Either is one penalty, free kick or save, played with the arcade game for it and replayed by the server.
@@ -162,7 +162,7 @@ export function finishChance(ctx: FlowContext, taps: AnyTaps): FlowResult<Chance
   const { score, max, playMs } = scorePlay(ticket.cabinet, ticket.seed, taps, playConfig(config, ticket))
   checkTiming(ticket, playMs, ctx)
   const scored = chanceScored(chance.kind, score, config)
-  const cleared: ClubState = { ...state, ticket: null }
+  const cleared: ClubState = recordProgress({ ...state, ticket: null }, 'playChances')
   const missed: ChanceResult = { kind: chance.kind, fixtureNo: chance.fixtureNo, scored: false, score, max, before: chance.result, after: chance.result, goalsFor: chance.goalsFor, goalsAgainst: chance.goalsAgainst, points: 0, coins: 0, promotedTo: null, change: null }
   if (!scored)
     return { state: cleared, extra: missed }

@@ -1,7 +1,7 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { ReactNode } from 'react'
 import { BottomSheet } from '@ld/mobile-ui'
-import { matchOdds, paidFriendliesLeft } from '@ld/pixel-pitch-core'
+import { dayIndex, matchOdds, paidFriendliesLeft, usedToday } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
@@ -48,6 +48,7 @@ export function MatchHero({ game, onKickoff }: { game: GameResponse, onKickoff: 
   const tried = state.warmupTriedFor === state.league.fixtureNo
   const odds = matchOdds({ formation: state.formation, att: score.att, def: score.def }, rivalSide(rival), config, warmup)
   const paidLeft = paidFriendliesLeft(state, config, now)
+  const friendliesLeft = Math.max(0, config.friendly.maxPerDay - usedToday(state.friendlies.paid, dayIndex(now, config)))
   const best = Math.round(config.match.warmupGold * 100)
 
   return (
@@ -106,15 +107,15 @@ export function MatchHero({ game, onKickoff }: { game: GameResponse, onKickoff: 
       <button
         type="button"
         className="btn btn-outline min-h-11 justify-between"
-        disabled={friendly.isPending}
+        disabled={friendly.isPending || friendliesLeft < 1}
         onClick={() => friendly.mutate(undefined, {
           onSuccess: response => navigate(`/match/${response.fixture.no}`),
           onError: error => toast.push(formatError(error), 'error'),
         })}
       >
-        <span>{friendly.isPending ? 'Kicking off…' : 'Play a friendly now'}</span>
+        <span>{friendly.isPending ? 'Kicking off…' : friendliesLeft < 1 ? 'No more friendlies today' : 'Play a friendly now'}</span>
         <span className="text-sm font-semibold text-muted">
-          {paidLeft > 0 ? `${config.friendly.lossCoins}–${config.friendly.winCoins} coins · ${paidLeft} left` : 'For fun · no coins today'}
+          {friendliesLeft < 1 ? 'More tomorrow' : paidLeft > 0 ? `${config.friendly.lossCoins}–${config.friendly.winCoins} coins · ${paidLeft} left` : `For fun · ${friendliesLeft} left today`}
         </span>
       </button>
       <span className="-mt-1 text-center text-sm text-white">The league match plays itself at kick-off with your lineup.</span>

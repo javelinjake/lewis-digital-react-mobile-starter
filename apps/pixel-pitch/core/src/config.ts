@@ -19,7 +19,7 @@ export const rewardSchema = z.object({
 })
 export type Reward = z.infer<typeof rewardSchema>
 
-export const GOAL_KINDS = ['openPacks', 'winMatches', 'playCabinets', 'trainPlayers', 'signPlayers', 'collectStadium'] as const
+export const GOAL_KINDS = ['openPacks', 'winMatches', 'playCabinets', 'trainPlayers', 'signPlayers', 'collectStadium', 'playChances', 'playChallenge', 'earnMedals'] as const
 export type GoalKind = (typeof GOAL_KINDS)[number]
 
 const goalSchema = z.object({
@@ -152,9 +152,11 @@ export const gameConfigSchema = z.object({
     winCoins: count,
     drawCoins: count,
     lossCoins: count,
-    /** Friendlies a day that pay coins. More can be played for fun. */
+    /** Friendlies a day that pay coins. */
     paidPerDay: count,
-  }).default({ winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 }),
+    /** Friendlies a day in all. PLACEHOLDER. */
+    maxPerDay: count.default(5),
+  }).default({ winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5, maxPerDay: 5 }),
 
   /**
    * Prestige: every tier past League 1 is another league with a higher gate and stronger rivals. Each one reached is
@@ -332,7 +334,7 @@ export const gameConfigSchema = z.object({
     seasonDays: z.number().int().positive(),
     xpPerTier: positive,
     /** Pass XP from each thing. A win pays `match` + `win`. */
-    xp: z.object({ match: count, win: count, pack: count, cabinet: count, goal: count }),
+    xp: z.object({ match: count, win: count, pack: count, cabinet: count, goal: count, challenge: count.default(10), medal: count.default(5) }),
     /** One entry per tier: the free reward (or null) and the premium reward. 30 tiers. */
     free: z.array(rewardSchema.nullable()),
     premium: z.array(rewardSchema),
@@ -426,7 +428,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     maxCatchUpMatches: 56,
     openingGapsMinutes: [5, 8, 10, 12, 15],
   },
-  friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 },
+  friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5, maxPerDay: 5 },
   moments: { bank: 5, liveWindowMinutes: 5, decideSeconds: 10, freeKickPoints: 2 },
   prestige: { coinBonusPerTier: 0.02 },
   mastery: DEFAULT_MASTERY,
@@ -486,6 +488,9 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
       { id: 'train', kind: 'trainPlayers', target: 1, reward: { kind: 'coins', amount: 400 }, label: 'Train {n} player' },
       { id: 'sign', kind: 'signPlayers', target: 3, reward: { kind: 'coins', amount: 500 }, label: 'Sign {n} players' },
       { id: 'stadium', kind: 'collectStadium', target: 1, reward: { kind: 'coins', amount: 300 }, label: 'Collect the stadium coins' },
+      { id: 'chance', kind: 'playChances', target: 1, reward: { kind: 'coins', amount: 400 }, label: 'Take {n} Big Chance or live moment' },
+      { id: 'challenge', kind: 'playChallenge', target: 1, reward: { kind: 'tokens', amount: 60 }, label: 'Play the daily challenge' },
+      { id: 'medal', kind: 'earnMedals', target: 1, reward: { kind: 'gems', amount: 10 }, label: 'Earn {n} arcade medal' },
     ],
   },
   calendar: {
@@ -496,13 +501,14 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
       { kind: 'coins', amount: 1500 },
       { kind: 'tokens', amount: 100 },
       { kind: 'gems', amount: 25 },
-      { kind: 'starPacks', amount: 1 },
+      // Day 7 is worth more than a normal day's packs.
+      { kind: 'starPacks', amount: 3 },
     ],
   },
   pass: {
     seasonDays: 28,
     xpPerTier: 100,
-    xp: { match: 2, win: 1, pack: 2, cabinet: 3, goal: 15 },
+    xp: { match: 2, win: 1, pack: 2, cabinet: 3, goal: 15, challenge: 10, medal: 5 },
     ...passTiers(),
   },
   album: { setSize: 6, bonusPerSet: 0.01, reward: { kind: 'packs', amount: 1 } },

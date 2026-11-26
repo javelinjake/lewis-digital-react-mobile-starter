@@ -7,6 +7,7 @@ import { wasWatched } from '../lib/watched'
 import { useClaimAll } from '../mutations/use-claim-all'
 import { gameKeys } from '../queries/game.keys'
 import { useCatalogue, useFixtures, useGameConfig } from '../queries/use-game'
+import { CloudSavePrompt } from './CloudSavePrompt'
 import { HubTiles } from './HubTiles'
 import { MatchHero } from './MatchHero'
 import { ReadyNow } from './ReadyNow'
@@ -48,6 +49,7 @@ export function ClubHub({ game }: { game: GameResponse }) {
   return (
     <div className="flex flex-col gap-3">
       <ReadyNow game={game} claim={() => claim()} pending={pending} />
+      <CloudSavePrompt game={game} />
       <StadiumCard game={game} />
       <MatchHero game={game} onKickoff={sync} />
       <HubTiles game={game} />

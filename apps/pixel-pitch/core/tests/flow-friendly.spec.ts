@@ -29,8 +29,9 @@ describe('playFriendly', () => {
     expect(result.state.friendlies.played).toBe(1)
   })
 
-  it('pays coins for the result, for the first few a day only', () => {
-    let ctx = context()
+  it('pays coins for the result, for the first few a day only, and stops at the day\'s limit', () => {
+    const roomy = { ...config, friendly: { ...config.friendly, maxPerDay: config.friendly.paidPerDay + 2 } }
+    let ctx = { ...context(), config: roomy }
     const paid: number[] = []
     for (let match = 0; match < config.friendly.paidPerDay + 2; match++) {
       const result = playFriendly(ctx)
@@ -42,6 +43,15 @@ describe('playFriendly', () => {
     expect(paid.slice(config.friendly.paidPerDay)).toEqual([0, 0])
     expect(paidFriendliesLeft(ctx.state, config, T0)).toBe(0)
     expect(paidFriendliesLeft(ctx.state, config, T0 + DAY)).toBe(config.friendly.paidPerDay)
+    expect(() => playFriendly(ctx)).toThrow('friendlies today')
+    expect(() => playFriendly({ ...ctx, now: T0 + DAY })).not.toThrow()
+  })
+
+  it('allows five a day by default', () => {
+    let ctx = context()
+    for (let match = 0; match < 5; match++)
+      ctx = { ...ctx, state: playFriendly(ctx).state }
+    expect(() => playFriendly(ctx)).toThrow()
   })
 
   it('gives the same match for the same club and friendly number, and a different rival next time', () => {

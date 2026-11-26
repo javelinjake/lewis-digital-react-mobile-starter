@@ -107,7 +107,7 @@ describe('the written match report', () => {
 })
 
 describe('local notifications', () => {
-  it('plans a shelf alert, a full-time alert after the next kick-off and a trays alert, and drops the shelf one when it is full', async () => {
+  it('plans a shelf alert, a results summary after the next three matches, a trays alert and the daily challenge, and drops the shelf one when it is full', async () => {
     const { buildNotificationPlans } = await import('@/features/game/lib/notification-plans')
     const { planNotifications } = await import('@ld/native/notification-plan')
     useAuthStore.setState({ userId: `user-${Math.random()}` })
@@ -116,10 +116,12 @@ describe('local notifications', () => {
     const plans = buildNotificationPlans(created, DEFAULT_CONFIG)
 
     const byType = Object.fromEntries(plans.map(plan => [plan.type, plan]))
-    expect(Object.keys(byType).sort()).toEqual(['full-time', 'shelf-full', 'trays-full'])
-    expect(byType['full-time'].at).toBe(created.club.state.league.nextKickoffAt + 60_000)
-    // Ten packs at 45 minutes each from the start, and 8 hours of tray (a new club's energy is full, so the tray is next).
-    expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + 10 * 45 * 60_000)
+    expect(Object.keys(byType).sort()).toEqual(['challenge', 'full-time', 'shelf-full', 'trays-full'])
+    const { gapBefore } = await import('@ld/pixel-pitch-core')
+    const { league } = created.club.state
+    expect(byType['full-time'].at).toBe(league.nextKickoffAt + gapBefore(league.fixtureNo + 1, DEFAULT_CONFIG) + gapBefore(league.fixtureNo + 2, DEFAULT_CONFIG) + 60_000)
+    // Three packs at 4 hours each from the start, and 8 hours of tray (a new club's energy is full, so the tray is next).
+    expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + 3 * 4 * HOUR)
     expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt + 8 * HOUR)
 
     const full = { ...created, club: { ...created.club, state: { ...created.club.state, idle: { ...created.club.state.idle, shelfPacks: 10 } } } }

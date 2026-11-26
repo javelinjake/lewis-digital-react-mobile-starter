@@ -2,8 +2,10 @@ import { useCallback, useSyncExternalStore } from 'react'
 
 export const NOTIFICATION_TYPES = [
   { type: 'shelf-full', label: 'Pack shelf full' },
-  { type: 'full-time', label: 'Match played' },
+  { type: 'full-time', label: 'Match results' },
   { type: 'trays-full', label: 'Arcade ready' },
+  { type: 'big-chances', label: 'Big Chances waiting' },
+  { type: 'challenge', label: 'Daily challenge ready' },
 ] as const
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]['type']

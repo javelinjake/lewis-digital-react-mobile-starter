@@ -2,7 +2,7 @@ import type { Cabinet, ClubState } from './club-state'
 import type { GameConfig, Reward } from './config'
 import type { LedgerEntry } from './flow'
 import { cabinetMax } from './arcade-taps'
-import { grantReward } from './progress'
+import { addXp, grantReward, recordProgress } from './progress'
 
 // Mastery: every arcade game has bronze, silver and gold score targets in every league, so a play is something to
 // get better at and not only a way to earn tokens. The games are quicker in each league, so the same share of the top
@@ -76,5 +76,7 @@ export function recordMastery(state: ClubState, cabinet: Cabinet, tier: number, 
     rewards.push(reward)
     ledger.push(...paid.ledger)
   }
+  if (medals.length > 0)
+    next = addXp(recordProgress(next, 'earnMedals', medals.length), config.pass.xp.medal * medals.length, config)
   return { state: next, previousBest, newBest: score > previousBest, medals, rewards, ledger }
 }

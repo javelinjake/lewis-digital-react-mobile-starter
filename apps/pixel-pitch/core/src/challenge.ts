@@ -9,7 +9,7 @@ import { GameRuleError } from './errors'
 import { checkTiming, hotCabinet } from './flow-arcade'
 import { MEDALS } from './mastery'
 import { playConfig } from './play-config'
-import { grantReward } from './progress'
+import { addXp, grantReward, recordProgress } from './progress'
 
 // The daily challenge. Every day every player gets the same arcade game (the day's featured one) with the same
 // pattern, in endless mode, for one scored attempt. Practice happens in the normal arcade; this pattern is only
@@ -114,7 +114,7 @@ export function finishChallenge(ctx: FlowContext, taps: AnyTaps): FlowResult<Cha
   checkTiming(ticket, playMs, ctx)
   const day = Number(ticket.seed.split(':')[1])
 
-  let next: ClubState = { ...state, ticket: null, challenge: { ...state.challenge, day, score } }
+  let next: ClubState = addXp(recordProgress({ ...state, ticket: null, challenge: { ...state.challenge, day, score } }, 'playChallenge'), config.pass.xp.challenge, config)
   const ledger: LedgerEntry[] = []
   const pay = (reward: Reward, ref: string) => {
     const paid = grantReward(next, reward, 'challenge', ref)
