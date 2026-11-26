@@ -35,7 +35,8 @@ export function AlbumScreen({ game }: { game: GameResponse }) {
         <span className="text-muted">Players you pull stay in the book even if you sell them. Finish a set for a reward and +1% team power.</span>
       </section>
 
-      {NATIONS.map((nation, nationIndex) => {
+      {[...NATIONS, 'Internationals'].map((nation, position) => {
+        const nationIndex = position < NATIONS.length ? position : -1
         const group = sets.filter(set => set.nation === nationIndex)
         if (group.length === 0)
           return null

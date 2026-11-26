@@ -102,7 +102,9 @@ describe('kick Timer', () => {
     expect(finished.status).toBe(200)
     // Whatever score the phone claims is ignored: the server replays the taps.
     expect(finished.json).toMatchObject({ score: 27, max: 27, tokens: payout('kick', now, 27, 27) })
-    expect(finished.json.club.state.tokens).toBe(before + payout('kick', now, 27, 27))
+    // A perfect first play also earns all three medals; silver pays tokens.
+    expect(finished.json.club.state.tokens).toBe(before + payout('kick', now, 27, 27) + config.mastery.rewards.silver.amount)
+    expect(finished.json).toMatchObject({ medals: ['bronze', 'silver', 'gold'] })
     expect(finished.json.club.state.ticket).toBeNull()
     // The server remembers the best score, for "new best" next time.
     expect(finished.json).toMatchObject({ previousBest: 0, newBest: true })

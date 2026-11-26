@@ -54,6 +54,20 @@ export function inventName(rng: Rng, nation: number): string {
   return `${rng.pick(pool.first)} ${rng.pick(pool.last)}`
 }
 
+const activeCache = new WeakMap<readonly Player[], { key: string, players: Player[] }>()
+
+/** The players in packs and the album: the catalogue less the retired ones (`cards.retired`). */
+export function packPool(catalogue: readonly Player[], config: Pick<GameConfig, 'cards'>): Player[] {
+  const key = config.cards.retired.join(',')
+  const cached = activeCache.get(catalogue)
+  if (cached && cached.key === key)
+    return cached.players
+  const retired = new Set(config.cards.retired)
+  const players = catalogue.filter(player => !retired.has(player.id))
+  activeCache.set(catalogue, { key, players })
+  return players
+}
+
 /** Share of players in each position. Goalkeepers are rarer, as in a real squad. */
 const POSITION_SHARE: Record<Position, number> = { GK: 0.14, DEF: 0.3, MID: 0.3, FWD: 0.26 }
 

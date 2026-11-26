@@ -156,7 +156,7 @@ describe('playing a Big Chance', () => {
   })
 
   it('promotes there and then when its points reach the gate', () => {
-    const state = holding(fixture(0, 1, 1), club => ({ ...club, league: { ...club.league, points: 29, fixtureNo: 12 } }))
+    const state = holding(fixture(0, 1, 1), club => ({ ...club, league: { ...club.league, points: 49, fixtureNo: 12 } }))
     const result = play(state, 0, true)
     expect(result.extra!.promotedTo).toBe(2)
     expect(result.state.league).toMatchObject({ tier: 2, points: 0, tierStartNo: 12 })

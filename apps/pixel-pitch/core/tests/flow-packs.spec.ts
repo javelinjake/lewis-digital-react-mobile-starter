@@ -3,7 +3,8 @@ import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
 import { arcadePack, benchCount, buyPack, DEFAULT_CONFIG, decidePack, generateCatalogue, isGameRuleError, isStarOrBetter, newClubState, NEW_CARD_PREFIX, openPack, pickGoals, usedToday } from '../src'
 
-const config = DEFAULT_CONFIG
+/** Pack mechanics are tested with a quick shelf and three coin packs a day. */
+const config = { ...DEFAULT_CONFIG, shelf: { ...DEFAULT_CONFIG.shelf, intervalMinutes: 45, capacity: 10, capacityWithPass: 16, extraPacksPerDay: 3 }, cabinets: { ...DEFAULT_CONFIG.cabinets, arcadePackTokens: 300 } }
 const DAY = 24 * 60 * 60 * 1000
 const T0 = Date.UTC(2026, 10, 9, 12)
 const catalogue = generateCatalogue(config)

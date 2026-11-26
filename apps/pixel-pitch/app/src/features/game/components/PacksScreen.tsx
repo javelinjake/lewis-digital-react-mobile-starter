@@ -50,6 +50,8 @@ export function PacksScreen({ game }: { game: GameResponse }) {
   const [revealing, setRevealing] = useState(() => waiting && new URLSearchParams(window.location.search).has('open'))
   // The pack the player has just asked for: the opening shows at once, with the pack shut until the server answers.
   const [opening, setOpening] = useState<PackSource | null>(null)
+  // Open all: each pack shows its three players face up at once, and Done opens the next.
+  const [all, setAll] = useState(false)
   const reveal = {
     onSuccess: () => setRevealing(true),
     onError: (error: unknown) => {
@@ -140,9 +142,33 @@ export function PacksScreen({ game }: { game: GameResponse }) {
             <li key={slot} className={`h-3 ${slot < packs ? 'bg-primary' : 'bg-base-200 shadow-[inset_0_0_0_1px_var(--color-slate)]'}`} />
           ))}
         </ul>
-        <button type="button" className="btn btn-primary h-13 text-lg" disabled={packs < 1 || waiting || busy} onClick={() => start('shelf', () => open.mutate('shelf', reveal))}>
+        <button
+          type="button"
+          className="btn btn-primary h-13 text-lg"
+          disabled={packs < 1 || waiting || busy}
+          onClick={() => start('shelf', () => {
+            setAll(false)
+            open.mutate('shelf', reveal)
+          })}
+        >
           {packs < 1 ? 'No packs yet' : 'Open a pack'}
         </button>
+        {packs + state.starPacks > 1
+          ? (
+              <button
+                type="button"
+                className="btn btn-outline min-h-12"
+                disabled={waiting || busy}
+                onClick={() => {
+                  setAll(true)
+                  const first = state.starPacks > 0 ? 'star' : 'shelf'
+                  start(first, () => open.mutate(first, reveal))
+                }}
+              >
+                {`Open all (${packs + state.starPacks})`}
+              </button>
+            )
+          : null}
         {state.starPacks > 0
           ? (
               <button type="button" className="btn btn-accent h-13 text-lg" disabled={waiting || busy} onClick={() => start('star', () => open.mutate('star', reveal))}>
@@ -227,6 +253,7 @@ export function PacksScreen({ game }: { game: GameResponse }) {
               key={state.packsOpened}
               game={game}
               source={opening ?? undefined}
+              quick={all}
               onClose={() => {
                 setRevealing(false)
                 setOpening(null)

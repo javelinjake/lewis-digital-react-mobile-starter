@@ -100,8 +100,8 @@ export const gameConfigSchema = z.object({
      * Points to go up from each tier, League 5 first. Each promotion is harder than the last. Past the end of the list
      * (the Prestige tiers) each gate is `prestigeGateStep` more than the one before. Defaults keep an older config valid.
      */
-    promotionPoints: z.array(z.number().int().positive()).min(1).default([30, 36, 42, 50, 60]),
-    prestigeGateStep: count.default(10),
+    promotionPoints: z.array(z.number().int().positive()).min(1).default([50, 65, 80, 100, 125]),
+    prestigeGateStep: count.default(20),
     /** Points for each result (a loss pays none), and coins for every result, so a losing club still grows. */
     winPoints: count,
     drawPoints: count,
@@ -195,8 +195,13 @@ export const gameConfigSchema = z.object({
   }),
 
   cards: z.object({
-    /** How many of the 200 catalogue players are of each rarity. */
+    /** How many players of each rarity `generateCatalogue` makes. Only for building a new set: the live set is fixed data. */
     catalogueCounts: byRarity(count),
+    /**
+     * Catalogue ids taken out of packs and the album. Cards already owned keep working. The defaults bring the launch
+     * set of 200 to 180: 60 Grassroots, 50 Semi-Pro, 40 Pro, 22 Star, 8 Legend.
+     */
+    retired: z.array(z.string()).default([]),
     /** Rating range per rarity, both ends included. */
     ratingBands: byRarity(z.tuple([z.number().int(), z.number().int()])),
     /** Coins for selling a one-star card of this rarity. Higher stars are worth the cards merged into them. */
@@ -293,14 +298,14 @@ function passTiers() {
 }
 
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 5,
+  version: 6,
   shelf: {
-    intervalMinutes: 45,
-    capacity: 10,
-    capacityWithPass: 16,
+    intervalMinutes: 240,
+    capacity: 3,
+    capacityWithPass: 5,
     playersPerPack: 3,
     extraPackCoins: 2000,
-    extraPacksPerDay: 3,
+    extraPacksPerDay: 1,
     gemRefillEnabled: false,
     gemRefillPacks: 3,
     gemRefillCost: 60,
@@ -317,7 +322,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     trayCapHoursWithPass: 12,
     energy: { max: 5, maxWithPass: 6, regenMinutes: 90 },
     hotBonus: 0.5,
-    arcadePackTokens: 300,
+    arcadePackTokens: 450,
     playMaxTokens: 60,
     gemPlayCost: 20,
     gemPlayCoins: 300,
@@ -325,8 +330,10 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   league: {
     matchIntervalHours: 3,
     teams: 6,
-    promotionPoints: [30, 36, 42, 50, 60],
-    prestigeGateStep: 10,
+    // Set with the pacing simulation: an idle-only player reaches League 1 in about 26 days, an engaged and skilled
+    // one in about 17.
+    promotionPoints: [50, 65, 80, 100, 125],
+    prestigeGateStep: 20,
     winPoints: 3,
     drawPoints: 1,
     lossPoints: 0,
@@ -334,7 +341,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     winCoins: 600,
     drawCoins: 400,
     rivalBaseRating: 52,
-    rivalStep: 7,
+    rivalStep: 9,
     rivalSpread: 4,
     maxCatchUpMatches: 56,
     openingGapsMinutes: [5, 8, 10, 12, 15],
@@ -368,6 +375,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     mergeBonus: 6,
     maxStars: 5,
     benchSize: 20,
+    retired: ['p062', 'p064', 'p070', 'p078', 'p091', 'p094', 'p100', 'p105', 'p108', 'p115', 'p121', 'p145', 'p153', 'p154', 'p159', 'p168', 'p185', 'p190', 'p192', 'p198'],
   },
   packs: {
     // League 5 and League 1 are the spec's. The three between are straight-line steps: PLACEHOLDER.

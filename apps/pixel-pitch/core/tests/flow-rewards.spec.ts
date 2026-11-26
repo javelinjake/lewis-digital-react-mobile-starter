@@ -184,15 +184,15 @@ describe('rewards', () => {
 describe('the album', () => {
   const sets = albumSets(catalogue, config)
 
-  it('has sets of six players, each of one nation and one position, no player in two', () => {
+  it('has sets of six players, each of one nation (or the Internationals), no player in two', () => {
     expect(sets.length).toBeGreaterThan(20)
     const seen = new Set<string>()
     for (const set of sets) {
       expect(set.playerIds).toHaveLength(6)
       for (const id of set.playerIds) {
         const player = byId.get(id)!
-        expect(player.nation).toBe(set.nation)
-        expect(player.position).toBe(set.position)
+        if (set.nation >= 0)
+          expect(player.nation).toBe(set.nation)
         expect(seen.has(id)).toBe(false)
         seen.add(id)
       }
@@ -200,8 +200,8 @@ describe('the album', () => {
     expect(new Set(sets.map(set => set.id)).size).toBe(sets.length)
   })
 
-  it('mixes the top and the bottom of a group in every set, so no set is all legends', () => {
-    const spread = sets.map((set) => {
+  it('mixes the top and the bottom of a nation in every nation set, so no set is all legends', () => {
+    const spread = sets.filter(set => set.nation >= 0).map((set) => {
       const ratings = set.playerIds.map(id => byId.get(id)!.rating)
       return Math.max(...ratings) - Math.min(...ratings)
     })

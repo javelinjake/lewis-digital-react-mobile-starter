@@ -10,7 +10,7 @@
  */
 import type { ClubState, FlowContext, FlowResult, GameConfig, OwnedCard, Player, PoolPlayer } from '../src'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
-import { autoPick, benchHasRoom, buyPack, cardRating, claimAll, DEFAULT_CONFIG, decidePack, foundClub, generateCatalogue, mergeable, mergeInClub, NEW_CARD_PREFIX, openPack, sellCard, setLineup, syncClub, toFielded, trainingCost, trainInClub, upgradeStadium } from '../src'
+import { autoPick, benchHasRoom, buyPack, cardRating, claimAll, DEFAULT_CONFIG, decidePack, FOOTBALLERS, foundClub, mergeable, mergeInClub, NEW_CARD_PREFIX, openPack, sellCard, setLineup, syncClub, toFielded, trainingCost, trainInClub, upgradeStadium } from '../src'
 import { pacingHooks } from './pacing-hooks'
 
 const HOUR = 60 * 60_000
@@ -68,7 +68,7 @@ const attempt = <T>(run: () => T): T | null => {
 }
 
 export function simulate(profile: Profile, clubId: number, days: number, config: GameConfig = DEFAULT_CONFIG) {
-  const catalogue = generateCatalogue(config, 'pixel-pitch-catalogue')
+  const catalogue = [...FOOTBALLERS]
   const byId = new Map(catalogue.map(player => [player.id, player]))
   const players = (id: string) => byId.get(id)
   const start = Date.UTC(2026, 0, 5, 8)
@@ -87,10 +87,15 @@ export function simulate(profile: Profile, clubId: number, days: number, config:
       const ctx = () => makeContext(sim, config, catalogue, players, clubId, now)
       const synced = syncClub({ state: sim.state, cards: sim.cards, players, clubId, config, now })
       sim = { ...sim, state: synced.state }
-      sim = hooks.afterSync(sim, synced.fixtures, profile, rng, ctx)
       for (const fixture of synced.fixtures) {
         if (fixture.promotedTo && reachedAt[fixture.promotedTo] === undefined)
           reachedAt[fixture.promotedTo] = (fixture.kickoffAt - start) / DAY
+      }
+      sim = hooks.afterSync(sim, synced.fixtures, profile, rng, ctx)
+      // A Big Chance can promote too.
+      for (let tier = 2; tier <= sim.state.league.tier; tier++) {
+        if (reachedAt[tier] === undefined)
+          reachedAt[tier] = (now - start) / DAY
       }
 
       const claimed = attempt(() => claimAll(ctx()))
@@ -189,11 +194,23 @@ function percentile(values: number[], share: number) {
   return sorted[Math.min(sorted.length - 1, Math.floor(share * sorted.length))]
 }
 
+/** Merges `patch` into `base`, objects key by key, anything else replaced. */
+function merge<T>(base: T, patch: unknown): T {
+  if (typeof patch !== 'object' || patch === null || Array.isArray(patch) || typeof base !== 'object' || base === null)
+    return patch as T
+  const out = { ...base } as Record<string, unknown>
+  for (const [key, value] of Object.entries(patch))
+    out[key] = merge(out[key], value)
+  return out as T
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const days = Number(process.argv[2] ?? 60)
   const clubs = Number(process.argv[3] ?? 12)
+  // PACING_CONFIG='{"league":{"rivalStep":9}}' tries numbers without editing the config.
+  const config = process.env.PACING_CONFIG ? merge(DEFAULT_CONFIG, JSON.parse(process.env.PACING_CONFIG)) : DEFAULT_CONFIG
   for (const profile of PROFILES) {
-    const runs = Array.from({ length: clubs }, (_, index) => simulate(profile, 1000 + index, days))
+    const runs = Array.from({ length: clubs }, (_, index) => simulate(profile, 1000 + index, days, config))
     console.log(`\n${profile.name}: ${clubs} clubs over ${days} days`)
     for (let tier = 2; tier <= 7; tier++) {
       const reached = runs.map(run => run.reachedAt[tier]).filter((value): value is number => value !== undefined)

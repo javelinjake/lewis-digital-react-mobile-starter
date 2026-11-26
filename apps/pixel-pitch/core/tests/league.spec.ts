@@ -25,9 +25,9 @@ describe('the ladder', () => {
     expect(leagueLabel(8)).toEqual({ kind: 'prestige', level: 3 })
   })
 
-  it('makes rivals 7 rating points stronger with every league', () => {
-    expect(tierRating(2, config) - tierRating(1, config)).toBe(7)
-    expect(tierRating(5, config) - tierRating(1, config)).toBe(28)
+  it('makes rivals 9 rating points stronger with every league', () => {
+    expect(tierRating(2, config) - tierRating(1, config)).toBe(9)
+    expect(tierRating(5, config) - tierRating(1, config)).toBe(36)
   })
 })
 
@@ -126,13 +126,13 @@ describe('playing due fixtures', () => {
 })
 
 describe('promotion', () => {
-  it('moves up at 30 points, starts the new league on 0, and meets the new league\'s rivals', () => {
+  it('moves up at the gate, starts the new league on 0, and meets the new league\'s rivals', () => {
     const result = play(newLeagueState(T0, config), strong, T0 + 56 * 3 * HOUR)
     const promotion = result.results.find(match => match.promotedTo)
     expect(promotion).toBeDefined()
     expect(promotion!.promotedTo).toBe(2)
     const index = result.results.indexOf(promotion!)
-    expect(result.results.slice(0, index + 1).reduce((sum, match) => sum + match.points, 0)).toBeGreaterThanOrEqual(30)
+    expect(result.results.slice(0, index + 1).reduce((sum, match) => sum + match.points, 0)).toBeGreaterThanOrEqual(50)
     expect(result.results[index + 1].tier).toBe(2)
     expect(result.results[index + 1].rival.rating).toBeGreaterThan(result.results[index].rival.rating - config.league.rivalSpread * 2 - 1)
     expect(result.league.tier).toBeGreaterThan(1)
@@ -140,21 +140,21 @@ describe('promotion', () => {
 
   it('asks more points of each league than the one below, and keeps climbing in Prestige', () => {
     const gates = [1, 2, 3, 4, 5, 6, 7].map(tier => promotionGate(tier, config))
-    expect(gates).toEqual([30, 36, 42, 50, 60, 70, 80])
+    expect(gates).toEqual([50, 65, 80, 100, 125, 145, 165])
   })
 
   it('does not promote one point short of the gate, and does at it', () => {
     const second = { ...newLeagueState(T0, config), tier: 2 }
-    const result = play({ ...second, points: 33 }, strong, T0 + 3 * HOUR)
+    const result = play({ ...second, points: 62 }, strong, T0 + 3 * HOUR)
     expect(result.results[0].result).toBe('win')
     expect(result.results[0].promotedTo).toBe(3)
-    const short = play({ ...second, points: 32 }, strong, T0 + 3 * HOUR)
+    const short = play({ ...second, points: 61 }, strong, T0 + 3 * HOUR)
     expect(short.results[0].promotedTo).toBeNull()
-    expect(short.league.points).toBe(35)
+    expect(short.league.points).toBe(64)
   })
 
   it('keeps climbing past League 1 into Prestige', () => {
-    const result = play({ ...newLeagueState(T0, config), tier: 5, points: 58 }, strong, T0 + 30 * HOUR)
+    const result = play({ ...newLeagueState(T0, config), tier: 5, points: 123 }, strong, T0 + 30 * HOUR)
     expect(result.results.some(match => match.promotedTo === 6)).toBe(true)
     expect(leagueLabel(result.league.tier).kind).toBe('prestige')
   })

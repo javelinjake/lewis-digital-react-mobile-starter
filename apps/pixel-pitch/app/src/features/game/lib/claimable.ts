@@ -20,7 +20,7 @@ export function claimable(game: GameResponse, config: GameConfig, albumSetList: 
   }
 
   const collected = new Set(state.album.collected)
-  const album = albumSetList.filter(set => isSetComplete({ ...set, name: '', nation: 0, position: 'GK', playerIds: [...set.playerIds] }, collected) && !state.album.claimed.includes(set.id)).length
+  const album = albumSetList.filter(set => isSetComplete({ ...set, name: '', nation: 0, playerIds: [...set.playerIds] }, collected) && !state.album.claimed.includes(set.id)).length
 
   return { goals, pass, album }
 }

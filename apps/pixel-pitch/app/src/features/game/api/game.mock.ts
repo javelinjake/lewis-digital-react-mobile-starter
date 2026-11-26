@@ -1,6 +1,6 @@
 import type { ClubState, FixtureChange, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
-import { addXp, arcadePack, buyPack, changeFixture, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChance, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, skipChance, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
+import { addXp, arcadePack, buyPack, changeFixture, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, skipChance, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
 import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -16,7 +16,7 @@ interface MockClub {
 }
 
 const config: GameConfig = DEFAULT_CONFIG
-const catalogue: Player[] = generateCatalogue(config, 'pixel-pitch-catalogue')
+const catalogue: Player[] = [...FOOTBALLERS]
 const byId = new Map(catalogue.map(player => [player.id, player]))
 const players = (id: string) => byId.get(id)
 const CLOCK_KEY = 'pp-mock-clock'

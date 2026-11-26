@@ -2,6 +2,7 @@ import type { Player } from './catalogue'
 import type { GameConfig } from './config'
 import type { Position, Rarity } from './positions'
 import { createRng, type Rng } from '@ld/utils/random/rng'
+import { packPool } from './catalogue'
 import { RARITIES } from './positions'
 
 /** Odds for a league tier. Tier 1 is League 5; tiers past the table (League 1 and the Prestige tiers) use the last row. */
@@ -56,7 +57,8 @@ export function rollPack(input: RollPackInput): PackRoll {
   let pity = input.pity
   const starSlot = input.guaranteeStar ? rng.int(0, config.shelf.playersPerPack - 1) : -1
 
-  const byRarity = new Map<Rarity, Player[]>(RARITIES.map(rarity => [rarity, catalogue.filter(player => player.rarity === rarity)]))
+  const pool = packPool(catalogue, config)
+  const byRarity = new Map<Rarity, Player[]>(RARITIES.map(rarity => [rarity, pool.filter(player => player.rarity === rarity)]))
   const players: Player[] = []
   const guaranteed: boolean[] = []
 
@@ -90,7 +92,7 @@ export function rollStarterSquad(input: { catalogue: readonly Player[], seed: nu
 
   return positions.map((position, index) => {
     const rarity: Rarity = proSlots.has(index) ? 'pro' : rng.weighted([grassrootsOdds, semiproOdds]) === 0 ? 'grassroots' : 'semipro'
-    const pool = catalogue.filter(player => player.position === position && player.rarity === rarity && !chosen.has(player.id))
+    const pool = packPool(catalogue, config).filter(player => player.position === position && player.rarity === rarity && !chosen.has(player.id))
     if (pool.length === 0)
       throw new Error(`The catalogue has no ${rarity} ${position} left for a starter pack.`)
     const player = rng.pick(pool)

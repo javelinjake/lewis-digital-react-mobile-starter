@@ -16,6 +16,12 @@ let club: GameResponse
 /** Clock for Alice's calls: each test moves it on, as time would. */
 let now = T0
 
+/** Puts packs back on Alice's shelf: it holds three, and these tests open more than that. */
+async function stockShelf() {
+  const current = (await act(alice, 'sync', {}, { at: now })).json as GameResponse
+  await payload.update({ collection: 'clubs', id: current.club.id, data: { state: { ...current.club.state, idle: { ...current.club.state.idle, shelfPacks: config.shelf.capacity } } as never }, overrideAccess: true })
+}
+
 const decide = (session: Session, decisions: string[], key?: string) => act(session, 'packs/decide', { decisions }, { at: now, key })
 
 beforeAll(async () => {
@@ -27,10 +33,10 @@ beforeAll(async () => {
 })
 
 describe('the pack shelf', () => {
-  it('fills one pack every 45 minutes and holds ten', async () => {
-    now = T0 + 3 * HOUR
+  it('fills one pack every four hours and holds three', async () => {
+    now = T0 + 9 * HOUR
     const synced = (await act(alice, 'sync', {}, { at: now })).json as GameResponse
-    expect(synced.club.state.idle.shelfPacks).toBe(Math.floor((3 * HOUR) / (45 * 60_000)))
+    expect(synced.club.state.idle.shelfPacks).toBe(Math.floor((9 * HOUR) / (config.shelf.intervalMinutes * 60_000)))
 
     now = T0 + 3 * DAY
     const full = (await act(alice, 'sync', {}, { at: now })).json as GameResponse
@@ -80,6 +86,7 @@ describe('opening a pack', () => {
   })
 
   it('rolls the same players for the same pack number, whatever the time', async () => {
+    await stockShelf()
     const one = await act(alice, 'packs/open', { source: 'shelf' }, { at: now })
     const ids = one.json.club.state.pendingPack.playerIds
     const stored = await alice.get('/api/clubs?depth=0')
@@ -90,6 +97,7 @@ describe('opening a pack', () => {
 
 describe('signing and selling', () => {
   it('makes cards of the players signed and pays coins for the rest, with a ledger row for each sale', async () => {
+    await stockShelf()
     const opened = (await act(alice, 'packs/open', { source: 'shelf' }, { at: now })).json as GameResponse
     const [first, second, third] = opened.club.state.pendingPack!.playerIds
     const before = opened.club.state.coins
@@ -113,6 +121,7 @@ describe('signing and selling', () => {
   })
 
   it('keeps the album of everyone pulled, and refuses a bench over 20', async () => {
+    await stockShelf()
     expect(club.club.state.album.collected.length).toBeGreaterThan(3)
     // Fill the bench with planted cards, as a very long game would.
     const existing = await payload.count({ collection: 'cards', where: { owner: { equals: alice.user!.id } }, overrideAccess: true })
@@ -127,6 +136,7 @@ describe('signing and selling', () => {
   })
 
   it('refuses a decision with nothing pending, and one with the wrong choices', async () => {
+    await stockShelf()
     expect((await decide(alice, ['sign', 'sign', 'sign'])).status).toBe(400)
     await act(alice, 'packs/open', { source: 'shelf' }, { at: now })
     expect((await decide(alice, ['sign'])).status).toBe(400)
@@ -183,7 +193,7 @@ describe('buying packs', () => {
 })
 
 describe('arcade packs', () => {
-  it('cost 300 tokens and refuse without them', async () => {
+  it('cost tokens and refuse without them', async () => {
     now += HOUR
     expect((await act(alice, 'packs/arcade', { position: 'GK' }, { at: now })).status).toBe(400)
 
@@ -191,14 +201,14 @@ describe('arcade packs', () => {
     await payload.update({ collection: 'clubs', id: current.club.id, data: { state: { ...current.club.state, tokens: 700 } as never }, overrideAccess: true })
     const bought = await act(alice, 'packs/arcade', { position: 'GK' }, { at: now })
     expect(bought.status).toBe(200)
-    expect(bought.json.club.state.tokens).toBe(400)
+    expect(bought.json.club.state.tokens).toBe(700 - config.cabinets.arcadePackTokens)
     expect(bought.json.club.state.pendingPack.source).toBe('arcade')
     expect((await act(alice, 'packs/arcade', { position: 'WING' }, { at: now })).status).toBe(400)
 
     const settled = await decide(alice, ['sell', 'sell', 'sell'])
     expect(settled.status).toBe(200)
     const row = await payload.find({ collection: 'ledger', where: { and: [{ owner: { equals: alice.user!.id } }, { reason: { equals: 'arcade-pack' } }] }, depth: 0, overrideAccess: true })
-    expect(row.docs.at(-1)).toMatchObject({ currency: 'tokens', amount: -300, ref: 'GK' })
+    expect(row.docs.at(-1)).toMatchObject({ currency: 'tokens', amount: -config.cabinets.arcadePackTokens, ref: 'GK' })
   })
 })
 

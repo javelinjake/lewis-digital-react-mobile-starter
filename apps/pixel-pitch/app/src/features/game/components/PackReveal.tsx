@@ -32,13 +32,14 @@ const STING_COLOUR: Record<Player['rarity'], string> = {
  * tap gets an answer at once. The cards are drawn out of sight while the pack is still shut, so each face is ready
  * when it turns over. Motion is eased, not stepped, and only the card moves between players.
  */
-export function PackReveal({ game, source, onClose, onNext }: { game: GameResponse, source?: PackSource, onClose: () => void, onNext?: () => void }) {
+export function PackReveal({ game, source, quick = false, onClose, onNext }: { game: GameResponse, source?: PackSource, quick?: boolean, onClose: () => void, onNext?: () => void }) {
   const config = useGameConfig()
   const { lookup } = useCatalogue()
   const toast = useToast()
   const reduced = useReducedEffects()
   const pending = game.club.state.pendingPack
-  const [phase, setPhase] = useState<Phase>('rip')
+  // Open all: every card face up at once, then straight on to the next pack.
+  const [phase, setPhase] = useState<Phase>(quick ? 'decide' : 'rip')
   const [tearing, setTearing] = useState(false)
   const [index, setIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
@@ -231,11 +232,18 @@ export function PackReveal({ game, source, onClose, onNext }: { game: GameRespon
                   type="button"
                   className="btn btn-primary min-h-12 w-full font-display text-xs"
                   disabled={overfull || decide.isPending}
-                  onClick={() => decide.mutate(decisions, { onSuccess: onClose, onError: error => toast.push(formatError(error), 'error') })}
+                  onClick={() => decide.mutate(decisions, {
+                    onSuccess: () => {
+                      onClose()
+                      if (quick && onNext && more > 0)
+                        onNext()
+                    },
+                    onError: error => toast.push(formatError(error), 'error'),
+                  })}
                 >
-                  {decide.isPending ? 'Saving…' : 'Done'}
+                  {decide.isPending ? 'Saving…' : quick && onNext && more > 0 ? `Done · next pack (${more} left)` : 'Done'}
                 </button>
-                {onNext && more > 0
+                {onNext && more > 0 && !quick
                   ? (
                       <button
                         type="button"
