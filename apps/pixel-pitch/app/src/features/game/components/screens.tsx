@@ -5,7 +5,7 @@ import { EmptyState, LoadingState } from '@ld/ui'
 import { useCallback, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { isCabinet } from '../lib/cabinets'
-import { leagueName } from '../lib/club'
+import { kitOf, leagueName } from '../lib/club'
 import { markWatched, wasWatched } from '../lib/watched'
 import { useClub, useFixtures, useGameConfig } from '../queries/use-game'
 import { AlbumScreen } from './AlbumScreen'
@@ -17,6 +17,7 @@ import { LeagueScreen } from './LeagueScreen'
 import { MatchTextReplay } from './MatchTextReplay'
 import { PacksScreen } from './PacksScreen'
 import { PassScreen } from './PassScreen'
+import { Crest } from './sprites'
 import { SquadScreen } from './SquadScreen'
 
 /** The game screens run inside `ClubGate`, so the club is there (from the cache at least). */
@@ -96,6 +97,8 @@ export function MatchView() {
     ?? club.data?.fixtures.find(entry => String(entry.no) === no)
   const debut = Boolean(search.get('debut'))
   const [started, setStarted] = useState(!debut)
+  // Twice as fast, for a player who wants the gist. For this match only.
+  const [speed, setSpeed] = useState(1)
   // A match seen to the end before opens on its result: tapping an old result should not play it all again.
   const [ended, setEnded] = useState<string | null>(null)
   const end = useCallback(() => {
@@ -116,14 +119,22 @@ export function MatchView() {
 
   const isEnded = ended === `${fixture.no}:${fixture.kickoffAt}` || wasWatched(fixture)
 
+  const crest = club.data ? <Crest crest={club.data.club.crest} kit={kitOf(club.data)} scale={2} /> : null
+
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-center text-muted">{matchLabel(fixture)}</span>
-      <MatchTextReplay fixture={fixture} clubName={clubName} ended={isEnded} onEnd={end} />
-      <BottomActions>
+      <MatchTextReplay fixture={fixture} clubName={clubName} crest={crest} label={matchLabel(fixture)} ended={isEnded} onEnd={end} speed={speed} />
+      <BottomActions className="border-t-4! border-slate! bg-chrome!">
         {isEnded
-          ? <button type="button" className="btn btn-primary min-h-12 w-full font-display text-xs" onClick={onDone}>{debut ? 'Meet your squad' : 'Continue'}</button>
-          : <button type="button" className="btn btn-outline min-h-12 w-full" onClick={end}>Skip to result</button>}
+          ? <button type="button" className="btn btn-primary h-13 w-full text-lg" onClick={onDone}>{debut ? 'Meet your squad' : 'Continue'}</button>
+          : (
+              <div className="flex gap-2.5">
+                <button type="button" className="btn btn-outline h-13 w-18 text-lg" aria-pressed={speed === 2} aria-label={speed === 2 ? 'Speed: twice as fast' : 'Speed: normal'} onClick={() => setSpeed(speed === 2 ? 1 : 2)}>
+                  {speed === 2 ? 'x2' : 'x1'}
+                </button>
+                <button type="button" className="btn btn-accent h-13 flex-1 text-lg" onClick={end}>Skip to full time</button>
+              </div>
+            )}
       </BottomActions>
     </div>
   )

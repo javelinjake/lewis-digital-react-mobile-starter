@@ -28,13 +28,13 @@ test.describe('Time away @game', () => {
     await welcome.getByRole('link', { name: 'Watch the match' }).click()
     await expect(page).toHaveURL(/\/match\/0$/)
     await expect(page.getByText('League 5 · Match 1')).toBeVisible()
-    await page.getByRole('button', { name: 'Skip to result' }).click()
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
     await expect(page.getByLabel('Scorers').or(page.getByText('No goals.'))).toBeVisible()
     await page.getByRole('button', { name: 'Continue' }).click()
     // Seen once, it opens on its result next time instead of playing again.
     await page.goto('/match/0')
     await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Skip to result' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Skip to full time' })).toHaveCount(0)
   })
 
   test('a friendly plays now, pays coins and no league points', async ({ page }) => {
@@ -43,7 +43,7 @@ test.describe('Time away @game', () => {
     await page.getByRole('button', { name: 'Play a friendly' }).click()
     await expect(page).toHaveURL(/\/match\/-2$/)
     await expect(page.getByText('Friendly · no league points')).toBeVisible()
-    await page.getByRole('button', { name: 'Skip to result' }).click()
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
     await expect(page.getByText('A friendly: coins, but no league points.')).toBeVisible()
   })
 

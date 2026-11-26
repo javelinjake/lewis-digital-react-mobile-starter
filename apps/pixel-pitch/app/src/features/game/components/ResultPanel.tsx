@@ -31,7 +31,7 @@ export function ResultPanel({ fixture, clubName }: { fixture: FixtureResult, clu
             </div>
           )
         : <span className="text-muted">No goals.</span>}
-      {friendly ? null : <NextSteps />}
+      {friendly ? null : <div className="w-full"><NextSteps /></div>}
     </div>
   )
 }

@@ -54,7 +54,7 @@ export async function foundClub(page: Page, name = 'Harbour Town') {
   await page.getByRole('button', { name: 'Found the club' }).click()
   await expect(page).toHaveURL(/\/match\/-1/)
   await kickOff(page)
-  await page.getByRole('button', { name: 'Skip to result' }).click()
+  await page.getByRole('button', { name: 'Skip to full time' }).click()
   await page.getByRole('button', { name: 'Meet your squad' }).click()
   await expect(page).toHaveURL(/\/squad/)
   await page.getByRole('button', { name: 'Got it' }).click()

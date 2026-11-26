@@ -32,7 +32,7 @@ test.describe('First session @game', () => {
     await kickOff(page)
     await expect(page.getByText('Friendly · no league points')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Next moment' })).toBeVisible()
-    await page.getByRole('button', { name: 'Skip to result' }).click()
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     // Who scored, and the way on pinned to the bottom of the screen.
     await expect(page.getByLabel('Scorers')).toBeVisible()
@@ -58,7 +58,7 @@ test.describe('First session @game', () => {
     await expect(page).toHaveURL(/\/match\/-1/)
     await kickOff(page)
     await expect(page.getByRole('button', { name: 'Next moment' })).toBeVisible()
-    await page.getByRole('button', { name: 'Skip to result' }).click()
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     await page.getByRole('button', { name: 'Meet your squad' }).click()
     await expect(page).toHaveURL(/\/squad/)
