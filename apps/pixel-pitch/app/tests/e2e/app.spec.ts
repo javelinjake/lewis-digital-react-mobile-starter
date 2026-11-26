@@ -83,9 +83,11 @@ test.describe('First session @game', () => {
       await card.click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
     const report = page.getByRole('list', { name: 'Match report' }).getByRole('listitem')
-    // A short read: the kick-off, a handful of chances, a little colour, half-time and full-time.
+    // A short read: the kick-off, a handful of chances (every goal is kept, so a big win runs longer), a little colour,
+    // half-time and full-time.
+    const [ours, theirs] = (await page.getByRole('region', { name: 'Scoreboard' }).textContent() ?? '').match(/(\d+)–(\d+)/)!.slice(1).map(Number)
     expect(await report.count()).toBeGreaterThan(2)
-    expect(await report.count()).toBeLessThanOrEqual(12)
+    expect(await report.count()).toBeLessThanOrEqual(Math.max(6, ours + theirs) + 5)
   })
 
   test('a goal is shown as a setup and then its outcome, with the score changing at the outcome', async ({ page }) => {

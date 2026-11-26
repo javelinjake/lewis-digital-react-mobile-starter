@@ -29,9 +29,9 @@ export function readyItems(game: GameResponse, config: GameConfig, catalogue: re
   if (waiting.freePack)
     items.push({ id: 'freePack', claim: true, label: config.daily.freePackCount === 1 ? 'Your free pack' : `Your ${config.daily.freePackCount} free packs`, to: '/packs' })
   if (waiting.goals > 0)
-    items.push({ id: 'goals', claim: true, label: `${plural(waiting.goals, 'goal', 'goals')} finished`, to: '/goals' })
+    items.push({ id: 'goals', claim: false, label: `${plural(waiting.goals, 'goal', 'goals')} to claim`, to: '/goals' })
   if (waiting.passTiers > 0)
-    items.push({ id: 'pass', claim: true, label: `${plural(waiting.passTiers, 'Pass reward', 'Pass rewards')}`, to: '/pass' })
+    items.push({ id: 'pass', claim: false, label: `${plural(waiting.passTiers, 'League Pass reward', 'League Pass rewards')} to claim`, to: '/pass' })
   if (waiting.albumSets > 0)
     items.push({ id: 'album', claim: true, label: `${plural(waiting.albumSets, 'finished album set', 'finished album sets')}`, to: '/album' })
 
