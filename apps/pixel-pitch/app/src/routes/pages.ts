@@ -18,8 +18,6 @@ export const pages = {
   squad: () => import('@/pages/SquadPage').then(m => ({ Component: m.SquadPage })),
   league: () => import('@/pages/LeaguePage').then(m => ({ Component: m.LeaguePage })),
   match: () => import('@/pages/MatchPage').then(m => ({ Component: m.MatchPage })),
-  lab: () => import('@/pages/LabPage').then(m => ({ Component: m.LabPage })),
-  labPlay: () => import('@/pages/LabPage').then(m => ({ Component: m.LabPlayPage })),
   settings: () => import('@/pages/SettingsPage').then(m => ({ Component: m.SettingsPage })),
   notFound: () => import('@/pages/NotFoundPage').then(m => ({ Component: m.NotFoundPage })),
 }

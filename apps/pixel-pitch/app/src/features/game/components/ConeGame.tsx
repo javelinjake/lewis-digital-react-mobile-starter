@@ -1,19 +1,31 @@
+import { ballSlot, coneRound } from '@ld/pixel-pitch-core'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ballSlot, CONE_ROUNDS, coneRound, CONES } from '../lib/rules'
+import { useGameConfig } from '../queries/use-game'
 
 type Phase = 'reveal' | 'shuffle' | 'pick' | 'right' | 'wrong'
-const START = Array.from({ length: CONES }, (_, cone) => cone)
-const slotPosition = (slot: number) => `${((slot + 0.5) / CONES) * 100}%`
 
-/** Cone Shuffle: the ball is shown under a cone, the cones swap places, pick the one with the ball. */
-export function ConeGame({ seed, onFinish }: { seed: string, onFinish: (score: number) => void }) {
+/**
+ * Cone Shuffle: the ball is shown under a cone, the cones swap places, pick the one with the ball. The slot picked in
+ * each round is sent, and the server follows the ball through the swaps drawn from the seed.
+ */
+export function ConeGame({ seed, onFinish }: { seed: string, onFinish: (picks: number[]) => void }) {
+  const config = useGameConfig()
+  /** The parent's handler, called from the timers without restarting them when it changes. */
+  const finishRef = useRef(onFinish)
+  useEffect(() => {
+    finishRef.current = onFinish
+  })
+  const { cones, rounds, revealMs } = config.minigames.cones
+  const start = useMemo(() => Array.from({ length: cones }, (_, cone) => cone), [cones])
+  const slotPosition = (slot: number) => `${((slot + 0.5) / cones) * 100}%`
   const [roundNo, setRoundNo] = useState(0)
-  const round = useMemo(() => coneRound(seed, roundNo), [seed, roundNo])
+  const round = useMemo(() => coneRound(seed, roundNo, config), [seed, roundNo, config])
   const [phase, setPhase] = useState<Phase>('reveal')
   /** Which slot each cone is in. Cone `round.ball` starts over the ball and keeps it. */
-  const [slots, setSlots] = useState(START)
+  const [slots, setSlots] = useState(start)
   const [swap, setSwap] = useState(0)
-  const right = useRef(0)
+  const [right, setRight] = useState(0)
+  const picks = useRef<number[]>([])
 
   useEffect(() => {
     if (phase === 'pick')
@@ -31,26 +43,27 @@ export function ConeGame({ seed, onFinish }: { seed: string, onFinish: (score: n
         setSlots(current => current.map(slot => (slot === a ? b : slot === b ? a : slot)))
         setSwap(swap + 1)
       }
-      else if (roundNo + 1 >= CONE_ROUNDS) {
-        onFinish(right.current)
+      else if (roundNo + 1 >= rounds) {
+        finishRef.current(picks.current)
       }
       else {
         setRoundNo(roundNo + 1)
-        setSlots(START)
+        setSlots(start)
         setSwap(0)
         setPhase('reveal')
       }
     }
-    const wait = phase === 'shuffle' ? (swap === 0 ? 350 : round.swapMs + 60) : 1100
+    const wait = phase === 'shuffle' ? (swap === 0 ? 350 : round.swapMs + 60) : revealMs
     const timer = setTimeout(next, wait)
     return () => clearTimeout(timer)
-  }, [phase, swap, round, roundNo, onFinish])
+  }, [phase, swap, round, roundNo, rounds, revealMs, start])
 
   const pick = (cone: number) => {
     if (phase !== 'pick')
       return
+    picks.current.push(slots[cone])
     if (slots[cone] === ballSlot(round)) {
-      right.current += 1
+      setRight(current => current + 1)
       setPhase('right')
     }
     else {
@@ -62,11 +75,11 @@ export function ConeGame({ seed, onFinish }: { seed: string, onFinish: (score: n
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex w-full items-baseline justify-between">
-        <span>{`Round ${roundNo + 1} of ${CONE_ROUNDS} · ${round.swaps.length} swaps`}</span>
-        <span className="font-display text-xs text-primary tabular-nums">{`${right.current} right`}</span>
+        <span>{`Round ${roundNo + 1} of ${rounds} · ${round.swaps.length} swaps`}</span>
+        <span className="font-display text-xs text-primary tabular-nums">{`${right} right`}</span>
       </div>
       <div className="relative h-56 w-full border-2 border-slate bg-success/30">
-        {START.map((cone) => {
+        {start.map((cone) => {
           const hasBall = cone === round.ball
           return (
             <div key={`${roundNo}-${cone}`} className="absolute bottom-6 w-1/4 -translate-x-1/2" style={{ left: slotPosition(slots[cone]), transition: phase === 'shuffle' ? `left ${round.swapMs}ms linear` : 'none' }}>

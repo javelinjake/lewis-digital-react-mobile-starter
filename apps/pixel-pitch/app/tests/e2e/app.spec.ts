@@ -292,7 +292,8 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     }
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 10_000 })
-    await expect(result.getByText(/^\d+ \/ 27$/)).toBeVisible()
+    // The sum is spelled out: the score, the most it could be, and the tokens it paid.
+    await expect(result.getByText(/^Score \d+ of 27 → \d+ tokens$/)).toBeVisible()
     // The play is scored against the best so far, and offers another go, with the energy left.
     await expect(result.getByRole('status')).toHaveText(/best|board|Level|off your/i)
     await expect(page.getByRole('button', { name: /Play again · 4 energy left/ })).toBeVisible()
@@ -315,7 +316,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     }
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 10_000 })
-    await expect(result.getByText(/^\d+ \/ 10$/)).toBeVisible()
+    await expect(result.getByText(/^Score \d+ of 10 → \d+ tokens$/)).toBeVisible()
     await page.getByRole('link', { name: 'Back to the arcade' }).click()
     await expect(page.getByRole('region', { name: 'Energy' }).getByText('4 / 5')).toBeVisible()
     await expect(page.getByRole('region', { name: 'Penalty Shootout' }).getByText(/(Best: \d+ \/ 10|Not played yet)/)).toBeVisible()
@@ -330,7 +331,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await expect(page.getByText('30s')).toBeVisible()
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 20_000 })
-    await expect(result.getByText('0 / 33')).toBeVisible()
+    await expect(result.getByText('Score 0 of 33 → 0 tokens')).toBeVisible()
     await expect(result.getByText(/Nothing this time/)).toBeVisible()
   })
 
