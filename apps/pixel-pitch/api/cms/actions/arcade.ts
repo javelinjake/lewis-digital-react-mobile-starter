@@ -1,4 +1,4 @@
-import type { Cabinet } from '@ld/pixel-pitch-core'
+import type { AnyTaps, Cabinet } from '@ld/pixel-pitch-core'
 import { defineAction } from '@ld/backend'
 import { CABINETS, collectStadium, collectTray, finishPlay, finishWarmup, startPlay, startWarmup, upgradeStadium } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
@@ -49,9 +49,10 @@ export const finishPlayAction = defineAction({
   handler: async (ctx) => {
     const cabinet = cabinetOf(ctx.body)
     const taps = ctx.body.taps
+    // Each cabinet has its own shape (see CabinetTaps in core); the rules check it before replaying the play.
     if (!Array.isArray(taps))
-      throw new APIError('Send taps: the numbers the game recorded.', 400)
-    return { body: await mutateClub(ctx, input => finishPlay(flowContext(input), cabinet, taps as number[])) }
+      throw new APIError('Send taps: what the game recorded.', 400)
+    return { body: await mutateClub(ctx, input => finishPlay(flowContext(input), cabinet, taps as AnyTaps)) }
   },
 })
 

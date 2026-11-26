@@ -1,7 +1,7 @@
 import type { Cabinet, GameResponse } from '@ld/pixel-pitch-core'
 import type { Payload } from 'payload'
 import type { Session } from './harness'
-import { DEFAULT_CONFIG, hotCabinet, keepyMax, shareOf } from '@ld/pixel-pitch-core'
+import { cabinetMax, DEFAULT_CONFIG, hotCabinet, keepyMax, perfectTaps, shareOf } from '@ld/pixel-pitch-core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { act, bestWarmupTap, DAY, found, HOUR, perfectKeepyTaps, perfectKickTaps, perfectPenaltyTaps } from './game-helpers'
 import { boot, guest } from './harness'
@@ -177,8 +177,11 @@ describe('keepy-Uppy', () => {
     now += 2 * HOUR
     const started = await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })
     const { taps } = perfectKeepyTaps(started.json.club.state.ticket.seed)
-    const cheat = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: [10, 11, 12, 13] }, { at: now + 60_000 })
+    const cheat = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: [10, 11, 12, 13].map(t => ({ t, x: 37, y: 10 })) }, { at: now + 60_000 })
     expect(cheat.status).toBe(400)
+    // A tap is a step and a place: the old shape, bare steps, is refused.
+    const bare = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: taps.map(tap => tap.t) }, { at: now + 60_000 })
+    expect(bare.status).toBe(400)
     const half = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: taps.slice(0, 20) }, { at: now + 60_000 })
     // Twenty kicks, the tenth and twentieth golden: 22 points.
     expect(half.json.score).toBe(22)
@@ -222,6 +225,50 @@ describe('penalty Shootout', () => {
     const stolen = await act(bob, 'arcade/finish', { cabinet: 'pens', taps }, { at: now + 60_000 })
     expect(stolen.status).toBe(400)
     expect(JSON.stringify(stolen.json)).toContain('no-ticket')
+  })
+})
+
+describe('keepy-Uppy taps on the ball', () => {
+  it('scores nothing for taps that miss the ball, wherever the phone says it was', async () => {
+    now += DAY
+    const started = await act(alice, 'arcade/start', { cabinet: 'keepy' }, { at: now })
+    const { taps } = perfectKeepyTaps(started.json.club.state.ticket.seed)
+    const wide = taps.map(tap => ({ ...tap, x: tap.x + config.minigames.keepy.hitRadius + 5 }))
+    const finished = await act(alice, 'arcade/finish', { cabinet: 'keepy', taps: wide, score: 33 }, { at: now + 60_000 })
+    expect(finished.status).toBe(200)
+    expect(finished.json).toMatchObject({ score: 0, tokens: 0 })
+  })
+})
+
+describe('the five newer cabinets', () => {
+  const fresh = ['keeper', 'pass', 'dribble', 'targets', 'cones'] as const
+
+  it('are each started with a ticket, scored by the server from what the phone sent, and pay tokens and keep a best', async () => {
+    for (const cabinet of fresh) {
+      now += DAY
+      const started = await act(alice, 'arcade/start', { cabinet }, { at: now })
+      expect(started.status, cabinet).toBe(200)
+      expect(started.json.club.state.ticket).toMatchObject({ kind: cabinet, paid: false })
+      const taps = perfectTaps(cabinet, started.json.club.state.ticket.seed, config)
+      const max = cabinetMax(cabinet, config)
+      const finished = await act(alice, 'arcade/finish', { cabinet, taps, score: 999 }, { at: now + 60_000 })
+      expect(finished.status, cabinet).toBe(200)
+      expect(finished.json).toMatchObject({ score: max, max, tokens: payout(cabinet, now, max, max) })
+      expect(finished.json.club.state.arcade.best[cabinet]).toBe(max)
+    }
+  })
+
+  it('refuse a play sent faster than it could be played, or in the wrong shape', async () => {
+    now += DAY
+    const started = await act(alice, 'arcade/start', { cabinet: 'targets' }, { at: now })
+    const taps = perfectTaps('targets', started.json.club.state.ticket.seed, config)
+    const fast = await act(alice, 'arcade/finish', { cabinet: 'targets', taps }, { at: now + 300 })
+    expect(JSON.stringify(fast.json)).toContain('too-fast')
+    const shape = await act(alice, 'arcade/finish', { cabinet: 'targets', taps: taps.map(tap => tap?.ms) }, { at: now + 60_000 })
+    expect(shape.status).toBe(400)
+    expect(JSON.stringify(shape.json)).toContain('taps')
+    // The ticket survives a refused play, so the real one still counts.
+    expect((await act(alice, 'arcade/finish', { cabinet: 'targets', taps }, { at: now + 60_000 })).status).toBe(200)
   })
 })
 

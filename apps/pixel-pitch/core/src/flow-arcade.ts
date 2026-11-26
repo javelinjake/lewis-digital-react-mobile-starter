@@ -1,12 +1,14 @@
+import type { CabinetTaps } from './arcade-taps'
 import type { Cabinet, ClubState, Ticket } from './club-state'
 import type { FlowContext, FlowResult, LedgerEntry } from './flow'
 import type { WarmupZone } from './match'
 import { dayIndex, pendingTrayTokens } from './advance'
+import { scorePlay } from './arcade-taps'
 import { CABINETS } from './club-state'
 import { spendEnergy } from './energy'
 import { GameRuleError } from './errors'
 import { warmupBonus } from './match'
-import { KEEPY_STEPS_PER_SECOND, keepyMax, runKeepy, scoreKick, scorePenalties, shareOf, warmupZone } from './minigames'
+import { shareOf, warmupZone } from './minigames'
 import { addXp, recordProgress } from './progress'
 
 /** A play that was never finished is stopped after this long. */
@@ -82,41 +84,17 @@ function checkTiming(ticket: Ticket, lastTapMs: number, ctx: FlowContext) {
     throw new GameRuleError('too-fast', 'That play was faster than a play can be.')
 }
 
-/** Scores a finished play from its taps and pays it. Kick Timer and Penalty Shootout: `taps` are milliseconds into each round. Keepy-Uppy: the 60 Hz steps tapped on. */
-export function finishPlay(ctx: FlowContext, cabinet: Cabinet, taps: readonly number[]): FlowResult<PlayResult> {
+/**
+ * Scores a finished play from what the phone recorded (see `CabinetTaps` for each cabinet's shape) and pays it. The
+ * server replays the play with the ticket's seed, so the score is the server's, whatever the phone claims.
+ */
+export function finishPlay<C extends Cabinet>(ctx: FlowContext, cabinet: C, taps: CabinetTaps[C]): FlowResult<PlayResult> {
   const { state, config } = ctx
   const ticket = state.ticket
   if (!ticket || ticket.kind !== cabinet)
     throw new GameRuleError('no-ticket', 'Start a play first.')
-  if (!Array.isArray(taps) || taps.some(tap => typeof tap !== 'number' || !Number.isFinite(tap) || tap < 0))
-    throw new GameRuleError('taps', 'Those taps are not valid.')
-  const { minTapGapMs } = config.minigames
-
-  let score: number
-  let max: number
-  if (cabinet === 'kick' || cabinet === 'pens') {
-    if (taps.some(tap => tap < minTapGapMs))
-      throw new GameRuleError('taps', 'A kick cannot be taken that quickly.')
-    try {
-      const result = cabinet === 'kick' ? scoreKick(ticket.seed, taps, config) : scorePenalties(ticket.seed, taps, config)
-      score = result.total
-      max = result.max
-    }
-    catch {
-      throw new GameRuleError('taps', 'That play has one tap for each kick.')
-    }
-    checkTiming(ticket, taps.reduce((sum, tap) => sum + tap, 0), ctx)
-  }
-  else {
-    const minGap = Math.ceil((minTapGapMs * KEEPY_STEPS_PER_SECOND) / 1000)
-    const ordered = taps.every((tap, index) => Number.isInteger(tap) && (index === 0 || tap - taps[index - 1] >= minGap))
-    if (!ordered || taps.length > config.minigames.keepy.maxKicks * 4)
-      throw new GameRuleError('taps', 'Those taps are not valid.')
-    const result = runKeepy(ticket.seed, taps, config)
-    score = result.score
-    max = keepyMax(config)
-    checkTiming(ticket, (result.steps * 1000) / KEEPY_STEPS_PER_SECOND, ctx)
-  }
+  const { score, max, playMs } = scorePlay(cabinet, ticket.seed, taps, config)
+  checkTiming(ticket, playMs, ctx)
 
   const hot = hotCabinet(ticket.issuedAt, config) === cabinet
   const tokens = ticket.paid ? 0 : Math.floor(shareOf(score, max, config.cabinets.playMaxTokens) * (hot ? 1 + config.cabinets.hotBonus : 1))

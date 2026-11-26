@@ -26,7 +26,7 @@ export interface DayCounter {
 }
 
 /** Every arcade game. The hot cabinet of the day follows this order. */
-export const CABINETS = ['kick', 'keepy', 'pens'] as const
+export const CABINETS = ['kick', 'keepy', 'pens', 'keeper', 'pass', 'dribble', 'targets', 'cones'] as const
 export type Cabinet = typeof CABINETS[number]
 
 /** One play of an arcade game or the warm-up kick. The server hands it out and checks the result against it. */
@@ -100,7 +100,7 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     starPacks: 0,
     extraPacks: { day: -1, count: 0 },
     energy: { fullAt: 0 },
-    arcade: { best: { kick: 0, keepy: 0, pens: 0 } },
+    arcade: { best: Object.fromEntries(CABINETS.map(cabinet => [cabinet, 0])) as Record<Cabinet, number> },
     ticketsIssued: 0,
     ticket: null,
     warmupTriedFor: -1,
