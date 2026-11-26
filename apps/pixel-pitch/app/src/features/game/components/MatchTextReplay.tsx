@@ -1,11 +1,14 @@
 import type { FixtureResult, MatchMoment, MomentKind } from '@ld/pixel-pitch-core'
+import type { ReactNode } from 'react'
 import { commentate } from '@ld/pixel-pitch-core'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useOsReducedMotion } from '@/hooks/use-os-reduced-motion'
+import { play } from '@/lib/sound/sound'
 import { beatsOf } from '../lib/beats'
 import { reportable } from '../lib/fixture'
 import { useGameConfig } from '../queries/use-game'
 import { ResultPanel } from './ResultPanel'
+import { RivalShield } from './RivalShield'
 
 const LABEL: Record<MomentKind, string> = {
   kickoff: 'Kick-off',
@@ -17,21 +20,88 @@ const LABEL: Record<MomentKind, string> = {
   fulltime: 'Full time',
 }
 
-/** The colour of a moment once it has happened: our goals green, theirs red, the break and the whistles in the accent. */
-function tone(moment: MatchMoment) {
+const minuteOf = (moment: MatchMoment) => (moment.kind === 'kickoff' ? 'KO' : moment.kind === 'fulltime' ? 'FT' : `${moment.minute}'`)
+
+/** A goal's card has a bar down its left edge: green for ours, red for theirs. */
+function cardStyle(moment: MatchMoment) {
   if (moment.kind === 'goal')
-    return moment.side === 'for' ? 'text-success' : 'text-error'
-  if (['kickoff', 'halftime', 'fulltime'].includes(moment.kind))
-    return 'text-primary'
-  return ''
+    return moment.side === 'for' ? 'bg-raised shadow-[inset_4px_0_0_var(--color-success),inset_0_0_0_2px_var(--color-slate)]' : 'bg-raised shadow-[inset_4px_0_0_var(--color-error),inset_0_0_0_2px_var(--color-slate)]'
+  return 'bg-base-100 shadow-[inset_0_0_0_2px_var(--color-slate)]'
+}
+
+/** A small tag above a moment's text: GOAL in green or red, the whistles in yellow. */
+function Tag({ moment, label }: { moment: MatchMoment, label: string }) {
+  const colour = moment.kind === 'goal'
+    ? (moment.side === 'for' ? 'bg-success text-success-content' : 'bg-error text-error-content')
+    : ['kickoff', 'halftime', 'fulltime'].includes(moment.kind) ? 'bg-primary text-primary-content' : 'bg-slate text-base-content'
+  return <span className={`mb-1 inline-block px-1.5 text-xs font-bold tracking-wider uppercase ${colour}`}>{label}</span>
+}
+
+/** One moment, after the fact: the minute, a tag when it matters, and what happened. */
+function MomentCard({ moment }: { moment: MatchMoment }) {
+  const tagged = moment.kind !== 'incident' && moment.kind !== 'save' && moment.kind !== 'miss'
+  return (
+    <div className={`flex gap-2.5 px-3 py-2.5 ${cardStyle(moment)}`}>
+      <span className={`w-8 shrink-0 text-sm font-bold ${moment.kind === 'goal' ? (moment.side === 'for' ? 'text-success' : 'text-error') : 'text-muted'}`}>{minuteOf(moment)}</span>
+      <div className="min-w-0 flex-1">
+        {tagged ? <Tag moment={moment} label={LABEL[moment.kind]} /> : null}
+        <div className="leading-snug">{moment.outcome ?? moment.setup}</div>
+      </div>
+    </div>
+  )
 }
 
 /**
- * The match as a short written report: a few big moments, one at a time. A chance shows what is happening, then
- * what came of it. It plays itself at a readable pace; tap the card to go on sooner, or Skip to the result. When the
- * phone asks for reduced motion it never moves on its own: Next steps through it.
+ * The scoreboard on the grass: both sides, the score, and how far into the match it is. The score is announced as it
+ * changes.
  */
-export function MatchTextReplay({ fixture, clubName, onDone }: { fixture: FixtureResult, clubName: string, onDone: () => void }) {
+function Scoreboard({ fixture, clubName, crest, score, minute, label }: { fixture: FixtureResult, clubName: string, crest: ReactNode, score: readonly [number, number], minute: string, label: string }) {
+  const { minutes } = useGameConfig().match
+  const progress = minute === 'FT' ? 1 : minute === 'KO' ? 0 : Number.parseInt(minute) / minutes
+  return (
+    <section className="pp-grass flex flex-col gap-2.5 px-3 pt-3 pb-3 shadow-[inset_0_0_0_3px_var(--color-slate)]" aria-label="Scoreboard">
+      <span className="text-center text-xs font-semibold tracking-wider text-white uppercase">{label}</span>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2" aria-live="polite">
+        <div className="flex min-w-0 flex-col items-center text-center">
+          {crest}
+          <span className="w-full leading-tight font-bold break-words text-white">{clubName}</span>
+        </div>
+        <div className="text-5xl leading-none font-bold whitespace-nowrap text-primary tabular-nums [text-shadow:3px_3px_0_#0b1028]">{`${score[0]}–${score[1]}`}</div>
+        <div className="flex min-w-0 flex-col items-center text-center">
+          <RivalShield index={fixture.rival.index} size={40} />
+          <span className="w-full leading-tight font-bold break-words text-white">{fixture.rival.name}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2" aria-hidden="true">
+        <span className="bg-base-200 px-2 text-sm font-bold text-white">{minute}</span>
+        <span className="h-2 flex-1 bg-base-200"><span className="block h-2 bg-primary" style={{ width: `${progress * 100}%` }} /></span>
+        <span className="text-sm font-semibold text-white">{`${minutes}'`}</span>
+      </div>
+    </section>
+  )
+}
+
+/**
+ * The match as a short written report: the scoreboard, then the big moments as cards, newest on top. A chance shows
+ * what is happening, then what came of it. It plays itself at a readable pace (twice as fast at x2); tap the live card
+ * to go on sooner. When the phone asks for reduced motion it never moves on its own: Next steps through it. Once
+ * `ended` (played through, skipped, or a match already seen) it shows the result, who scored, and the whole report
+ * from kick-off, in a box of its own that scrolls.
+ */
+export function MatchTextReplay({ fixture, clubName, crest, label, ended, onEnd, speed = 1, holdAt = null, jump = false, onHold }: {
+  fixture: FixtureResult
+  clubName: string
+  crest: ReactNode
+  label: string
+  ended: boolean
+  onEnd: () => void
+  speed?: number
+  /** A live moment's minute: the report stops just before it and calls `onHold`. */
+  holdAt?: number | null
+  /** Go straight to the hold (Skip to full time, with a live moment still to come). */
+  jump?: boolean
+  onHold?: () => void
+}) {
   const config = useGameConfig()
   const manual = useOsReducedMotion()
   const moments = useMemo(
@@ -40,91 +110,121 @@ export function MatchTextReplay({ fixture, clubName, onDone }: { fixture: Fixtur
   )
   const beats = useMemo(() => beatsOf(moments), [moments])
   // How many beats are on screen. The kick-off is up from the start.
-  const [shown, setShown] = useState(1)
+  const [counted, setShown] = useState(1)
+  // With a live moment to come, the beats before its minute: the report waits there.
+  const holdIndex = useMemo(() => {
+    if (holdAt === null)
+      return null
+    const at = beats.findIndex(beat => moments[beat.moment].kind !== 'kickoff' && moments[beat.moment].minute >= holdAt)
+    return Math.max(1, at === -1 ? beats.length - 1 : at)
+  }, [holdAt, beats, moments])
+  // Skip to full time with a moment to come jumps to the moment.
+  const shown = jump && holdIndex !== null ? Math.max(counted, holdIndex) : counted
+  const holding = holdIndex !== null && shown >= holdIndex
 
   useEffect(() => {
-    if (manual || shown >= beats.length)
-      return
-    const timer = setTimeout(() => setShown(count => Math.min(beats.length, count + 1)), beats[shown - 1].ms)
-    return () => clearTimeout(timer)
-  }, [manual, shown, beats])
+    if (holding)
+      onHold?.()
+  }, [holding, onHold])
 
-  const finished = shown >= beats.length
-  const beat = beats[shown - 1]
+  useEffect(() => {
+    if (manual || holding || shown >= beats.length)
+      return
+    const timer = setTimeout(() => setShown(count => Math.min(beats.length, count + 1)), beats[shown - 1].ms / speed)
+    return () => clearTimeout(timer)
+  }, [manual, holding, shown, beats, speed])
+
+  const finished = ended || shown >= beats.length
+  useEffect(() => {
+    if (shown >= beats.length && !ended)
+      onEnd()
+  }, [shown, beats.length, ended, onEnd])
+
+  // The match's sounds as it is told: the whistles, our goals, and the result. Not for a match already seen.
+  const told = useRef(ended)
+  useEffect(() => {
+    if (told.current)
+      return
+    const current = beats[Math.min(shown, beats.length) - 1]
+    const said = moments[current.moment]
+    if (said.kind === 'kickoff') {
+      play('whistle_kickoff', 0.7)
+    }
+    else if (said.kind === 'goal' && current.part === 'outcome' && said.side === 'for') {
+      play('goal')
+    }
+    else if (said.kind === 'fulltime') {
+      told.current = true
+      play('whistle_fulltime', 0.8)
+      const result = fixture.result
+      const timer = setTimeout(() => play(result === 'win' ? 'win' : result === 'draw' ? 'draw' : 'loss', 0.7), 900)
+      return () => clearTimeout(timer)
+    }
+  }, [shown, beats, moments, fixture.result])
+
+  const beat = beats[(finished ? beats.length : shown) - 1]
   const index = beat.moment
   const moment = moments[index]
   const outcomeShown = beat.part === 'outcome' || moment.outcome === null
-  const score = outcomeShown ? moment.score : (moments[index - 1]?.score ?? [0, 0])
+  const score = finished ? [fixture.goalsFor, fixture.goalsAgainst] as const : outcomeShown ? moment.score : (moments[index - 1]?.score ?? [0, 0])
   const earlier = moments.slice(0, index).reverse()
-  const next = () => setShown(count => Math.min(beats.length, count + 1))
+  const next = () => setShown(Math.min(holdIndex ?? beats.length, shown + 1))
+  const minute = finished ? 'FT' : minuteOf(moment)
 
-  const card = (
-    <>
-      <span className="flex items-center justify-between text-muted">
-        <span className="tabular-nums">{moment.kind === 'kickoff' ? 'KO' : `${moment.minute}'`}</span>
-        <span className={outcomeShown ? tone(moment) : ''}>{outcomeShown || moment.outcome === null ? LABEL[moment.kind] : 'Chance'}</span>
-      </span>
-      <span key={`${index}-setup`} className="text-xl leading-snug">{moment.setup}</span>
-      {outcomeShown && moment.outcome !== null
-        ? (
-            <span
-              key={`${index}-outcome`}
-              className={`border-l-4 border-current pl-3 text-xl leading-snug ${tone(moment)} ${moment.kind === 'goal' ? 'font-bold' : ''}`}
-              style={{ animation: manual ? 'none' : 'pp-pop 300ms steps(4)' }}
-            >
-              {moment.outcome}
-            </span>
-          )
-        : null}
-      {!finished && !outcomeShown && moment.outcome !== null ? <span className="text-muted" aria-hidden="true">…</span> : null}
-    </>
-  )
+  const board = <Scoreboard fixture={fixture} clubName={clubName} crest={crest} score={score} minute={minute} label={label} />
 
+  if (finished) {
+    return (
+      <div className="flex flex-col gap-3">
+        {board}
+        <ResultPanel fixture={fixture} clubName={clubName} />
+        <h2>Match report</h2>
+        <ol className="flex max-h-[45vh] flex-col gap-2 overflow-y-auto" aria-label="Match report" tabIndex={0}>
+          {moments.map(past => <li key={`${past.minute}-${past.kind}-${past.setup}`}><MomentCard moment={past} /></li>)}
+        </ol>
+      </div>
+    )
+  }
+
+  const liveLabel = outcomeShown || moment.outcome === null ? LABEL[moment.kind] : 'Chance'
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 font-display text-xs" aria-live="polite">
-        <span className="min-w-0 flex-1 break-words leading-tight">{clubName}</span>
-        <span className="shrink-0 whitespace-nowrap text-lg text-primary tabular-nums">{`${score[0]}–${score[1]}`}</span>
-        <span className="min-w-0 flex-1 break-words text-right leading-tight">{fixture.rival.name}</span>
-      </div>
-
-      {finished
-        ? <div className="flex min-h-40 flex-col gap-3 border-2 border-primary bg-base-100 p-4" role="status">{card}</div>
-        : (
-            <button
-              type="button"
-              className="flex min-h-40 w-full flex-col gap-3 border-2 border-slate bg-base-100 p-4 text-left"
-              aria-label="Next moment"
-              onClick={next}
-            >
-              {card}
-            </button>
-          )}
-
-      {finished
-        ? null
-        : (
-            <div className="flex gap-2">
-              {manual ? <button type="button" className="btn btn-primary min-h-12 flex-1 font-display text-xs" onClick={next}>Next</button> : null}
-              <button type="button" className="btn btn-ghost min-h-12 flex-1" onClick={() => setShown(beats.length)}>Skip to result</button>
-            </div>
-          )}
-      {finished || manual ? null : <span className="text-center text-muted">Tap the match to go on</span>}
-
-      {finished ? <ResultPanel fixture={fixture} onDone={onDone} /> : null}
+      {board}
+      <button
+        type="button"
+        className="flex min-h-36 w-full gap-2.5 bg-raised px-3 py-3 text-left shadow-[inset_0_0_0_3px_var(--color-primary)]"
+        aria-label="Next moment"
+        onClick={next}
+      >
+        <span className="w-8 shrink-0 text-sm font-bold text-primary">{minuteOf(moment)}</span>
+        <span className="flex min-w-0 flex-1 flex-col gap-2">
+          <span><Tag moment={outcomeShown ? moment : { ...moment, kind: 'incident' }} label={liveLabel} /></span>
+          <span key={`${index}-setup`} className="text-lg leading-snug">{moment.setup}</span>
+          {outcomeShown && moment.outcome !== null
+            ? (
+                <span
+                  key={`${index}-outcome`}
+                  className={`text-lg leading-snug font-bold ${moment.kind === 'goal' ? (moment.side === 'for' ? 'text-success' : 'text-error') : 'text-white'}`}
+                  style={{ animation: manual ? 'none' : 'pp-pop 300ms steps(4)' }}
+                >
+                  {moment.outcome}
+                </span>
+              )
+            : null}
+          {!outcomeShown && moment.outcome !== null ? <span className="text-muted" aria-hidden="true">…</span> : null}
+        </span>
+      </button>
+      {manual
+        ? <button type="button" className="btn btn-primary min-h-12" onClick={next}>Next</button>
+        : <span className="text-center text-sm text-muted">Tap the card to go on</span>}
 
       {earlier.length > 0
         ? (
-            <ol className="flex flex-col gap-2 text-lg" aria-label="Match report">
-              {earlier.map(past => (
-                <li key={`${past.minute}-${past.kind}-${past.setup}`} className={`flex gap-2 leading-tight ${tone(past) || 'text-muted'} ${past.kind === 'goal' ? 'border-l-4 border-current pl-2' : ''}`}>
-                  <span className="w-8 shrink-0 text-right tabular-nums text-muted">{past.kind === 'kickoff' ? 'KO' : `${past.minute}'`}</span>
-                  <span>{past.outcome ?? past.setup}</span>
-                </li>
-              ))}
+            <ol className="flex flex-col gap-2" aria-label="Match so far">
+              {earlier.map(past => <li key={`${past.minute}-${past.kind}-${past.setup}`}><MomentCard moment={past} /></li>)}
             </ol>
           )
-        : <ol className="sr-only" aria-label="Match report" />}
+        : null}
     </div>
   )
 }

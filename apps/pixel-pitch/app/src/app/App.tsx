@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
 import { gameKeys } from '@/features/game/queries/game.keys'
+import { installTapSound } from '@/lib/sound/sound'
 import { telemetry } from '@/lib/telemetry/telemetry'
 import { reportAppReady } from '@/lib/updates/live-updates'
 import { router } from '@/routes/router'
@@ -17,6 +18,9 @@ export function App() {
   const status = useAuthStore(state => state.status)
 
   const userId = useAuthStore(state => state.userId)
+
+  // A quiet tap on every button.
+  useEffect(() => installTapSound(), [])
 
   useEffect(() => {
     void useAuthStore.getState().bootstrap()
@@ -70,7 +74,7 @@ export function NativeRuntime() {
   }), [onResume, client])
 
   useEffect(() => {
-    void setStatusBarAppearance({ light: true, backgroundColor: '#1b1f3b' })
+    void setStatusBarAppearance({ light: true, backgroundColor: '#121a44' })
   }, [])
 
   return null

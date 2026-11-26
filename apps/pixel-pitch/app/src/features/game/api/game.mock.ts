@@ -1,8 +1,10 @@
-import type { ClubIdentity, ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
+import type { ClubIdentity, ClubState, FixtureChange, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
+import type { MockEntry } from './challenge.mock'
 import type { GameApi } from './game-api.types'
-import { addXp, applyPurchase, arcadePack, buyBenchSlots, buyKit, buyPack, changeIdentity, chooseSigning, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, refillEnergy, retryWarmup, seasonOf, sellCard, setLineup, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
+import { addXp, applyPurchase, arcadePack, buyBenchSlots, buyKit, buyPack, changeFixture, changeIdentity, chooseSigning, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, claimWeekly, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChallenge, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, refillEnergy, retryWarmup, seasonOf, sellCard, setLineup, skipChance, startChallenge, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState, weekOf } from '@ld/pixel-pitch-core'
 import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
+import { mockBoard, mockWeekStanding } from './challenge.mock'
 
 // The game rules running in the browser instead of on the server: development, Playwright and Lighthouse use it.
 // It mirrors the api's actions using the same rules from @ld/pixel-pitch-core, and keeps each user's club in
@@ -16,7 +18,7 @@ interface MockClub {
 }
 
 const config: GameConfig = DEFAULT_CONFIG
-const catalogue: Player[] = generateCatalogue(config, 'pixel-pitch-catalogue')
+const catalogue: Player[] = [...FOOTBALLERS]
 const byId = new Map(catalogue.map(player => [player.id, player]))
 const players = (id: string) => byId.get(id)
 const CLOCK_KEY = 'pp-mock-clock'
@@ -78,10 +80,19 @@ if (typeof window !== 'undefined') {
     finishGoals: () => patchState(state => ({ ...state, daily: { ...state.daily, goals: state.daily.goals.map(goal => ({ ...goal, progress: goal.target })) } })),
     addPassXp: xp => patchState(state => addXp(state, xp, config)),
     reset: () => {
+      mockStorage().removeItem(challengeKey())
       mockStorage().removeItem(storageKey())
       mockStorage().removeItem(CLOCK_KEY)
     },
   }
+}
+
+function challengeKey() {
+  return `pp-mock-challenge:${useAuthStore.getState().userId ?? 'anonymous'}`
+}
+
+function challengeEntries(): MockEntry[] {
+  return JSON.parse(mockStorage().getItem(challengeKey()) ?? '[]') as MockEntry[]
 }
 
 function storageKey() {
@@ -129,7 +140,7 @@ function assignIds(mock: MockClub, state: ClubState, cards: OwnedCard[]) {
   return { cards: next, state: { ...state, lineup: state.lineup.map(id => (id ? ids.get(id) ?? id : null)) } }
 }
 
-async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowContext) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[], identity?: ClubIdentity, extra?: T }): Promise<GameResponse & T> {
+async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowContext) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[], fixtureChanges?: FixtureChange[], identity?: ClubIdentity, extra?: T }): Promise<GameResponse & T> {
   const mock = load()
   if (!mock)
     throw new MockRuleError('Create your club first.', 404)
@@ -139,16 +150,27 @@ async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowCo
   const result = run({ ...mock, club: { ...mock.club, state: synced.state } }, at, ctx)
   const assigned = assignIds(mock, result.state, result.cards ?? mock.cards)
   const fixtures = [...synced.fixtures, ...(result.fixtures ?? [])]
+  // A scored moment rewrites a match already stored, as the api does.
+  const changes = new Map((result.fixtureChanges ?? []).map(change => [change.no, change]))
+  const changedFixtures: FixtureResult[] = []
+  const stored = [...mock.fixtures, ...fixtures].map((fixture) => {
+    const change = fixture.no >= 0 ? changes.get(fixture.no) : undefined
+    if (!change)
+      return fixture
+    const next = changeFixture(fixture, change)
+    changedFixtures.push(next)
+    return next
+  })
   const next: MockClub = {
     club: { ...mock.club, ...result.identity, state: assigned.state, version: mock.club.version + 1 },
     cards: assigned.cards,
-    fixtures: [...mock.fixtures, ...fixtures],
+    fixtures: stored,
     nextCardId: mock.nextCardId,
   }
   save(next)
   // A little latency, so pending states show in development as they would on a phone.
   await new Promise(resolve => setTimeout(resolve, 120))
-  return { club: next.club, cards: next.cards, fixtures, events: synced.events, now: at, configVersion: config.version, ...(result.extra ?? {} as T) }
+  return { club: next.club, cards: next.cards, fixtures, ...(changedFixtures.length > 0 ? { changedFixtures } : {}), events: synced.events, now: at, configVersion: config.version, ...(result.extra ?? {} as T) }
 }
 
 const identityOf = (mock: MockClub): ClubIdentity => ({ crest: mock.club.crest, kitPrimary: mock.club.kitPrimary, kitSecondary: mock.club.kitSecondary })
@@ -197,6 +219,10 @@ export const gameApi: GameApi = {
   buyPack: () => respond((_mock, _at, ctx) => wrap(() => buyPack(ctx))),
   arcadePack: position => respond((_mock, _at, ctx) => wrap(() => arcadePack(ctx, position))),
   decidePack: decisions => respond((_mock, _at, ctx) => wrap(() => decidePack(ctx, decisions))),
+  playFriendly: () => respond((_mock, _at, ctx) => {
+    const result = wrap(() => playFriendly(ctx))
+    return { ...result, fixtures: [result.extra!.fixture] }
+  }),
   collectStadium: () => respond((_mock, _at, ctx) => wrap(() => collectStadium(ctx))),
   upgradeStadium: () => respond((_mock, _at, ctx) => wrap(() => upgradeStadium(ctx))),
   collectTray: () => respond((_mock, _at, ctx) => wrap(() => collectTray(ctx))),
@@ -204,7 +230,29 @@ export const gameApi: GameApi = {
   startPlay: (cabinet, paid) => respond((_mock, _at, ctx) => wrap(() => startPlay(ctx, cabinet, paid))),
   finishPlay: (cabinet, taps) => respond((_mock, _at, ctx) => wrap(() => finishPlay(ctx, cabinet, taps))),
   startWarmup: () => respond((_mock, _at, ctx) => wrap(() => startWarmup(ctx))),
-  finishWarmup: tapMs => respond((_mock, _at, ctx) => wrap(() => finishWarmup(ctx, tapMs))),
+  finishWarmup: taps => respond((_mock, _at, ctx) => wrap(() => finishWarmup(ctx, taps))),
+  startChance: fixtureNo => respond((_mock, _at, ctx) => wrap(() => startChance(ctx, fixtureNo))),
+  finishChance: taps => respond((_mock, _at, ctx) => {
+    const result = wrap(() => finishChance(ctx, taps))
+    return { ...result, fixtureChanges: result.extra?.change ? [result.extra.change] : [] }
+  }),
+  skipChance: fixtureNo => respond((_mock, _at, ctx) => wrap(() => skipChance(ctx, fixtureNo))),
+  startChallenge: () => respond((_mock, _at, ctx) => wrap(() => startChallenge(ctx))),
+  async finishChallenge(taps) {
+    const response = await respond((_mock, _at, ctx) => wrap(() => finishChallenge(ctx, taps)))
+    mockStorage().setItem(challengeKey(), JSON.stringify([...challengeEntries().filter(entry => entry.day !== response.day), { day: response.day, score: response.score }]))
+    return response
+  },
+  async readBoard() {
+    const game = await gameApi.sync()
+    if (!game)
+      throw new MockRuleError('Create your club first.', 404)
+    return mockBoard(game, challengeEntries(), config, now())
+  },
+  claimWeekly: () => respond((_mock, at, ctx) => {
+    const week = weekOf(dayIndex(at, config)) - 1
+    return wrap(() => claimWeekly(ctx, week, mockWeekStanding(challengeEntries(), week, config)))
+  }),
   claimGoal: goalId => respond((_mock, _at, ctx) => wrap(() => claimGoal(ctx, goalId))),
   claimFreePack: () => respond((_mock, _at, ctx) => wrap(() => claimFreePack(ctx))),
   claimCalendar: () => respond((_mock, _at, ctx) => wrap(() => claimCalendar(ctx))),
@@ -226,6 +274,6 @@ export const gameApi: GameApi = {
   readCatalogue: async () => catalogue,
   readConfig: async () => config,
   async readFixtures(limit) {
-    return [...(load()?.fixtures ?? [])].sort((a, b) => b.no - a.no).slice(0, limit)
+    return [...(load()?.fixtures ?? [])].sort((a, b) => b.kickoffAt - a.kickoffAt || b.no - a.no).slice(0, limit)
   },
 }

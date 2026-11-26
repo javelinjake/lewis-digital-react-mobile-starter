@@ -119,7 +119,7 @@ describe('the login calendar', () => {
     expect(response.json.day).toBe(3)
   })
 
-  it('ends in a Star pack on day 7, which opens with a Star or better', async () => {
+  it('ends in three Star packs on day 7, which open with a Star or better', async () => {
     let last: { day: number } = { day: 3 }
     for (let day = 4; day <= 6; day++) {
       now += DAY
@@ -131,12 +131,12 @@ describe('the login calendar', () => {
     last = (await act(alice, 'calendar/claim', {}, { at: now })).json
     expect(last.day).toBe(7)
     const state = await sync(alice)
-    expect(state.starPacks).toBe(before + 1)
+    expect(state.starPacks).toBe(before + 3)
     const opened = await act(alice, 'packs/open', { source: 'star' }, { at: now })
     expect(opened.status).toBe(200)
     const ids: string[] = opened.json.club.state.pendingPack.playerIds
     expect(ids.some(id => ['star', 'legend'].includes(catalogue.find(player => player.id === id)!.rarity))).toBe(true)
-    expect(opened.json.club.state.starPacks).toBe(before)
+    expect(opened.json.club.state.starPacks).toBe(before + 2)
     await act(alice, 'packs/decide', { decisions: ['sell', 'sell', 'sell'] }, { at: now })
   })
 })
@@ -221,19 +221,22 @@ describe('time', () => {
 })
 
 describe('claim all', () => {
-  it('takes everything waiting in one call, pays each thing once with its own ledger rows, and says what the wallet gained', async () => {
+  it('takes the idle rewards in one call, pays each thing once with its own ledger rows, and says what the wallet gained', async () => {
     now += 3 * DAY
-    // Time has passed, so the stadium and the tray are full, and today's calendar day and free pack are waiting.
+    // Time has passed, so the stadium and the tray are full, and today's free pack is waiting. So is the login streak's
+    // day, which Claim all leaves for the Goals screen (as it leaves goals and League Pass tiers).
     const before = await sync(alice)
     const key = crypto.randomUUID()
     const first = await act(alice, 'claim-all', {}, { key, at: now })
     expect(first.status).toBe(200)
     const state = first.json.club.state as State
-    expect(first.json.items).toBeGreaterThanOrEqual(4)
+    expect(first.json.items).toBeGreaterThanOrEqual(3)
     expect(state.coins - before.coins).toBe(first.json.coins)
     expect(state.tokens - before.tokens).toBe(first.json.tokens)
     expect(state.daily.freePackClaimed).toBe(true)
-    expect(state.calendar.lastClaimDay).toBe(Math.floor(now / DAY))
+    expect(state.calendar.lastClaimDay).toBe(before.calendar.lastClaimDay)
+    expect(state.daily.goals.every(goal => goal.claimed === before.daily.goals.find(entry => entry.id === goal.id)?.claimed)).toBe(true)
+    expect(state.pass).toEqual(before.pass)
 
     // The same call again with the same key is a replay: same answer, nothing paid twice.
     const replay = await act(alice, 'claim-all', {}, { key, at: now })

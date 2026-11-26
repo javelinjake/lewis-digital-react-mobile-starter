@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { albumPower, albumSets, DEFAULT_CONFIG, foundClub, generateCatalogue, lineupForMatch, newClubState, recordCollected, scoreLineup, setLineup, syncClub, upgradeState } from '../src'
 
-const config = DEFAULT_CONFIG
+// Matches the full interval apart from the start; the quick opening has its own tests.
+const config = { ...DEFAULT_CONFIG, league: { ...DEFAULT_CONFIG.league, openingGapsMinutes: [] } }
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 const T0 = Date.UTC(2026, 10, 9, 12)
@@ -102,7 +103,7 @@ describe('upgradeState', () => {
     expect(upgraded.pass.season).toBe(-1)
     expect(upgraded.album).toEqual({ collected: [], completed: 0, claimed: [] })
     expect(upgraded.energy).toEqual({ fullAt: 0 })
-    expect(upgraded.arcade.best).toEqual({ kick: 0, keepy: 0, pens: 0 })
+    expect(upgraded.arcade.best).toEqual({ kick: 0, keepy: 0, pens: 0, keeper: 0, dribble: 0 })
     expect(setLineup(upgraded, '2-2', [null, null, null, null, null], []).formation).toBe('2-2')
   })
 
@@ -119,5 +120,35 @@ describe('upgradeState', () => {
     expect(upgraded.energy).toEqual({ fullAt: 0 })
     // A club already on the new shape is left as it is.
     expect(upgradeState(upgraded, config)).toEqual(upgraded)
+  })
+
+  it('drops the games taken out of the arcade: their bests, and a play of one left unfinished', () => {
+    const fresh = newClubState(T0, config)
+    const old = {
+      ...fresh,
+      arcade: { best: { kick: 12, keepy: 5, pens: 0, keeper: 7, pass: 4, dribble: 20, targets: 9, cones: 3 } },
+      ticket: { id: '4', kind: 'cones', seed: 'club:cones:4', issuedAt: T0, paid: false },
+      ticketsIssued: 4,
+    } as never
+    const upgraded = upgradeState(old, config)
+    expect(upgraded.arcade.best).toEqual({ kick: 12, keepy: 5, pens: 0, keeper: 7, dribble: 20 })
+    expect(upgraded.ticket).toBeNull()
+    expect(upgraded.ticketsIssued).toBe(4)
+    expect(upgradeState(upgraded, config)).toEqual(upgraded)
+    // A play of a game still in the arcade is kept.
+    const kick = { ...fresh, ticket: { id: '5', kind: 'kick', seed: 'club:kick:5', issuedAt: T0, paid: false } } as never
+    expect(upgradeState(kick, config).ticket).toMatchObject({ kind: 'kick' })
+  })
+
+  it('drops a warm-up left unfinished from when it was a timing bar, and gives the match its try back', () => {
+    const fresh = newClubState(T0, config)
+    const old = { ...fresh, warmupTriedFor: fresh.league.fixtureNo, ticket: { id: '2', kind: 'warmup', seed: 'club:warmup:2', issuedAt: T0, paid: false } } as never
+    const upgraded = upgradeState(old, config)
+    expect(upgraded.ticket).toBeNull()
+    expect(upgraded.warmupTriedFor).toBe(-1)
+    // A warm-up of an arcade game is kept, and so is a try already used.
+    const current = { ...fresh, warmupTriedFor: fresh.league.fixtureNo, ticket: { id: '3', kind: 'warmup', cabinet: 'keepy', seed: 'club:warmup:3', issuedAt: T0, paid: false } } as never
+    expect(upgradeState(current, config)).toMatchObject({ ticket: { kind: 'warmup', cabinet: 'keepy' }, warmupTriedFor: fresh.league.fixtureNo })
+    expect(upgradeState({ ...fresh, warmupTriedFor: fresh.league.fixtureNo } as never, config).warmupTriedFor).toBe(fresh.league.fixtureNo)
   })
 })

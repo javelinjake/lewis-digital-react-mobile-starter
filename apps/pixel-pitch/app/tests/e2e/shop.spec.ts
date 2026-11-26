@@ -23,7 +23,7 @@ test.describe('Shop @shop', () => {
     await page.getByRole('link', { name: /Star Signing is waiting/ }).click()
     await expect(page.getByRole('button', { name: 'Sign' })).toHaveCount(3)
     await page.getByRole('button', { name: 'Sign' }).first().click()
-    await expect(page.getByRole('heading', { name: 'Squad (6)' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Players (6)' })).toBeVisible()
   })
 
   test('gems buy a new kit, worn at once', async ({ page }) => {

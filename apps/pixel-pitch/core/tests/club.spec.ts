@@ -3,7 +3,8 @@ import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
 import { clubNotificationTimes, DEFAULT_CONFIG, generateCatalogue, isGameRuleError, lineupForMatch, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, trainInClub } from '../src'
 
-const config = DEFAULT_CONFIG
+// Matches the full interval apart from the start; the quick opening has its own tests.
+const config = { ...DEFAULT_CONFIG, league: { ...DEFAULT_CONFIG.league, openingGapsMinutes: [] }, shelf: { ...DEFAULT_CONFIG.shelf, intervalMinutes: 45, capacity: 10, capacityWithPass: 16, extraPacksPerDay: 3 } }
 const HOUR = 60 * 60 * 1000
 const T0 = Date.UTC(2026, 10, 8, 12)
 
@@ -98,7 +99,7 @@ describe('syncClub', () => {
   })
 
   it('reports a promotion in the summary', () => {
-    const club = { ...ready(), league: { ...ready().league, points: 29 } }
+    const club = { ...ready(), league: { ...ready().league, points: 49 } }
     const result = sync(club, T0 + 3 * HOUR)
     expect(result.events.find(event => event.type === 'matches')).toMatchObject({ promotedTo: 2 })
   })

@@ -53,9 +53,11 @@ describe('formations', () => {
     expect(goals('3-1')).toBeLessThan(0.5)
   })
 
-  it('are balanced: every formation averages 2 points a match against the field', () => {
+  it('are balanced: every formation wins as often as it loses against the field', () => {
+    // Scored 3, 2 and 1, a side that wins as often as it loses averages exactly 2.
+    const even = { ...config, league: { ...config.league, winPoints: 3, drawPoints: 2, lossPoints: 1 } }
     for (const ours of FORMATION_IDS) {
-      const average = FORMATION_IDS.reduce((sum, theirs) => sum + points(side(ours), side(theirs)), 0) / FORMATION_IDS.length
+      const average = FORMATION_IDS.reduce((sum, theirs) => sum + expectedPoints(matchOdds(side(ours), side(theirs), even), even), 0) / FORMATION_IDS.length
       expect(Math.abs(average - 2)).toBeLessThan(0.05)
     }
   })

@@ -31,6 +31,8 @@ export default createViteConfig({
         orientation: appMeta.orientation,
         // Pixel art, so the icons are made by art:build (nearest-neighbour), not resampled by the PWA generator.
         iconSource: false,
+        // The sound effects, so the game sounds the same offline.
+        extraGlobPatterns: ['**/*.m4a'],
         icons: [
           { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },

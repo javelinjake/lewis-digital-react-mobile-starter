@@ -1,7 +1,8 @@
 import type { RoundKind } from '@ld/pixel-pitch-core'
 import { kickPoints, kickRounds, markerAt, targetAt } from '@ld/pixel-pitch-core'
 import { useMemo, useRef, useState } from 'react'
-import { useGameConfig } from '../queries/use-game'
+import { play } from '@/lib/sound/sound'
+import { usePlayConfig } from '../queries/use-play-config'
 import { TimingBar } from './TimingBar'
 
 const VERDICT = ['Miss', 'Close', 'Good', 'Perfect!']
@@ -12,12 +13,12 @@ const MIN_TAP_MS = 150
 const FEEDBACK_MS = 800
 
 /**
- * Kick Timer: five kicks. Stop the marker in the target. A round can be fast, have a small target or a moving one, and
+ * Kick Timer: five kicks. Stop the ball in the target. A round can be fast, have a small target or a moving one, and
  * a kick right after a perfect one counts double. Scored by the server from the milliseconds each tap came after its
  * round began, with the game's seed; what the player sees here is only the same maths, run early.
  */
 export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (taps: number[]) => void }) {
-  const config = useGameConfig()
+  const config = usePlayConfig()
   const rounds = useMemo(() => kickRounds(seed, config), [seed, config])
   const { perfect, good, ok } = config.minigames.kick
   const [round, setRound] = useState(0)
@@ -38,12 +39,14 @@ export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (tap
     const bar = rounds[round]
     const points = kickPoints(Math.abs(markerAt(bar, ms) - targetAt(bar, ms)), config, bar.zone)
     taps.current.push(ms)
+    play(points === 3 ? 'perfect' : points > 0 ? 'kick' : 'error', 0.8)
     setVerdict(points)
     setDoubled(hot)
     setTotal(current => current + (hot ? points * 2 : points))
     setHot(points === 3)
     setTimeout(() => {
-      if (round + 1 < rounds.length) {
+      // Endless (the daily challenge): the first miss ends it.
+      if (!(config.minigames.endless && points === 0) && round + 1 < rounds.length) {
         startedAt.current = performance.now()
         setRound(round + 1)
         setVerdict(null)
@@ -57,7 +60,7 @@ export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (tap
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex w-full items-baseline justify-between">
-        <span>{`Kick ${round + 1} of ${rounds.length}${round === rounds.length - 1 ? ' · last' : ''}`}</span>
+        <span>{config.minigames.endless ? `Kick ${round + 1} · until you miss` : `Kick ${round + 1} of ${rounds.length}${round === rounds.length - 1 ? ' · last' : ''}`}</span>
         <span className="font-display text-xs text-primary tabular-nums">{`${total} pts`}</span>
       </div>
       <TimingBar
@@ -76,7 +79,7 @@ export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (tap
           : <span className="font-display text-sm text-primary">{`${VERDICT[verdict]}${doubled && verdict > 0 ? ' ×2' : ''}`}</span>}
       </div>
       <button type="button" className="btn btn-primary h-20 w-full font-display text-lg" onPointerDown={kick} disabled={verdict !== null}>KICK!</button>
-      <span className="text-muted">Tap when the marker is in the yellow.</span>
+      <span className="text-muted">Tap when the ball is in the yellow.</span>
     </div>
   )
 }

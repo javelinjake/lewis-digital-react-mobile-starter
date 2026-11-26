@@ -4,12 +4,15 @@ import { createAppBackend } from '@ld/backend'
 import { buildConfig } from 'payload'
 import { appMeta } from '../app/app.meta'
 import { arcadeActions } from './cms/actions/arcade'
+import { challengeActions } from './cms/actions/challenge'
 import { duplicateNoteAction } from './cms/actions/duplicate-note'
 import { gameActions } from './cms/actions/game'
+import { momentActions } from './cms/actions/moments'
 import { packActions } from './cms/actions/packs'
 import { rewardActions } from './cms/actions/rewards'
 import { grantPurchase, shopActions } from './cms/actions/shop'
 import { cardsCollection } from './cms/collections/cards'
+import { challengeEntriesCollection } from './cms/collections/challenge-entries'
 import { clubsCollection } from './cms/collections/clubs'
 import { fixturesCollection } from './cms/collections/fixtures'
 import { ledgerCollection } from './cms/collections/ledger'
@@ -28,9 +31,9 @@ export default buildConfig(createAppBackend({
   importMapBaseDir: root,
   auth: { ...appMeta.auth, requireEmailVerification: true },
   guestLink: keepAccountClub,
-  collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, notesCollection],
+  collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, challengeEntriesCollection, notesCollection],
   globals: [gameConfigGlobal],
-  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, ...shopActions, duplicateNoteAction],
+  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, ...momentActions, ...challengeActions, ...shopActions, duplicateNoteAction],
   // A store purchase is paid into the club when RevenueCat reports it (see `grantPurchase`).
   purchases: { onEvent: grantPurchase },
   adminMeta: { titleSuffix: `· ${appMeta.name} admin` },

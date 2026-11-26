@@ -17,8 +17,9 @@ function game(later = 0, patch: (state: typeof founded.state) => typeof founded.
 describe('what is ready now', () => {
   it('lists the calendar and the free pack for a new club, its starter packs, and the arcade energy to spend', () => {
     const items = readyItems(game(), config, catalogue)
-    expect(items.map(item => item.id)).toEqual(['calendar', 'freePack', 'packs', 'arcade'])
-    expect(claimCount(items)).toBe(2)
+    expect(items.map(item => item.id)).toEqual(['freePack', 'calendar', 'packs', 'arcade'])
+    // The free pack is a claim; the login streak's day is claimed on Goals.
+    expect(claimCount(items)).toBe(1)
     expect(items.find(item => item.id === 'arcade')!.label).toBe('Arcade: 5 energy to spend')
   })
 

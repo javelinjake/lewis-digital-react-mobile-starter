@@ -1,6 +1,6 @@
 import type { ClubIdentity, ClubState, FlowContext, OwnedCard } from '../src'
 import { describe, expect, it } from 'vitest'
-import { applyPurchase, BASE_KITS, buyBenchSlots, buyKit, canBuy, changeIdentity, chooseSigning, closeSeason, DEFAULT_CONFIG, energyAt, foundClub, generateCatalogue, isGameRuleError, newClubState, parseConfig, passActive, rollDaily, rollSeason, seasonOf, signingOffer, spendEnergy, startWarmup, syncClub, tierRating, upgradeState, retryWarmup, refillEnergy } from '../src'
+import { applyPurchase, BASE_KITS, buyBenchSlots, buyKit, canBuy, changeIdentity, chooseSigning, closeSeason, DEFAULT_CONFIG, energyAt, foundClub, generateCatalogue, isGameRuleError, newClubState, parseConfig, passActive, rollDaily, rollSeason, seasonOf, signingOffer, spendEnergy, startWarmup, syncClub, tierRating, upgradeState, retryWarmup, refillEnergy, promotionGate } from '../src'
 
 const config = DEFAULT_CONFIG
 const HOUR = 60 * 60 * 1000
@@ -208,7 +208,7 @@ describe('promotion and the ladder', () => {
   it('pays gems and a Star pack on promotion', () => {
     const club = foundClub({ clubId: 'club-1', now: T0, config, catalogue, players })
     const cards = club.cards.map((card, index) => ({ ...card, id: String(index + 1) }))
-    const state = { ...club.state, lineup: club.state.lineup.map(id => (id ? String(Number(id.slice(4)) + 1) : null)), league: { ...club.state.league, points: 29 } }
+    const state = { ...club.state, lineup: club.state.lineup.map(id => (id ? String(Number(id.slice(4)) + 1) : null)), league: { ...club.state.league, points: promotionGate(1, config) } }
     const synced = syncClub({ state, cards, players, clubId: 'club-1', config, now: state.league.nextKickoffAt })
     const promotion = synced.events.find(event => event.type === 'promotion')
     expect(promotion).toEqual({ type: 'promotion', tier: 2, rewards: config.league.promotionRewards })
@@ -217,9 +217,10 @@ describe('promotion and the ladder', () => {
   })
 
   it('grows rivals more slowly past League 1 and never past the cap', () => {
-    expect(tierRating(5, config)).toBe(80)
-    expect(tierRating(6, config)).toBe(82)
-    expect(tierRating(12, config)).toBe(94)
+    const { rivalBaseRating, rivalStep, rivalPrestigeStep } = config.league
+    expect(tierRating(5, config)).toBe(rivalBaseRating + 4 * rivalStep)
+    expect(tierRating(6, config) - tierRating(5, config)).toBe(rivalPrestigeStep)
+    expect(rivalPrestigeStep).toBeLessThan(rivalStep)
     expect(tierRating(50, config)).toBe(config.league.rivalMaxRating)
   })
 })

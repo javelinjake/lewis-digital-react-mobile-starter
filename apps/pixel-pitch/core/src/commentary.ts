@@ -188,6 +188,19 @@ export function commentate(input: CommentaryInput): MatchMoment[] {
     const slot = attackers.includes(event.slot) ? event.slot : attackers[0]
     const vars = varsFor(side, slot)
 
+    // A moment the player played themselves: told as it happened, not drawn from the usual lines.
+    if (event.chance === 'save') {
+      add(event.minute, 'save', side, fill('{p} is clean through for {team}. One on one.', vars), fill('Saved! {own} gets down to it and the goal is kept out.', { ...vars, own: keeper(other(side)) }))
+      continue
+    }
+    if (event.chance && event.kind === 'goal') {
+      score = side === 'for' ? [score[0] + 1, score[1]] : [score[0], score[1] + 1]
+      const setup = event.chance === 'penalty' ? 'Penalty to {team}! {p} places the ball on the spot.' : 'Free kick to {team}, just outside the box. {p} stands over it.'
+      const finish = event.chance === 'penalty' ? 'Sent the keeper the wrong way. Scored!' : 'Over the wall and in. What a strike!'
+      add(event.minute, 'goal', side, fill(setup, vars), `${fill(finish, vars)} (${scoreText(score[0], score[1])})`)
+      continue
+    }
+
     if (event.kind === 'save') {
       const play = SAVES[rng.pick(Object.keys(SAVES) as SaveType[])]
       add(event.minute, 'save', side, fill(choose(play.setup), vars), fill(choose(play.outcome), vars))

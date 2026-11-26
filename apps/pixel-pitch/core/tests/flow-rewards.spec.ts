@@ -87,7 +87,7 @@ describe('the daily free pack', () => {
 })
 
 describe('the login calendar', () => {
-  it('pays the next reward for each day in a row, ending in a Star pack on day 7', () => {
+  it('pays the next reward for each day in a row, ending in three Star packs on day 7', () => {
     let ctx = context()
     for (let day = 1; day <= 7; day++) {
       ctx = { ...ctx, now: T0 + (day - 1) * DAY }
@@ -95,8 +95,8 @@ describe('the login calendar', () => {
       expect(claimed.extra).toMatchObject({ day, reward: config.calendar.rewards[day - 1] })
       ctx = { ...ctx, state: claimed.state }
     }
-    expect(ctx.state.starPacks).toBe(1)
-    expect(config.calendar.rewards[6].kind).toBe('starPacks')
+    expect(ctx.state.starPacks).toBe(3)
+    expect(config.calendar.rewards[6]).toEqual({ kind: 'starPacks', amount: 3 })
   })
 
   it('can be claimed once a day, keeps its place after a missed day, and starts again after day 7', () => {
@@ -105,6 +105,7 @@ describe('the login calendar', () => {
     expect(code(() => claimCalendar(ctx))).toBe('claimed')
     expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 1)).toBe(4)
     expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 2)).toBe(4)
+    expect(nextCalendarDay({ streak: 3, lastClaimDay: day0 }, day0 + 20)).toBe(4)
     expect(nextCalendarDay({ streak: 7, lastClaimDay: day0 }, day0 + 1)).toBe(1)
     expect(nextCalendarDay({ streak: 2, lastClaimDay: day0 }, day0)).toBeNull()
     expect(claimCalendar({ ...ctx, now: T0 + 3 * DAY }).extra!.day).toBe(2)
@@ -114,7 +115,7 @@ describe('the login calendar', () => {
 describe('the League Pass', () => {
   const withXp = (xp: number, hasPass = false) => context(state => ({ ...state, pass: { ...state.pass, xp }, idle: { ...state.idle, hasPass } }))
 
-  it('has 30 tiers, 100 XP each, and the free track pays 15 of them, ending in a Star pack', () => {
+  it('has 30 tiers, 100 XP each, and the free track pays every second one, ending in a Star pack', () => {
     expect(config.pass.premium).toHaveLength(30)
     expect(config.pass.free).toHaveLength(30)
     expect(config.pass.free.filter(Boolean)).toHaveLength(15)
@@ -138,8 +139,9 @@ describe('the League Pass', () => {
     const done = claimPassTier(ctx, 'free', tierWithReward)
     expect(done.extra!.reward).toEqual(config.pass.free[tierWithReward - 1])
     expect(code(() => claimPassTier({ ...ctx, state: done.state }, 'free', tierWithReward))).toBe('claimed')
-    const empty = config.pass.free.findIndex(reward => reward === null) + 1
-    expect(code(() => claimPassTier(withXp(3000), 'free', empty))).toBe('no-reward')
+    // A tier with nothing on it (an admin can set one to null) cannot be claimed.
+    const gap = { ...config, pass: { ...config.pass, free: config.pass.free.map((reward, index) => (index === 0 ? null : reward)) } }
+    expect(code(() => claimPassTier({ ...withXp(3000), config: gap }, 'free', 1))).toBe('no-reward')
   })
 
   it('keeps the premium track for the League Pass, which unlocks every tier already reached', () => {
@@ -187,15 +189,15 @@ describe('rewards', () => {
 describe('the album', () => {
   const sets = albumSets(catalogue, config)
 
-  it('has sets of six players, each of one nation and one position, no player in two', () => {
+  it('has sets of six players, each of one nation (or the Internationals), no player in two', () => {
     expect(sets.length).toBeGreaterThan(20)
     const seen = new Set<string>()
     for (const set of sets) {
       expect(set.playerIds).toHaveLength(6)
       for (const id of set.playerIds) {
         const player = byId.get(id)!
-        expect(player.nation).toBe(set.nation)
-        expect(player.position).toBe(set.position)
+        if (set.nation >= 0)
+          expect(player.nation).toBe(set.nation)
         expect(seen.has(id)).toBe(false)
         seen.add(id)
       }
@@ -203,8 +205,8 @@ describe('the album', () => {
     expect(new Set(sets.map(set => set.id)).size).toBe(sets.length)
   })
 
-  it('mixes the top and the bottom of a group in every set, so no set is all legends', () => {
-    const spread = sets.map((set) => {
+  it('mixes the top and the bottom of a nation in every nation set, so no set is all legends', () => {
+    const spread = sets.filter(set => set.nation >= 0).map((set) => {
       const ratings = set.playerIds.map(id => byId.get(id)!.rating)
       return Math.max(...ratings) - Math.min(...ratings)
     })

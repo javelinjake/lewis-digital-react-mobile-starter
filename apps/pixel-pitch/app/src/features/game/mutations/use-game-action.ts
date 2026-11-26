@@ -25,7 +25,7 @@ export function useGameAction<Input, Output extends GameResponse = GameResponse>
     },
     onSuccess: (response) => {
       client.setQueryData(gameKeys.club(), response)
-      if (response.fixtures.length > 0)
+      if (response.fixtures.length > 0 || response.changedFixtures)
         void client.invalidateQueries({ queryKey: gameKeys.fixtures() })
     },
   })

@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { challengeSchema, DEFAULT_CHALLENGE, DEFAULT_MASTERY, masterySchema, momentsSchema, prestigeSchema } from './config-features'
+import { DEFAULT_MINIGAMES, minigamesSchema } from './config-minigames'
+
 
 const byRarity = <T extends z.ZodType>(value: T) => z.object({ grassroots: value, semipro: value, pro: value, star: value, legend: value })
 
@@ -16,7 +19,7 @@ import { cosmeticsSchema, DEFAULT_COSMETICS, DEFAULT_SHOP, shopSchema } from './
 
 export { REWARD_KINDS, type Reward, rewardSchema } from './config-rewards'
 
-export const GOAL_KINDS = ['openPacks', 'winMatches', 'playCabinets', 'trainPlayers', 'signPlayers', 'collectStadium'] as const
+export const GOAL_KINDS = ['openPacks', 'winMatches', 'playCabinets', 'trainPlayers', 'signPlayers', 'collectStadium', 'playChances', 'playChallenge', 'earnMedals'] as const
 export type GoalKind = (typeof GOAL_KINDS)[number]
 
 const goalSchema = z.object({
@@ -74,75 +77,19 @@ export const gameConfigSchema = z.object({
     gemPlayCoins: count,
   }),
 
-  /** Tuning of the arcade games and the warm-up kick. PLACEHOLDERS: balance in the first playtest. */
-  minigames: z.object({
-    /** A tap sooner than this after the last one is not a person. */
-    minTapGapMs: positive,
-    /** The server's clock must have run at least this fraction of the play's own length (leaves room for latency). */
-    clockSlack: z.number().min(0.5).max(1),
-    kick: z.object({
-      rounds: z.number().int().positive(),
-      /** Bar crossings a second, per round: between these two. */
-      minSpeed: positive,
-      maxSpeed: positive,
-      /** Half-widths of the scoring zones, as a fraction of the bar: 3, 2 and 1 point. */
-      perfect: positive,
-      good: positive,
-      ok: positive,
-      /** A fast round: the marker is this many times quicker. */
-      fastFactor: positive.default(1.4),
-      /** A narrow round: the zones are this fraction of their usual width. */
-      narrowZone: positive.default(0.6),
-      /** A moving round: the target swings this far either side of its middle, as a fraction of the bar. */
-      drift: z.number().min(0).max(0.3).default(0.14),
-    }),
-    /** Penalty Shootout: five penalties, an aim sweeping across the goal and a keeper shuffling along the line. */
-    pens: z.object({
-      rounds: z.number().int().positive(),
-      aimMinSpeed: positive,
-      aimMaxSpeed: positive,
-      keeperMinSpeed: positive,
-      keeperMaxSpeed: positive,
-      /** The posts: an aim closer to the edge than this (a fraction of the width) is wide. */
-      post: z.number().min(0).max(0.3),
-      /** An aim this close to a post is in the corner, worth 2. */
-      corner: z.number().min(0).max(0.5),
-      /** The keeper saves anything within this of where they stand. */
-      reach: positive,
-    }).default({ rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 }),
-    keepy: z.object({
-      /** Gravity at the start, in pitch units a second squared; the ball is 100 units from the ground up to the top. */
-      gravity: positive,
-      /** How much harder it gets with each kick: gravity grows by this fraction. */
-      ramp: z.number().nonnegative(),
-      /** A kick lands the ball between these heights. */
-      minPeak: positive,
-      maxPeak: positive,
-      /** The foot reaches the ball when it is this low and falling. */
-      reach: positive,
-      /** After a badly timed tap the player cannot kick for this many 60 Hz steps. */
-      stumbleSteps: z.number().int().nonnegative(),
-      /** The game ends at this many kicks. */
-      maxKicks: z.number().int().positive(),
-      /** And at this many seconds, whatever the score: a play is short. */
-      maxSeconds: positive.default(30),
-      /** Every this-many-th kick is a golden ball and counts double. */
-      goldenEvery: z.number().int().positive().default(10),
-    }),
-    warmup: z.object({
-      minSpeed: positive,
-      maxSpeed: positive,
-      /** Widths of the gold and green zones, as a fraction of the bar. */
-      goldWidth: positive,
-      greenWidth: positive,
-    }),
-  }),
+  /** Tuning of the arcade games and the warm-up. PLACEHOLDERS: balance in the first playtest. */
+  minigames: minigamesSchema,
 
   league: z.object({
     matchIntervalHours: positive,
     teams: z.number().int().min(2),
-    pointsToPromote: z.number().int().positive(),
-    /** Points and coins for every result, so a loss still pays. */
+    /**
+     * Points to go up from each tier, League 5 first. Each promotion is harder than the last. Past the end of the list
+     * (the Prestige tiers) each gate is `prestigeGateStep` more than the one before. Defaults keep an older config valid.
+     */
+    promotionPoints: z.array(z.number().int().positive()).min(1).default([50, 65, 80, 100, 125]),
+    prestigeGateStep: count.default(20),
+    /** Points for each result (a loss pays none), and coins for every result, so a losing club still grows. */
     winPoints: count,
     drawPoints: count,
     lossPoints: count,
@@ -157,6 +104,12 @@ export const gameConfigSchema = z.object({
     rivalSpread: count,
     /** Fixtures simulated per catch-up at most. A player gone for longer misses the oldest ones. */
     maxCatchUpMatches: z.number().int().positive(),
+    /**
+     * A quick start: minutes before each of the first league matches (the first number is from founding the club to
+     * match 1, the next from match 1 to match 2, and so on). After these, matches are `matchIntervalHours` apart.
+     * PLACEHOLDER. Empty keeps every gap at the full interval. Defaults keep an older saved config valid.
+     */
+    openingGapsMinutes: z.array(positive).default([]),
     /** Past League 1 (the Prestige tiers) rivals grow by this much a tier instead of `rivalStep`, up to `rivalMaxRating`. */
     rivalPrestigeStep: count.default(2),
     rivalMaxRating: positive.default(95),
@@ -165,6 +118,22 @@ export const gameConfigSchema = z.object({
     /** Paid on every promotion. */
     promotionRewards: z.array(rewardSchema).default([{ kind: 'gems', amount: 50 }, { kind: 'starPacks', amount: 1 }]),
   }),
+
+  /** Friendlies the player starts whenever they like: coins for the first few each day, no league points, no Pass XP. */
+  friendly: z.object({
+    winCoins: count,
+    drawCoins: count,
+    lossCoins: count,
+    /** Friendlies a day that pay coins. */
+    paidPerDay: count,
+    /** Friendlies a day in all. PLACEHOLDER. */
+    maxPerDay: count.default(5),
+  }).default({ winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5, maxPerDay: 5 }),
+
+  prestige: prestigeSchema,
+  mastery: masterySchema,
+  challenge: challengeSchema,
+  moments: momentsSchema,
 
   match: z.object({
     /**
@@ -186,7 +155,7 @@ export const gameConfigSchema = z.object({
       /** Colour moments with no effect on the score, at most this many a match. */
       incidents: z.number().int().min(0).max(5),
     }).default({ maxMoments: 6, minChances: 4, incidents: 2 }),
-    /** Pre-match kick: how much of the team's ATT the next match gets. */
+    /** The warm-up: how much of the team's ATT the next match gets, for a gold, a green or a missed warm-up (see `minigames.warmup`). */
     warmupGold: z.number().min(0).max(0.5),
     warmupGreen: z.number().min(0).max(0.5),
     warmupMiss: z.number().min(0).max(0.5),
@@ -201,8 +170,13 @@ export const gameConfigSchema = z.object({
   }),
 
   cards: z.object({
-    /** How many of the 200 catalogue players are of each rarity. */
+    /** How many players of each rarity `generateCatalogue` makes. Only for building a new set: the live set is fixed data. */
     catalogueCounts: byRarity(count),
+    /**
+     * Catalogue ids taken out of packs and the album. Cards already owned keep working. The defaults bring the launch
+     * set of 200 to 180: 60 Grassroots, 50 Semi-Pro, 40 Pro, 22 Star, 8 Legend.
+     */
+    retired: z.array(z.string()).default([]),
     /** Rating range per rarity, both ends included. */
     ratingBands: byRarity(z.tuple([z.number().int(), z.number().int()])),
     /** Coins for selling a one-star card of this rarity. Higher stars are worth the cards merged into them. */
@@ -259,7 +233,7 @@ export const gameConfigSchema = z.object({
     duplicateGems: count.default(500),
     xpPerTier: positive,
     /** Pass XP from each thing. A win pays `match` + `win`. */
-    xp: z.object({ match: count, win: count, pack: count, cabinet: count, goal: count }),
+    xp: z.object({ match: count, win: count, pack: count, cabinet: count, goal: count, challenge: count.default(10), medal: count.default(5) }),
     /** One entry per tier: the free reward (or null) and the premium reward. 30 tiers. */
     free: z.array(rewardSchema.nullable()),
     premium: z.array(rewardSchema),
@@ -310,14 +284,14 @@ function passTiers() {
 }
 
 export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
-  version: 5,
+  version: 7,
   shelf: {
-    intervalMinutes: 45,
-    capacity: 10,
-    capacityWithPass: 16,
+    intervalMinutes: 240,
+    capacity: 3,
+    capacityWithPass: 5,
     playersPerPack: 3,
     extraPackCoins: 2000,
-    extraPacksPerDay: 3,
+    extraPacksPerDay: 1,
   },
   stadium: {
     coinsPerHour: [60, 90, 130, 180, 240, 310, 390, 480, 580, 700],
@@ -331,7 +305,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     trayCapHoursWithPass: 12,
     energy: { max: 5, maxWithPass: 6, regenMinutes: 90 },
     hotBonus: 0.5,
-    arcadePackTokens: 300,
+    arcadePackTokens: 450,
     playMaxTokens: 60,
     gemPlayCost: 20,
     gemPlayCoins: 300,
@@ -339,18 +313,29 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   league: {
     matchIntervalHours: 3,
     teams: 6,
-    pointsToPromote: 30,
+    // Set with the pacing simulation: an idle-only player reaches League 1 in about 26 days, an engaged and skilled
+    // one in about 17.
+    promotionPoints: [50, 65, 80, 100, 125],
+    prestigeGateStep: 20,
     winPoints: 3,
-    drawPoints: 2,
-    lossPoints: 1,
+    drawPoints: 1,
+    lossPoints: 0,
     lossCoins: 250,
     winCoins: 600,
     drawCoins: 400,
     rivalBaseRating: 52,
-    rivalStep: 7,
+    rivalStep: 9,
     rivalSpread: 4,
     maxCatchUpMatches: 56,
+    // The first match comes 5 minutes after founding, then the quick opening's gaps.
+    firstMatchMinutes: 5,
+    openingGapsMinutes: [5, 8, 10, 12, 15],
   },
+  friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5, maxPerDay: 5 },
+  moments: { bank: 5, liveWindowMinutes: 5, decideSeconds: 10, freeKickPoints: 2 },
+  prestige: { coinBonusPerTier: 0.02 },
+  mastery: DEFAULT_MASTERY,
+  challenge: DEFAULT_CHALLENGE,
   match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.
@@ -377,6 +362,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     mergeBonus: 6,
     maxStars: 5,
     benchSize: 20,
+    retired: ['p062', 'p064', 'p070', 'p078', 'p091', 'p094', 'p100', 'p105', 'p108', 'p115', 'p121', 'p145', 'p153', 'p154', 'p159', 'p168', 'p185', 'p190', 'p192', 'p198'],
   },
   packs: {
     // League 5 and League 1 are the spec's. The three between are straight-line steps: PLACEHOLDER.
@@ -391,14 +377,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     positionBoost: 2,
   },
   onboarding: { starterPositions: ['FWD', 'FWD', 'DEF', 'DEF', 'GK'], starterPros: 1 },
-  minigames: {
-    minTapGapMs: 120,
-    clockSlack: 0.85,
-    kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14 },
-    pens: { rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 },
-    keepy: { gravity: 110, ramp: 0.18, minPeak: 40, maxPeak: 54, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10 },
-    warmup: { minSpeed: 1.1, maxSpeed: 1.9, goldWidth: 0.1, greenWidth: 0.3 },
-  },
+  minigames: DEFAULT_MINIGAMES,
   daily: {
     gems: 15,
     gemsWithPass: 35,
@@ -412,6 +391,9 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
       { id: 'train', kind: 'trainPlayers', target: 1, reward: { kind: 'coins', amount: 400 }, label: 'Train {n} player' },
       { id: 'sign', kind: 'signPlayers', target: 3, reward: { kind: 'coins', amount: 500 }, label: 'Sign {n} players' },
       { id: 'stadium', kind: 'collectStadium', target: 1, reward: { kind: 'coins', amount: 300 }, label: 'Collect the stadium coins' },
+      { id: 'chance', kind: 'playChances', target: 1, reward: { kind: 'coins', amount: 400 }, label: 'Take {n} Big Chance or live moment' },
+      { id: 'challenge', kind: 'playChallenge', target: 1, reward: { kind: 'tokens', amount: 60 }, label: 'Play the daily challenge' },
+      { id: 'medal', kind: 'earnMedals', target: 1, reward: { kind: 'gems', amount: 10 }, label: 'Earn {n} arcade medal' },
     ],
   },
   calendar: {
@@ -422,13 +404,14 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
       { kind: 'coins', amount: 1500 },
       { kind: 'tokens', amount: 100 },
       { kind: 'gems', amount: 25 },
-      { kind: 'starPacks', amount: 1 },
+      // Day 7 is worth more than a normal day's packs.
+      { kind: 'starPacks', amount: 3 },
     ],
   },
   pass: {
     seasonDays: 28,
     xpPerTier: 100,
-    xp: { match: 2, win: 1, pack: 2, cabinet: 3, goal: 20 },
+    xp: { match: 2, win: 1, pack: 2, cabinet: 3, goal: 20, challenge: 10, medal: 5 },
     ...passTiers(),
   },
   album: { setSize: 6, bonusPerSet: 0.01, reward: { kind: 'packs', amount: 1 } },
@@ -469,9 +452,13 @@ export function parseConfig(raw: unknown): GameConfig {
     throw new Error('daily.goals has two goals with the same id.')
   if (new Set(config.daily.goals.map(goal => goal.kind)).size < config.daily.goalsPerDay)
     throw new Error('daily.goals needs at least as many different kinds as goalsPerDay.')
-  const { kick, keepy, warmup } = config.minigames
-  if (kick.minSpeed > kick.maxSpeed || warmup.minSpeed > warmup.maxSpeed || keepy.minPeak > keepy.maxPeak)
+  const { kick, keepy, warmup, keeper, dribble } = config.minigames
+  if (kick.minSpeed > kick.maxSpeed || warmup.green > warmup.gold || keepy.minPeak > keepy.maxPeak || keeper.minDelayMs > keeper.maxDelayMs || dribble.tackleFrom > dribble.tackleTo)
     throw new Error('A minigames range has its low end above its high end.')
+  for (const [cabinet, shares] of Object.entries(config.mastery.shares)) {
+    if (!(shares[0] <= shares[1] && shares[1] <= shares[2]))
+      throw new Error(`mastery.shares.${cabinet} must rise from bronze to gold.`)
+  }
   const pairs = new Set<string>()
   for (const edge of config.formations.edges) {
     if (edge.formation === edge.over)

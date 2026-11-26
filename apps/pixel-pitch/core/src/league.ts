@@ -23,8 +23,54 @@ export interface LeagueState {
   tierStartNo?: number
 }
 
+/**
+ * The time before league match `no` (counting from 0), from the one before it or, for the first, from founding the
+ * club. The first few are minutes apart (`openingGapsMinutes`), so a new player sees the league move; then the full
+ * interval.
+ */
+export function gapBefore(no: number, config: GameConfig): number {
+  const opening = config.league.openingGapsMinutes
+  return no < opening.length ? opening[no] * 60_000 : config.league.matchIntervalHours * HOUR
+}
+
 export function newLeagueState(now: number, config: GameConfig): LeagueState {
-  return { tier: 1, points: 0, fixtureNo: 0, nextKickoffAt: now + config.league.matchIntervalHours * HOUR, warmupBonus: 0, tierStartNo: 0 }
+  return { tier: 1, points: 0, fixtureNo: 0, nextKickoffAt: now + gapBefore(0, config), warmupBonus: 0, tierStartNo: 0 }
+}
+
+/** How many league matches are due by `now`, counting the one at `nextKickoffAt`. */
+function dueCount(league: LeagueState, now: number, config: GameConfig): number {
+  let due = 0
+  let no = league.fixtureNo
+  let at = league.nextKickoffAt
+  // The opening gaps one at a time; there are only a few.
+  while (at <= now && no + 1 < config.league.openingGapsMinutes.length) {
+    due += 1
+    no += 1
+    at += gapBefore(no, config)
+  }
+  if (at <= now)
+    due += Math.floor((now - at) / (config.league.matchIntervalHours * HOUR)) + 1
+  return due
+}
+
+/** Moves the schedule on `count` matches without playing them: the number and the next kick-off. */
+function skipMatches(league: LeagueState, count: number, config: GameConfig): LeagueState {
+  let no = league.fixtureNo
+  let at = league.nextKickoffAt
+  let left = count
+  while (left > 0 && no + 1 < config.league.openingGapsMinutes.length) {
+    no += 1
+    at += gapBefore(no, config)
+    left -= 1
+  }
+  return { ...league, fixtureNo: no + left, nextKickoffAt: at + left * config.league.matchIntervalHours * HOUR }
+}
+
+/** Points needed to go up from `tier`. Each league asks more than the last; the Prestige tiers keep climbing. */
+export function promotionGate(tier: number, config: GameConfig): number {
+  const gates = config.league.promotionPoints
+  const index = Math.max(1, tier) - 1
+  return index < gates.length ? gates[index] : gates[gates.length - 1] + (index - gates.length + 1) * config.league.prestigeGateStep
 }
 
 export type LeagueLabel = { kind: 'league', league: number } | { kind: 'prestige', level: number }
@@ -47,6 +93,14 @@ export function tierRating(tier: number, config: GameConfig): number {
   const leagues = Math.min(at, LAST_LEAGUE_TIER) - 1
   const prestige = Math.max(0, at - LAST_LEAGUE_TIER)
   return Math.min(rivalMaxRating, rivalBaseRating + leagues * rivalStep + prestige * rivalPrestigeStep)
+}
+
+/** Prestige tiers reached: 0 until the club goes up from League 1. */
+export const prestigeLevel = (tier: number) => Math.max(0, tier - LAST_LEAGUE_TIER)
+
+/** Coins with the club's Prestige bonus: +2% for each Prestige tier reached, by default. */
+export function withPrestige(coins: number, tier: number, config: GameConfig): number {
+  return Math.round(coins * (1 + prestigeLevel(tier) * config.prestige.coinBonusPerTier))
 }
 
 export interface Rival {
@@ -139,28 +193,27 @@ export interface CatchUpResult {
   skipped: number
 }
 
-const pointsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winPoints : result === 'draw' ? config.league.drawPoints : config.league.lossPoints)
-const coinsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winCoins : result === 'draw' ? config.league.drawCoins : config.league.lossCoins)
+export const pointsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winPoints : result === 'draw' ? config.league.drawPoints : config.league.lossPoints)
+export const coinsFor = (result: MatchResult, config: GameConfig) => (result === 'win' ? config.league.winCoins : result === 'draw' ? config.league.drawCoins : config.league.lossCoins)
 
 /**
  * Plays every match that fell due while the player was away, in order, each from its own seed (club + match number), so
  * playing them later gives the same results as playing them on time. They use the lineup as it is now, because a
- * player who is away cannot change it. Every result pays something. 30 points promotes; there is no relegation.
+ * player who is away cannot change it. Every result pays coins; a loss pays no points. Reaching the tier's gate (`promotionGate`) promotes; there is no relegation.
  */
 export function playDueFixtures(input: { league: LeagueState, lineup: LineupForMatch, clubId: string | number, config: GameConfig, now: number }): CatchUpResult {
   const { lineup, clubId, config, now } = input
-  const interval = config.league.matchIntervalHours * HOUR
   let league = { ...input.league }
   const results: FixtureResult[] = []
   let coins = 0
   let skipped = 0
 
-  const due = league.nextKickoffAt <= now ? Math.floor((now - league.nextKickoffAt) / interval) + 1 : 0
+  const due = dueCount(league, now, config)
   const toPlay = Math.min(due, config.league.maxCatchUpMatches)
   if (due > toPlay) {
     // Away for longer than the limit: the oldest matches are not played, and the rival rotation moves on.
     skipped = due - toPlay
-    league = { ...league, fixtureNo: league.fixtureNo + skipped, nextKickoffAt: league.nextKickoffAt + skipped * interval }
+    league = skipMatches(league, skipped, config)
   }
 
   const score = scoreLineup(lineup.formation, lineup.players, lineup.bonus ?? 0)
@@ -180,14 +233,14 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
     }, config)
 
     const points = pointsFor(outcome.result, config)
-    const matchCoins = coinsFor(outcome.result, config)
+    const matchCoins = withPrestige(coinsFor(outcome.result, config), league.tier, config)
     const kickoffAt = league.nextKickoffAt
     const tier = league.tier
 
     let promotedTo: number | null = null
     let nextPoints = league.points + points
     let nextTier = league.tier
-    if (nextPoints >= config.league.pointsToPromote) {
+    if (nextPoints >= promotionGate(league.tier, config)) {
       nextTier += 1
       nextPoints = 0
       promotedTo = nextTier
@@ -210,7 +263,7 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
       promotedTo,
     })
     coins += matchCoins
-    league = { tier: nextTier, points: nextPoints, fixtureNo: league.fixtureNo + 1, nextKickoffAt: kickoffAt + interval, warmupBonus: 0, tierStartNo: promotedTo ? league.fixtureNo + 1 : league.tierStartNo ?? 0 }
+    league = { tier: nextTier, points: nextPoints, fixtureNo: league.fixtureNo + 1, nextKickoffAt: kickoffAt + gapBefore(league.fixtureNo + 1, config), warmupBonus: 0, tierStartNo: promotedTo ? league.fixtureNo + 1 : league.tierStartNo ?? 0 }
     if (promotedTo)
       rivals = generateRivals(league.tier, config)
   }

@@ -5,5 +5,5 @@
 - `build.ts` copies what the app draws into `../app/src/assets/game/`. Run it after changing the pack:
   `pnpm --filter @ld/app-pixel-pitch art:build`. The copies are committed, so builds never need Python.
 
-Scale pixel art by whole numbers only, with `image-rendering: pixelated`. Audio is not copied yet: it needs converting
-to `.m4a`/`.ogg` (and a `.caf` notification sound for iOS) when sound is added.
+Scale pixel art by whole numbers only, with `image-rendering: pixelated`. Sound effects are converted to mono AAC
+`.m4a` (needs ffmpeg, or macOS's afconvert). The music loop is not used yet.

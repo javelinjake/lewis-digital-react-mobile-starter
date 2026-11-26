@@ -10,7 +10,8 @@
     "build": "tsc --noEmit -p tsconfig.json",
     "ts": "tsc --noEmit -p tsconfig.json",
     "test:unit": "vitest run",
-    "architecture:check": "bash ../../../tooling/architecture-check/architecture-check.sh ."
+    "architecture:check": "bash ../../../tooling/architecture-check/architecture-check.sh .",
+    "pacing": "tsx scripts/pacing.ts"
   },
   "dependencies": {
     "@ld/utils": "workspace:*",

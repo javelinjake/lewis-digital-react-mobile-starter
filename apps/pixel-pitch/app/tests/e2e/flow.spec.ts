@@ -1,4 +1,4 @@
-import { advanceClock, expect, foundClub, HOUR, openSettings, tab, test } from './helpers'
+import { advanceClock, expect, foundClub, HOUR, openSettings, playWarmup, tab, test } from './helpers'
 
 const arcadeTab = (page: Parameters<typeof tab>[0]) => tab(page, 'Arcade')
 
@@ -18,7 +18,7 @@ test.describe('The next tap is always on screen @flow', () => {
     await foundClub(page)
     await advanceClock(page, 5 * HOUR)
     await page.goto('/club')
-    await page.getByRole('button', { name: 'Let\'s go' }).click()
+    await page.getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
     const nav = page.getByRole('navigation', { name: 'Primary' })
     await expect(nav.getByRole('link', { name: /Club/ }).getByLabel(/waiting$/)).toBeVisible()
     await expect(nav.getByRole('link', { name: /Packs/ }).getByLabel(/waiting$/)).toBeVisible()
@@ -33,14 +33,17 @@ test.describe('The next tap is always on screen @flow', () => {
     await foundClub(page)
     await advanceClock(page, 5 * HOUR)
     await page.goto('/club')
-    await page.getByRole('button', { name: 'Let\'s go' }).click()
+    await page.getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
     const ready = page.getByRole('region', { name: 'Ready now' })
     await expect(ready.getByText(/coins in the stadium/)).toBeVisible()
     await expect(ready.getByText(/tokens in the arcade tray/)).toBeVisible()
-    await expect(ready.getByText(/Calendar reward, day 1/)).toBeVisible()
+    // The login streak's day is claimed on Goals, not here.
+    await expect(ready.getByText(/Login streak/)).toHaveCount(0)
     await expect(ready.getByText(/Your free pack/)).toBeVisible()
-    await expect(ready.getByText(/packs? to open/)).toBeVisible()
-    await expect(ready.getByText(/Arcade: 5 energy to spend/)).toBeVisible()
+    // The things to go and do (not claim) are on the tiles under the match card.
+    const tiles = page.getByRole('navigation', { name: 'More to do' })
+    await expect(tiles.getByText(/\d+ to open/)).toBeVisible()
+    await expect(tiles.getByText('5 plays ready')).toBeVisible()
 
     await ready.getByRole('button', { name: /^Claim all/ }).click()
     const pop = page.getByRole('dialog', { name: 'Claimed' })
@@ -52,9 +55,9 @@ test.describe('The next tap is always on screen @flow', () => {
     await expect(pop.getByRole('link', { name: /^Open packs/ })).toBeVisible()
     await pop.getByRole('button', { name: 'Not now' }).click()
 
-    // Nothing is left to claim: the card moves on to what is coming.
-    await expect(page.getByRole('region', { name: 'Ready now' }).getByText(/Claim all/)).toHaveCount(0)
-    await expect(page.getByRole('region', { name: 'Ready now' }).getByText(/packs? to open/)).toBeVisible()
+    // Nothing is left to claim: the bar goes, and the packs it put on the shelf are waiting on their tile.
+    await expect(page.getByRole('region', { name: 'Ready now' })).toHaveCount(0)
+    await expect(tiles.getByText(/\d+ to open/)).toBeVisible()
     await expect(page.getByRole('region', { name: 'Stadium' }).getByRole('button', { name: /^Collect 0$/ })).toBeDisabled()
   })
 
@@ -63,7 +66,7 @@ test.describe('The next tap is always on screen @flow', () => {
     await page.goto('/club')
     const ready = page.getByRole('region', { name: 'Ready now' })
     await ready.getByRole('link', { name: /Your free pack/ }).click()
-    await expect(page).toHaveURL(/\/goals/)
+    await expect(page).toHaveURL(/\/packs/)
   })
 
   test('the welcome-back screen offers Claim all, and takes it', async ({ page }) => {
@@ -91,24 +94,28 @@ test.describe('The next tap is always on screen @flow', () => {
 
   test('opening a pack can be rushed: Reveal all goes straight to sign or sell, and the next pack is one tap away', async ({ page }) => {
     await foundClub(page)
-    await advanceClock(page, 3 * HOUR + 60_000)
+    // A full shelf: three packs, one every four hours.
+    await advanceClock(page, 12 * HOUR + 60_000)
     await page.goto('/packs')
     await page.getByRole('button', { name: 'Open a pack' }).click()
     await page.getByRole('button', { name: 'Tear open the pack' }).click()
     await page.getByRole('button', { name: 'Reveal all' }).click()
-    await expect(page.getByRole('heading', { name: 'Sign or sell' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Your new players' })).toBeVisible()
     await page.getByRole('button', { name: /^Done and open the next pack \(\d+ left\)/ }).click()
     // The next pack is open at once, ready to tear.
     await expect(page.getByRole('button', { name: 'Tear open the pack' })).toBeVisible()
   })
 
-  test('the warm-up result points to the lineup', async ({ page }) => {
+  test('the match card has everything before kick-off: the lineup, the warm-up and a friendly', async ({ page }) => {
+    test.setTimeout(90_000)
     await foundClub(page)
     await page.goto('/club')
-    const warmup = page.getByRole('region', { name: 'Warm-up kick' })
-    await warmup.getByRole('button', { name: 'Warm up' }).click()
-    await page.waitForTimeout(400)
-    await warmup.getByRole('button', { name: 'KICK!' }).click()
-    await expect(warmup.getByRole('link', { name: /Set the lineup/ })).toBeVisible()
+    const match = page.getByRole('region', { name: 'Next match' })
+    await expect(match.getByText(/^Win \d+%$/)).toBeVisible()
+    await match.getByRole('button', { name: 'Warm up' }).click()
+    const warmup = await playWarmup(page)
+    await warmup.getByRole('button', { name: 'Done' }).click()
+    await match.getByRole('link', { name: 'Set lineup' }).click()
+    await expect(page).toHaveURL(/\/squad/)
   })
 })

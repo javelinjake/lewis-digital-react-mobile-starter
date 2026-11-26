@@ -1,18 +1,22 @@
+import type { AnyTaps, CabinetTaps } from './arcade-taps'
 import type { Cabinet, ClubState, Ticket } from './club-state'
+import type { GameConfig, Reward } from './config'
 import type { FlowContext, FlowResult, LedgerEntry } from './flow'
 import type { WarmupZone } from './match'
+import { createRng, hashSeed } from '@ld/utils/random/rng'
 import { dayIndex, pendingTrayTokens } from './advance'
-import { CABINETS } from './club-state'
+import { scorePlay } from './arcade-taps'
+import { playConfig } from './play-config'
+import { CABINETS, isCabinet } from './club-state'
 import { spendEnergy } from './energy'
 import { GameRuleError } from './errors'
+import { type Medal, medalTargets, recordMastery } from './mastery'
 import { warmupBonus } from './match'
-import { KEEPY_STEPS_PER_SECOND, keepyMax, runKeepy, scoreKick, scorePenalties, shareOf, warmupZone } from './minigames'
+import { shareOf } from './minigames'
 import { addXp, recordProgress } from './progress'
 
 /** A play that was never finished is stopped after this long. */
 const TICKET_LIFE_MS = 10 * 60_000
-
-const isCabinet = (value: unknown): value is Cabinet => CABINETS.includes(value as Cabinet)
 
 /** The cabinet that pays extra tokens today. They take turns, a day each, so each is worth a visit. */
 export function hotCabinet(now: number, config: FlowContext['config']): Cabinet {
@@ -20,9 +24,10 @@ export function hotCabinet(now: number, config: FlowContext['config']): Cabinet 
   return CABINETS[((day % CABINETS.length) + CABINETS.length) % CABINETS.length]
 }
 
-function issue(state: ClubState, kind: Ticket['kind'], paid: boolean, clubId: string | number, now: number): ClubState {
+function issue(state: ClubState, kind: Ticket['kind'], paid: boolean, clubId: string | number, now: number, cabinet?: Cabinet): ClubState {
   const number = state.ticketsIssued + 1
-  return { ...state, ticketsIssued: number, ticket: { id: String(number), kind, seed: `${clubId}:${kind}:${number}`, issuedAt: now, paid } }
+  const ticket: Ticket = { id: String(number), kind, seed: `${clubId}:${kind}:${number}`, issuedAt: now, paid, tier: state.league.tier, ...(cabinet ? { cabinet } : {}) }
+  return { ...state, ticketsIssued: number, ticket }
 }
 
 /** Empties the arcade's token tray into the wallet. The tray fills while the player is away, up to 8 hours' worth (12 with the Pass). */
@@ -66,15 +71,22 @@ export interface PlayResult {
   max: number
   tokens: number
   coins: number
-  /** The best score in this game before this play. */
+  /** The league the play counted in. */
+  tier: number
+  /** The best score in this game in this league before this play. */
   previousBest: number
   newBest: boolean
+  /** Bronze, silver and gold in this game and league. */
+  targets: [number, number, number]
+  /** Medals earned for the first time by this play, and what they paid. */
+  medals: Medal[]
+  rewards: Reward[]
   /** This was the cabinet of the day, which pays extra tokens. */
   hot: boolean
 }
 
 /** Checks a play's taps are those of a person, and that the play took at least as long as its taps say. */
-function checkTiming(ticket: Ticket, lastTapMs: number, ctx: FlowContext) {
+export function checkTiming(ticket: Ticket, lastTapMs: number, ctx: FlowContext) {
   const elapsed = ctx.now - ticket.issuedAt
   if (elapsed > TICKET_LIFE_MS)
     throw new GameRuleError('expired', 'That play timed out. Start another.')
@@ -82,41 +94,17 @@ function checkTiming(ticket: Ticket, lastTapMs: number, ctx: FlowContext) {
     throw new GameRuleError('too-fast', 'That play was faster than a play can be.')
 }
 
-/** Scores a finished play from its taps and pays it. Kick Timer and Penalty Shootout: `taps` are milliseconds into each round. Keepy-Uppy: the 60 Hz steps tapped on. */
-export function finishPlay(ctx: FlowContext, cabinet: Cabinet, taps: readonly number[]): FlowResult<PlayResult> {
+/**
+ * Scores a finished play from what the phone recorded (see `CabinetTaps` for each cabinet's shape) and pays it. The
+ * server replays the play with the ticket's seed, so the score is the server's, whatever the phone claims.
+ */
+export function finishPlay<C extends Cabinet>(ctx: FlowContext, cabinet: C, taps: CabinetTaps[C]): FlowResult<PlayResult> {
   const { state, config } = ctx
   const ticket = state.ticket
   if (!ticket || ticket.kind !== cabinet)
     throw new GameRuleError('no-ticket', 'Start a play first.')
-  if (!Array.isArray(taps) || taps.some(tap => typeof tap !== 'number' || !Number.isFinite(tap) || tap < 0))
-    throw new GameRuleError('taps', 'Those taps are not valid.')
-  const { minTapGapMs } = config.minigames
-
-  let score: number
-  let max: number
-  if (cabinet === 'kick' || cabinet === 'pens') {
-    if (taps.some(tap => tap < minTapGapMs))
-      throw new GameRuleError('taps', 'A kick cannot be taken that quickly.')
-    try {
-      const result = cabinet === 'kick' ? scoreKick(ticket.seed, taps, config) : scorePenalties(ticket.seed, taps, config)
-      score = result.total
-      max = result.max
-    }
-    catch {
-      throw new GameRuleError('taps', 'That play has one tap for each kick.')
-    }
-    checkTiming(ticket, taps.reduce((sum, tap) => sum + tap, 0), ctx)
-  }
-  else {
-    const minGap = Math.ceil((minTapGapMs * KEEPY_STEPS_PER_SECOND) / 1000)
-    const ordered = taps.every((tap, index) => Number.isInteger(tap) && (index === 0 || tap - taps[index - 1] >= minGap))
-    if (!ordered || taps.length > config.minigames.keepy.maxKicks * 4)
-      throw new GameRuleError('taps', 'Those taps are not valid.')
-    const result = runKeepy(ticket.seed, taps, config)
-    score = result.score
-    max = keepyMax(config)
-    checkTiming(ticket, (result.steps * 1000) / KEEPY_STEPS_PER_SECOND, ctx)
-  }
+  const { score, max, playMs } = scorePlay(cabinet, ticket.seed, taps, playConfig(config, ticket))
+  checkTiming(ticket, playMs, ctx)
 
   const hot = hotCabinet(ticket.issuedAt, config) === cabinet
   const tokens = ticket.paid ? 0 : Math.floor(shareOf(score, max, config.cabinets.playMaxTokens) * (hot ? 1 + config.cabinets.hotBonus : 1))
@@ -127,41 +115,64 @@ export function finishPlay(ctx: FlowContext, cabinet: Cabinet, taps: readonly nu
   if (coins > 0)
     ledger.push({ currency: 'coins', amount: coins, reason: 'arcade', ref: cabinet })
 
-  const previousBest = state.arcade.best[cabinet]
-  const newBest = score > previousBest
-  const paid: ClubState = {
-    ...state,
-    ticket: null,
-    tokens: state.tokens + tokens,
-    coins: state.coins + coins,
-    arcade: { best: { ...state.arcade.best, [cabinet]: Math.max(previousBest, score) } },
-  }
+  const tier = ticket.tier ?? 1
+  const paid: ClubState = { ...state, ticket: null, tokens: state.tokens + tokens, coins: state.coins + coins }
+  const mastery = recordMastery(paid, cabinet, tier, score, config, !ticket.paid)
   return {
-    state: addXp(recordProgress(paid, 'playCabinets'), config.pass.xp.cabinet, config),
-    ledger,
-    extra: { score, max, tokens, coins, previousBest, newBest, hot },
+    state: addXp(recordProgress(mastery.state, 'playCabinets'), config.pass.xp.cabinet, config),
+    ledger: [...ledger, ...mastery.ledger],
+    extra: { score, max, tokens, coins, tier, previousBest: mastery.previousBest, newBest: mastery.newBest, targets: medalTargets(cabinet, config), medals: mastery.medals, rewards: mastery.rewards, hot },
   }
 }
 
-/** Starts the warm-up kick for the next match. One try for each match. */
+/**
+ * The arcade game the warm-up for a league match is a play of. Drawn from the club and the match, so it is the same
+ * game however often the player looks, and a different one from match to match.
+ */
+export function warmupCabinet(clubId: string | number, fixtureNo: number): Cabinet {
+  return createRng(hashSeed(String(clubId), 'warmup', fixtureNo)).pick(CABINETS)
+}
+
+/** What a warm-up comes to: at least `minigames.warmup.gold` of the game's top score is gold, `green` is green. */
+export function warmupZone(score: number, max: number, config: Pick<GameConfig, 'minigames'>): WarmupZone {
+  const share = max > 0 ? Math.max(0, score) / max : 0
+  const { gold, green } = config.minigames.warmup
+  return share >= gold ? 'gold' : share >= green ? 'green' : 'miss'
+}
+
+/** Starts the warm-up for the next match: a play of the match's arcade game. Free, and one try for each match. */
 export function startWarmup(ctx: FlowContext): FlowResult {
   const { state, now } = ctx
   if (state.warmupTriedFor === state.league.fixtureNo)
     throw new GameRuleError('warmup-used', 'You have already warmed up for this match.')
-  return { state: issue({ ...state, warmupTriedFor: state.league.fixtureNo }, 'warmup', false, ctx.clubId, now) }
+  const cabinet = warmupCabinet(ctx.clubId, state.league.fixtureNo)
+  return { state: issue({ ...state, warmupTriedFor: state.league.fixtureNo }, 'warmup', false, ctx.clubId, now, cabinet) }
 }
 
-/** Finishes the warm-up kick: gold is +10% attack in the next match, green +5%, a miss +2%. */
-export function finishWarmup(ctx: FlowContext, tapMs: number): FlowResult<{ zone: WarmupZone, bonus: number }> {
+export interface WarmupResult {
+  cabinet: Cabinet
+  score: number
+  max: number
+  zone: WarmupZone
+  /** The ATT bonus the next league match gets, as a fraction (0.1 is +10%). */
+  bonus: number
+}
+
+/**
+ * Finishes the warm-up from the game's taps (the same shape as a play of that cabinet), replayed with the ticket's
+ * seed. The share of the top score sets the bonus: gold is +10% attack in the next match, green +5%, anything else
+ * +2%. It pays nothing else: no tokens, coins, best score, goal progress or Pass XP.
+ */
+export function finishWarmup(ctx: FlowContext, taps: AnyTaps): FlowResult<WarmupResult> {
   const { state, config } = ctx
   const ticket = state.ticket
-  if (!ticket || ticket.kind !== 'warmup')
+  if (!ticket || ticket.kind !== 'warmup' || !isCabinet(ticket.cabinet))
     throw new GameRuleError('no-ticket', 'Start the warm-up first.')
-  if (typeof tapMs !== 'number' || !Number.isFinite(tapMs) || tapMs < config.minigames.minTapGapMs)
-    throw new GameRuleError('taps', 'That tap is not valid.')
-  checkTiming(ticket, tapMs, ctx)
+  const cabinet = ticket.cabinet
+  const { score, max, playMs } = scorePlay(cabinet, ticket.seed, taps, playConfig(config, ticket))
+  checkTiming(ticket, playMs, ctx)
 
-  const zone = warmupZone(ticket.seed, tapMs, config)
+  const zone = warmupZone(score, max, config)
   const bonus = warmupBonus(zone, config)
-  return { state: { ...state, ticket: null, league: { ...state.league, warmupBonus: bonus } }, extra: { zone, bonus } }
+  return { state: { ...state, ticket: null, league: { ...state.league, warmupBonus: bonus } }, extra: { cabinet, score, max, zone, bonus } }
 }

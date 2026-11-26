@@ -2,6 +2,8 @@ import * as migration_20261108_143250_initial from './20261108_143250_initial';
 import * as migration_20261108_204346_game from './20261108_204346_game';
 import * as migration_20261109_000910_commentary from './20261109_000910_commentary';
 import * as migration_20261123_214729_ota_bundles from './20261123_214729_ota_bundles';
+import * as migration_20261126_110112_friendlies from './20261126_110112_friendlies';
+import * as migration_20261126_152552_challenge from './20261126_152552_challenge';
 
 export const migrations = [
   {
@@ -22,6 +24,16 @@ export const migrations = [
   {
     up: migration_20261123_214729_ota_bundles.up,
     down: migration_20261123_214729_ota_bundles.down,
-    name: '20261123_214729_ota_bundles'
+    name: '20261123_214729_ota_bundles',
+  },
+  {
+    up: migration_20261126_110112_friendlies.up,
+    down: migration_20261126_110112_friendlies.down,
+    name: '20261126_110112_friendlies',
+  },
+  {
+    up: migration_20261126_152552_challenge.up,
+    down: migration_20261126_152552_challenge.down,
+    name: '20261126_152552_challenge'
   },
 ];

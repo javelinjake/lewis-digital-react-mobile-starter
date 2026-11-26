@@ -17,6 +17,8 @@ export interface PwaConfigOptions {
    * `iconSource: false`. Listed in the manifest and precached with the shell.
    */
   icons?: ManifestOptions['icons']
+  /** More of the app shell to precache, as globs (for example `'**\/*.m4a'` for sound effects). */
+  extraGlobPatterns?: string[]
 }
 
 /**
@@ -35,6 +37,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
     orientation = 'portrait',
     iconSource = 'public/pwa-icon.svg',
     icons,
+    extraGlobPatterns = [],
   } = options
 
   return VitePWA({
@@ -57,7 +60,7 @@ export function createPwaPlugin(options: PwaConfigOptions): PluginOption {
       ? { disabled: true }
       : { preset: 'minimal-2023', image: iconSource },
     workbox: {
-      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}', ...extraGlobPatterns],
       cleanupOutdatedCaches: true,
       clientsClaim: true,
       navigateFallbackDenylist: [/^\/api\//],

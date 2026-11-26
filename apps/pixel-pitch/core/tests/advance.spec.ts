@@ -6,7 +6,8 @@ const MINUTE = 60_000
 const HOUR = 60 * MINUTE
 const T0 = Date.UTC(2026, 10, 8, 12, 0, 0)
 
-const config = DEFAULT_CONFIG
+/** The shelf's mechanics are tested with a quick shelf (a pack every 45 minutes, holds 10, 16 with the Pass). */
+const config: GameConfig = { ...DEFAULT_CONFIG, shelf: { ...DEFAULT_CONFIG.shelf, intervalMinutes: 45, capacity: 10, capacityWithPass: 16, extraPacksPerDay: 3 } }
 const start = (overrides: Partial<IdleState> = {}): IdleState => ({ ...newIdleState(T0), gemsGrantedForDay: Math.floor(T0 / (24 * HOUR)), ...overrides })
 
 describe('shelf', () => {
@@ -147,13 +148,13 @@ describe('notificationTimes', () => {
 
 describe('config', () => {
   it('ships the spec\'s numbers and keeps paid random items off', () => {
-    expect(config.shelf).toMatchObject({ intervalMinutes: 45, capacity: 10, capacityWithPass: 16, playersPerPack: 3, extraPackCoins: 2000, extraPacksPerDay: 3 })
+    expect(DEFAULT_CONFIG.shelf).toMatchObject({ intervalMinutes: 240, capacity: 3, capacityWithPass: 5, playersPerPack: 3, extraPackCoins: 2000, extraPacksPerDay: 1 })
     // Nothing bought with money or gems is random: no product, and no premium Pass tier, pays a pack.
     const paid = [...config.shop.products.flatMap(product => product.rewards), ...config.pass.premium]
     expect(paid.filter(reward => reward.kind === 'packs' || reward.kind === 'starPacks')).toEqual([])
     expect(config.shelf).not.toHaveProperty('gemRefillEnabled')
-    expect(config.league).toMatchObject({ matchIntervalHours: 3, pointsToPromote: 30, lossPoints: 1, lossCoins: 250 })
-    expect(config.cabinets).toMatchObject({ energy: { max: 5, maxWithPass: 6, regenMinutes: 90 }, arcadePackTokens: 300 })
+    expect(config.league).toMatchObject({ matchIntervalHours: 3, promotionPoints: [50, 65, 80, 100, 125], winPoints: 3, drawPoints: 1, lossPoints: 0, lossCoins: 250 })
+    expect(config.cabinets).toMatchObject({ energy: { max: 5, maxWithPass: 6, regenMinutes: 90 }, arcadePackTokens: 450 })
     expect(config.stadium.coinsPerHour).toHaveLength(10)
   })
 

@@ -1,4 +1,5 @@
 import type { ClubState } from './club'
+import type { Cabinet } from './club-state'
 import type { OwnedCard } from './cards'
 import type { FixtureResult } from './league'
 import type { WelcomeBackEvent } from './state'
@@ -22,6 +23,8 @@ export interface GameResponse {
   cards: OwnedCard[]
   /** Matches played by this request, oldest first. */
   fixtures: FixtureResult[]
+  /** Matches played earlier whose result this request changed (a scored Big Chance or live moment). */
+  changedFixtures?: FixtureResult[]
   events: WelcomeBackEvent[]
   /** The server's time for this answer, so countdowns start from the server clock. */
   now: number
@@ -43,6 +46,36 @@ export const CREST_COUNT = CREST_BASES.length * CREST_EMBLEMS.length
 
 export function crestParts(crest: number) {
   return { base: CREST_BASES[Math.floor(crest / CREST_EMBLEMS.length) % CREST_BASES.length], emblem: CREST_EMBLEMS[crest % CREST_EMBLEMS.length] }
+}
+
+/** A row on a daily challenge board. Only what anyone may see: the club's look and its score. */
+export interface BoardEntry {
+  rank: number
+  clubName: string
+  crest: number
+  kitPrimary: string
+  kitSecondary: string
+  /** The day's score, or the week's points. */
+  score: number
+  /** On the weekly board: days played. */
+  days?: number
+  /** The caller's own row. */
+  you: boolean
+}
+
+/** The daily challenge boards, as the api answers them. */
+export interface ChallengeBoard {
+  day: number
+  week: number
+  cabinet: Cabinet
+  /** Players on today's board. */
+  players: number
+  daily: BoardEntry[]
+  /** Where the caller stands today: `held` while a score waits to be reviewed. */
+  you: { rank: number, score: number, held: boolean } | null
+  weekly: BoardEntry[]
+  weekPlayers: number
+  yourWeek: { rank: number, score: number, days: number } | null
 }
 
 /** The eight kits every club can wear for free (chosen at onboarding). Premium kits are in `config.cosmetics.kits`. */

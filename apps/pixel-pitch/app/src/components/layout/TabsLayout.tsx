@@ -1,16 +1,15 @@
-import type { TabBarItem } from '@ld/mobile-ui'
 import type { ReactNode } from 'react'
-import { AppBar, BottomTabBar, MobileShell, OfflineBanner } from '@ld/mobile-ui'
+import type { IconTab } from './GameChrome'
+import { MobileShell, OfflineBanner } from '@ld/mobile-ui'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
 import { useConnectivity } from '@/hooks/use-connectivity'
-import { useRouteTitle } from '@/hooks/use-route-title'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
 import { preloadTabScreens } from '@/routes/pages'
+import { IconTabBar } from './GameChrome'
 
-/** The screen around the tab screens: the header, the tab bar and the offline banner. The app says what the tabs are. */
-export function TabsLayout({ items, end }: { items: TabBarItem[], end?: ReactNode }) {
-  const title = useRouteTitle('Club')
+/** The screen around the tab screens: the header, the tab bar and the offline banner. The app says what goes in them. */
+export function TabsLayout({ items, header }: { items: IconTab[], header: ReactNode }) {
   const { offline } = useConnectivity()
 
   // Fetch the other tab screens while the browser is idle, so switching tabs does not wait on the network.
@@ -22,11 +21,11 @@ export function TabsLayout({ items, end }: { items: TabBarItem[], end?: ReactNod
       footer={(
         <>
           <OfflineBanner offline={offline && !isPlaytestBuild} pendingCount={0} />
-          <BottomTabBar items={items} />
+          <IconTabBar items={items} />
         </>
       )}
     >
-      <AppBar title={title} end={end} />
+      {header}
       <Outlet />
     </MobileShell>
   )

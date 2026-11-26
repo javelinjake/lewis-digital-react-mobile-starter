@@ -18,8 +18,9 @@ export function NextSteps({ skip = [] }: { skip?: ReadyItem['id'][] }) {
 
   const items = readyItems(game, config, catalogue ?? []).filter(item => !skip.includes(item.id))
   const claims = claimCount(items)
-  const next = items.find(item => !item.claim)
-  if (claims === 0 && !next)
+  // The things to go and do (goals and Pass rewards to claim on their screens, packs to open), a few at most.
+  const next = items.filter(item => !item.claim).slice(0, 3)
+  if (claims === 0 && next.length === 0)
     return pop
 
   return (
@@ -27,7 +28,7 @@ export function NextSteps({ skip = [] }: { skip?: ReadyItem['id'][] }) {
       {claims > 0
         ? <button type="button" className="btn btn-primary min-h-12 w-full font-display text-xs" disabled={pending} onClick={() => claim()}>{claims === 1 ? 'Claim your reward' : `Claim all (${claims} waiting)`}</button>
         : null}
-      {next ? <Link to={next.to} className="btn btn-outline min-h-12 w-full">{`${next.label} ›`}</Link> : null}
+      {next.map(item => <Link key={item.id} to={item.to} className="btn btn-outline min-h-12 w-full">{`${item.label} ›`}</Link>)}
       {pop}
     </section>
   )

@@ -1,6 +1,6 @@
 import { ownedCollection } from '@ld/backend'
 
-/** Every match a club has played, with everything the replay needs. League matches are numbered from 0; the debut is -1. */
+/** Every match a club has played, with everything the replay needs. League matches are numbered from 0; the debut is -1 and friendlies -2, -3 and down. */
 export const fixturesCollection = ownedCollection({
   slug: 'fixtures',
   writes: 'server',
@@ -13,7 +13,7 @@ export const fixturesCollection = ownedCollection({
     // Our formation and both squads' names, so the match report reads the same later. Optional: older rows have none.
     { name: 'formation', type: 'text' },
     { name: 'squads', type: 'json' },
-    { name: 'kind', type: 'select', required: true, options: ['league', 'debut'] },
+    { name: 'kind', type: 'select', required: true, options: ['league', 'debut', 'friendly'] },
     { name: 'tier', type: 'number', required: true },
     { name: 'kickoffAt', type: 'number', required: true },
     { name: 'rival', type: 'json', required: true },

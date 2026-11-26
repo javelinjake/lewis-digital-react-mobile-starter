@@ -30,7 +30,7 @@ export function NoClubGate() {
   if (club.data === undefined)
     return <LoadingState message="Opening the clubhouse…" />
   if (club.data) {
-    const debut = club.data.fixtures.some(fixture => fixture.no < 0)
+    const debut = club.data.fixtures.some(fixture => fixture.no === -1)
     return <Navigate to={debut ? '/match/-1?debut=1' : '/club'} replace />
   }
   return <Outlet />

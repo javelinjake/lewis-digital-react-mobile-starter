@@ -80,6 +80,7 @@ export interface Config {
     cards: Card;
     fixtures: Fixture;
     ledger: Ledger;
+    'challenge-entries': ChallengeEntry;
     notes: Note;
     sessions: Session;
     accounts: Account;
@@ -105,6 +106,7 @@ export interface Config {
     cards: CardsSelect<false> | CardsSelect<true>;
     fixtures: FixturesSelect<false> | FixturesSelect<true>;
     ledger: LedgerSelect<false> | LedgerSelect<true>;
+    'challenge-entries': ChallengeEntriesSelect<false> | ChallengeEntriesSelect<true>;
     notes: NotesSelect<false> | NotesSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
@@ -440,7 +442,7 @@ export interface Fixture {
     | number
     | boolean
     | null;
-  kind: 'league' | 'debut';
+  kind: 'league' | 'debut' | 'friendly';
   tier: number;
   kickoffAt: number;
   rival:
@@ -491,6 +493,36 @@ export interface Ledger {
   balance: number;
   reason: string;
   ref?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-entries".
+ */
+export interface ChallengeEntry {
+  id: number;
+  owner: number | User;
+  /**
+   * Set by the app so a retried write is applied once.
+   */
+  clientMutationId?: string | null;
+  day: number;
+  week: number;
+  cabinet: string;
+  score: number;
+  clubName: string;
+  crest: number;
+  kitPrimary: string;
+  kitSecondary: string;
+  /**
+   * Why this score is held off the boards (above-ceiling, too-regular). Empty when it is not.
+   */
+  flagged?: string | null;
+  /**
+   * Tick to put a flagged score on the boards after checking it.
+   */
+  reviewed?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -650,6 +682,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'ledger';
         value: number | Ledger;
+      } | null)
+    | ({
+        relationTo: 'challenge-entries';
+        value: number | ChallengeEntry;
       } | null)
     | ({
         relationTo: 'notes';
@@ -947,6 +983,26 @@ export interface LedgerSelect<T extends boolean = true> {
   balance?: T;
   reason?: T;
   ref?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-entries_select".
+ */
+export interface ChallengeEntriesSelect<T extends boolean = true> {
+  owner?: T;
+  clientMutationId?: T;
+  day?: T;
+  week?: T;
+  cabinet?: T;
+  score?: T;
+  clubName?: T;
+  crest?: T;
+  kitPrimary?: T;
+  kitSecondary?: T;
+  flagged?: T;
+  reviewed?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -1,10 +1,10 @@
 import type { ActionContext } from '@ld/backend'
 import { defineAction } from '@ld/backend'
-import { CREST_COUNT, foundClub, mergeInClub, newClubState, sellCard, setLineup, trainInClub } from '@ld/pixel-pitch-core'
+import { BASE_KITS, CREST_COUNT, foundClub, mergeInClub, newClubState, playFriendly, sellCard, setLineup, trainInClub } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { serverNow } from '../game/clock'
 import { loadGame } from '../game/load'
-import { findClub, mutateClub, rule, saveClub, stateJson } from '../game/mutate-club'
+import { findClub, flowContext, mutateClub, rule, saveClub, stateJson } from '../game/mutate-club'
 
 // Every game action is a defineAction: signed in, idempotent on its Idempotency-Key, rate limited and run in one
 // transaction. The client says what it wants; the rules in @ld/pixel-pitch-core decide what happens.
@@ -41,6 +41,9 @@ export const createClubAction = defineAction({
       throw new APIError('Pick one of the crests.', 400, { code: 'crest' }, true)
     if (!HEX.test(kitPrimary) || !HEX.test(kitSecondary))
       throw new APIError('Kit colours are #rrggbb.', 400, { code: 'kit' }, true)
+    // A new club picks one of the free kits; the others are in the shop.
+    if (!BASE_KITS.some(kit => kit.primary.toLowerCase() === kitPrimary.toLowerCase() && kit.secondary.toLowerCase() === kitSecondary.toLowerCase()))
+      throw new APIError('Pick one of the kits.', 400, { code: 'kit' }, true)
     if (await findClub(ctx))
       throw new APIError('You already have a club.', 409, { code: 'club-exists' }, true)
 
@@ -137,4 +140,16 @@ export const trainAction = defineAction({
   },
 })
 
-export const gameActions = [createClubAction, syncAction, lineupAction, sellAction, mergeAction, trainAction]
+/** A friendly, played now with the lineup as it is. The rules decide the match and what it pays; it is saved like any other. */
+export const friendlyAction = defineAction({
+  path: '/game/friendly',
+  rateLimit: { limit: 20, windowMs: 60_000 },
+  handler: async ctx => ({
+    body: await mutateClub(ctx, (input) => {
+      const result = playFriendly(flowContext(input))
+      return { ...result, fixtures: [result.extra!.fixture] }
+    }),
+  }),
+})
+
+export const gameActions = [createClubAction, syncAction, lineupAction, sellAction, mergeAction, trainAction, friendlyAction]

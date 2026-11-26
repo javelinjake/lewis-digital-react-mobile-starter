@@ -28,9 +28,19 @@ describe('the mock game api', () => {
     await gameApi.createClub(newClub)
     window.__pixelPitchClock!.advance(10 * HOUR)
     const synced = await gameApi.sync()
-    // The first kicks off 10 minutes after the debut, then one every 3 hours.
-    expect(synced!.fixtures.map(fixture => fixture.no)).toEqual([0, 1, 2, 3])
-    expect((await gameApi.readFixtures(2)).map(fixture => fixture.no)).toEqual([3, 2])
+    // The quick opening's matches, then one every three hours.
+    const played = DEFAULT_CONFIG.league.openingGapsMinutes.length + 3
+    expect(synced!.fixtures.map(fixture => fixture.no)).toEqual(Array.from({ length: played }, (_, no) => no))
+    expect((await gameApi.readFixtures(2)).map(fixture => fixture.no)).toEqual([played - 1, played - 2])
+  })
+
+  it('plays a friendly now and lists it with the newest matches', async () => {
+    await gameApi.createClub(newClub)
+    window.__pixelPitchClock!.advance(60_000)
+    const played = await gameApi.playFriendly()
+    expect(played.fixture).toMatchObject({ no: -2, points: 0 })
+    expect(played.fixtures.at(-1)).toEqual(played.fixture)
+    expect((await gameApi.readFixtures(1))[0].no).toBe(-2)
   })
 
   it('refuses what the server would refuse', async () => {
@@ -97,7 +107,7 @@ describe('the written match report', () => {
 })
 
 describe('local notifications', () => {
-  it('plans a shelf alert, a full-time alert after the next kick-off and a trays alert, and drops the shelf one when it is full', async () => {
+  it('plans a shelf alert, a results summary after the next three matches, a trays alert and the daily challenge, and drops the shelf one when it is full', async () => {
     const { buildNotificationPlans } = await import('@/features/game/lib/notification-plans')
     const { planNotifications } = await import('@ld/native/notification-plan')
     useAuthStore.setState({ userId: `user-${Math.random()}` })
@@ -106,11 +116,15 @@ describe('local notifications', () => {
     const plans = buildNotificationPlans(created, DEFAULT_CONFIG)
 
     const byType = Object.fromEntries(plans.map(plan => [plan.type, plan]))
-    expect(Object.keys(byType).sort()).toEqual(['full-time', 'shelf-full', 'trays-full'])
-    expect(byType['full-time'].at).toBe(created.club.state.league.nextKickoffAt + 60_000)
-    // A new club starts with three packs: seven more at 45 minutes each fill the shelf. And 8 hours of tray (a new
-    // club's energy is full, so the tray is next).
-    expect(byType['shelf-full'].at).toBe(created.club.state.idle.shelfClockAt + (10 - DEFAULT_CONFIG.onboarding.starterShelfPacks) * 45 * 60_000)
+    // A new club starts with a full shelf (its starter packs), so there is no shelf alert yet.
+    expect(Object.keys(byType).sort()).toEqual(['challenge', 'full-time', 'trays-full'])
+    const { gapBefore } = await import('@ld/pixel-pitch-core')
+    const { league } = created.club.state
+    expect(byType['full-time'].at).toBe(league.nextKickoffAt + gapBefore(league.fixtureNo + 1, DEFAULT_CONFIG) + gapBefore(league.fixtureNo + 2, DEFAULT_CONFIG) + 60_000)
+    // With the shelf emptied, it is full again three packs later, at 4 hours each.
+    const emptied = { ...created, club: { ...created.club, state: { ...created.club.state, idle: { ...created.club.state.idle, shelfPacks: 0 } } } }
+    const shelf = buildNotificationPlans(emptied, DEFAULT_CONFIG).find(plan => plan.type === 'shelf-full')!
+    expect(shelf.at).toBe(created.club.state.idle.shelfClockAt + 3 * 4 * HOUR)
     expect(byType['trays-full'].at).toBe(created.club.state.idle.trayCollectedAt + 8 * HOUR)
 
     const full = { ...created, club: { ...created.club, state: { ...created.club.state, idle: { ...created.club.state.idle, shelfPacks: 10 } } } }

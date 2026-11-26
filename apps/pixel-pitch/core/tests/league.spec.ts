@@ -1,9 +1,10 @@
 import type { Fielded, LineupForMatch, LeagueState } from '../src'
 import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CONFIG, FORMATIONS, generateRivals, leagueLabel, leagueTable, newLeagueState, playDueFixtures, tierRating } from '../src'
+import { DEFAULT_CONFIG, FORMATIONS, generateRivals, leagueLabel, leagueTable, newLeagueState, playDueFixtures, promotionGate, tierRating } from '../src'
 
-const config = DEFAULT_CONFIG
+// Matches the full interval apart from the start; the quick opening has its own tests.
+const config = { ...DEFAULT_CONFIG, league: { ...DEFAULT_CONFIG.league, openingGapsMinutes: [] } }
 const HOUR = 60 * 60 * 1000
 const T0 = Date.UTC(2026, 10, 8, 12)
 
@@ -24,9 +25,9 @@ describe('the ladder', () => {
     expect(leagueLabel(8)).toEqual({ kind: 'prestige', level: 3 })
   })
 
-  it('makes rivals 7 rating points stronger with every league', () => {
-    expect(tierRating(2, config) - tierRating(1, config)).toBe(7)
-    expect(tierRating(5, config) - tierRating(1, config)).toBe(28)
+  it('makes rivals 9 rating points stronger with every league', () => {
+    expect(tierRating(2, config) - tierRating(1, config)).toBe(9)
+    expect(tierRating(5, config) - tierRating(1, config)).toBe(36)
   })
 })
 
@@ -78,7 +79,7 @@ describe('playing due fixtures', () => {
   it('pays something for every result: 3, 2 or 1 point, and 250 coins for a loss', () => {
     const results = play(start, average, T0 + 56 * 3 * HOUR).results
     for (const match of results) {
-      expect(match.points).toBe(match.result === 'win' ? 3 : match.result === 'draw' ? 2 : 1)
+      expect(match.points).toBe(match.result === 'win' ? 3 : match.result === 'draw' ? 1 : 0)
       expect(match.coins).toBe(match.result === 'win' ? 600 : match.result === 'draw' ? 400 : 250)
     }
     expect(new Set(results.map(match => match.result)).size).toBeGreaterThan(1)
@@ -125,30 +126,45 @@ describe('playing due fixtures', () => {
 })
 
 describe('promotion', () => {
-  it('moves up at 30 points, starts the new league on 0, and meets the new league\'s rivals', () => {
+  it('moves up at the gate, starts the new league on 0, and meets the new league\'s rivals', () => {
     const result = play(newLeagueState(T0, config), strong, T0 + 56 * 3 * HOUR)
     const promotion = result.results.find(match => match.promotedTo)
     expect(promotion).toBeDefined()
     expect(promotion!.promotedTo).toBe(2)
     const index = result.results.indexOf(promotion!)
-    expect(result.results.slice(0, index + 1).reduce((sum, match) => sum + match.points, 0)).toBeGreaterThanOrEqual(30)
+    expect(result.results.slice(0, index + 1).reduce((sum, match) => sum + match.points, 0)).toBeGreaterThanOrEqual(50)
     expect(result.results[index + 1].tier).toBe(2)
     expect(result.results[index + 1].rival.rating).toBeGreaterThan(result.results[index].rival.rating - config.league.rivalSpread * 2 - 1)
     expect(result.league.tier).toBeGreaterThan(1)
   })
 
+  it('asks more points of each league than the one below, and keeps climbing in Prestige', () => {
+    const gates = [1, 2, 3, 4, 5, 6, 7].map(tier => promotionGate(tier, config))
+    expect(gates).toEqual([50, 65, 80, 100, 125, 145, 165])
+  })
+
+  it('does not promote one point short of the gate, and does at it', () => {
+    const second = { ...newLeagueState(T0, config), tier: 2 }
+    const result = play({ ...second, points: 62 }, strong, T0 + 3 * HOUR)
+    expect(result.results[0].result).toBe('win')
+    expect(result.results[0].promotedTo).toBe(3)
+    const short = play({ ...second, points: 61 }, strong, T0 + 3 * HOUR)
+    expect(short.results[0].promotedTo).toBeNull()
+    expect(short.league.points).toBe(64)
+  })
+
   it('keeps climbing past League 1 into Prestige', () => {
-    const result = play({ ...newLeagueState(T0, config), tier: 5, points: 28 }, strong, T0 + 30 * HOUR)
+    const result = play({ ...newLeagueState(T0, config), tier: 5, points: 123 }, strong, T0 + 30 * HOUR)
     expect(result.results.some(match => match.promotedTo === 6)).toBe(true)
     expect(leagueLabel(result.league.tier).kind).toBe('prestige')
   })
 })
 
 describe('no relegation', () => {
-  it('never goes back, however badly the team plays, and a loss still pays 1 point and 250 coins', () => {
+  it('never goes back, however badly the team plays, and a loss pays no points but still 250 coins', () => {
     const result = play({ ...newLeagueState(T0, config), tier: 3 }, empty, T0 + 56 * 3 * HOUR)
     expect(result.results.every(match => match.result === 'loss')).toBe(true)
-    expect(result.results.every(match => match.points === 1 && match.coins === 250)).toBe(true)
+    expect(result.results.every(match => match.points === 0 && match.coins === 250)).toBe(true)
     expect(result.results.every(match => match.tier >= 3)).toBe(true)
     expect(result.league.tier).toBeGreaterThanOrEqual(3)
   })
@@ -188,5 +204,41 @@ describe('the table', () => {
     const table = leagueTable({ league: long, clubName: 'Us', clubId: 'c', config })
     const pointsOf = (index: number) => table.find(row => row.name === rivals[index].name)!.points
     expect(pointsOf(4)).toBeGreaterThan(pointsOf(0))
+  })
+})
+
+describe('the quick opening', () => {
+  const quick = { ...config, league: { ...config.league, openingGapsMinutes: [5, 8, 10] } }
+  const MIN = 60_000
+  const opening = newLeagueState(T0, quick)
+  const playQuick = (league: LeagueState, now: number) => playDueFixtures({ league, lineup: average, clubId: 'club-1', config: quick, now })
+
+  it('plays the first matches minutes apart, then every three hours', () => {
+    expect(opening.nextKickoffAt).toBe(T0 + 5 * MIN)
+    const result = playQuick(opening, T0 + 23 * MIN + 3 * HOUR)
+    expect(result.results.map(match => match.kickoffAt)).toEqual([T0 + 5 * MIN, T0 + 13 * MIN, T0 + 23 * MIN, T0 + 23 * MIN + 3 * HOUR])
+    expect(result.league.nextKickoffAt).toBe(T0 + 23 * MIN + 6 * HOUR)
+  })
+
+  it('gives the same schedule whether it catches up in pieces or all at once', () => {
+    const times = [T0 + 6 * MIN, T0 + 14 * MIN, T0 + 30 * MIN, T0 + 9 * HOUR]
+    let league = opening
+    const pieces: number[] = []
+    for (const now of times) {
+      const step = playQuick(league, now)
+      league = step.league
+      pieces.push(...step.results.map(match => match.kickoffAt))
+    }
+    const once = playQuick(opening, times.at(-1)!)
+    expect(pieces).toEqual(once.results.map(match => match.kickoffAt))
+    expect(league).toEqual(once.league)
+  })
+
+  it('skips the oldest matches past the limit, opening ones included, and keeps the schedule', () => {
+    const limited = { ...quick, league: { ...quick.league, maxCatchUpMatches: 2 } }
+    const result = playDueFixtures({ league: opening, lineup: average, clubId: 'club-1', config: limited, now: T0 + 23 * MIN + 3 * HOUR })
+    expect(result.skipped).toBe(2)
+    expect(result.results.map(match => match.no)).toEqual([2, 3])
+    expect(result.results.map(match => match.kickoffAt)).toEqual([T0 + 23 * MIN, T0 + 23 * MIN + 3 * HOUR])
   })
 })

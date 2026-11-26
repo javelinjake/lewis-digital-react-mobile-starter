@@ -1,9 +1,8 @@
 @import "tailwindcss" source("..");
 @import "@ld/ui/motion.css";
 @import "@ld/mobile-ui/native-feel.css";
-/* Bundled, never loaded from a CDN. Latin only: the game's text is English. Both are SIL Open Font License. */
-@import "@fontsource/press-start-2p/latin-400.css";
-@import "@fontsource/vt323/latin-400.css";
+/* Bundled, never loaded from a CDN. Latin only: the game's text is English. SIL Open Font License. */
+@import "@fontsource/jersey-10/latin-400.css";
 
 @source "../../../../../packages/ui/src";
 @source "../../../../../packages/forms/src";
@@ -14,32 +13,36 @@
   themes: false;
 }
 
-/* One theme, from the asset pack's palette.json. Pixel art has one palette, so there is no light/dark switch. */
+/*
+ * Floodlight: a night match under the lights. Deep navy ground, navy panels with a hard 2px edge, yellow for the one
+ * thing to do, cyan for the second, green/orange/red for results. Pixel art has one palette, so no light/dark switch.
+ * Muted text (#b4bdff) passes 4.5:1 on every surface here.
+ */
 @plugin "daisyui/theme" {
-  name: "pixel";
+  name: "floodlight";
   default: true;
   prefersdark: true;
   color-scheme: dark;
-  --color-base-100: #1b1f3b;
-  --color-base-200: #141733;
-  --color-base-300: #10122a;
-  --color-base-content: #f4f4f4;
+  --color-base-100: #16204f;
+  --color-base-200: #0b1028;
+  --color-base-300: #070b1e;
+  --color-base-content: #e8ecff;
   --color-primary: #ffd23f;
-  --color-primary-content: #10122a;
-  --color-secondary: #ff4f79;
-  --color-secondary-content: #10122a;
-  --color-accent: #5ec8ff;
-  --color-accent-content: #10122a;
-  --color-neutral: #262b52;
-  --color-neutral-content: #f4f4f4;
-  --color-info: #5ec8ff;
-  --color-info-content: #10122a;
-  --color-success: #b6ff3b;
-  --color-success-content: #10122a;
-  --color-warning: #ff9f43;
-  --color-warning-content: #10122a;
-  --color-error: #ff4f79;
-  --color-error-content: #10122a;
+  --color-primary-content: #0b1028;
+  --color-secondary: #ff4d6d;
+  --color-secondary-content: #0b1028;
+  --color-accent: #5ac8fa;
+  --color-accent-content: #0b1028;
+  --color-neutral: #1c2766;
+  --color-neutral-content: #e8ecff;
+  --color-info: #5ac8fa;
+  --color-info-content: #0b1028;
+  --color-success: #7bdc4a;
+  --color-success-content: #0b1028;
+  --color-warning: #ffa53d;
+  --color-warning-content: #0b1028;
+  --color-error: #ff4d6d;
+  --color-error-content: #0b1028;
   --radius-selector: 0rem;
   --radius-field: 0rem;
   --radius-box: 0rem;
@@ -51,12 +54,28 @@
 }
 
 @theme {
-  --font-sans: "VT323", ui-monospace, monospace;
-  --font-display: "Press Start 2P", ui-monospace, monospace;
-  --color-pitch: #3fa34d;
-  --color-pitch-dark: #379445;
-  --color-slate: #3a3f72;
-  --color-muted: #9aa3d6;
+  --font-sans: "Jersey 10", ui-monospace, monospace;
+  --font-display: "Jersey 10", ui-monospace, monospace;
+  /*
+   * Jersey 10 is tall and narrow and reads small for its size, so the text scale is a step up from Tailwind's. The
+   * root stays 16px, so spacing and 44px touch targets are unchanged.
+   */
+  --text-xs: 0.9375rem;
+  --text-sm: 1.0625rem;
+  --text-base: 1.25rem;
+  --text-lg: 1.375rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 2.75rem;
+  --text-5xl: 3.5rem;
+  --color-pitch: #23702d;
+  --color-pitch-dark: #287a32;
+  --color-slate: #2a3680;
+  --color-slate-light: #3a4799;
+  --color-raised: #1c2766;
+  --color-chrome: #121a44;
+  --color-muted: #b4bdff;
   --color-rarity-grassroots: #9aa3b5;
   --color-rarity-semipro: #3fa34d;
   --color-rarity-pro: #3f7fd6;
@@ -74,19 +93,31 @@
 
   html {
     font-family: var(--font-sans);
-    /* VT323 is small for its size: 20px reads like 16px of a normal font. */
-    font-size: 20px;
+    font-size: 16px;
+    /* Jersey 10 has one weight. A browser's made-up bold smears a pixel font, so bold is size and colour instead. */
+    font-synthesis: none;
   }
 
-  h1, h2, h3, .font-display {
+  body {
+    font-size: var(--text-base);
+    line-height: 1.25;
+  }
+
+  /* Type scale: 28 screen titles, 22 card titles, 20 body, 17 meta, 15 caps labels. */
+  h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: 0;
-    line-height: 1.4;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
   }
 
-  h1 { font-size: 0.8rem; }
-  h2 { font-size: 0.7rem; }
-  h3 { font-size: 0.6rem; }
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.375rem; }
+  h3 { font-size: 1.25rem; }
+
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+  }
 
   img.pixel, canvas.pixel, .pixel {
     image-rendering: pixelated;
@@ -129,7 +160,7 @@
 .pp-flip-inner {
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 450ms steps(6, end);
+  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .pp-flip-inner[data-flipped="true"] {
@@ -148,4 +179,96 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pp-flip-inner { transition: none; }
+}
+
+/* A new step of the pack opening fades in instead of snapping. */
+@keyframes pp-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/*
+ * Floodlight buttons: chunky and bevelled, light on the top-left edge and dark on the bottom-right, so a button looks
+ * pressable at a glance. Yellow is the one main action on a screen, cyan the second, navy the rest.
+ */
+@layer components {
+  .btn {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+    border-width: 0;
+  }
+  .btn-primary {
+    box-shadow: inset -4px -4px 0 #c98a00, inset 4px 4px 0 #fff1a8;
+  }
+  .btn-accent, .btn-info {
+    box-shadow: inset -4px -4px 0 #2b8fc0, inset 4px 4px 0 #c4eeff;
+  }
+  .btn-success {
+    box-shadow: inset -4px -4px 0 #4f9e2a, inset 4px 4px 0 #d3f7bd;
+  }
+  .btn-secondary, .btn-error {
+    box-shadow: inset -4px -4px 0 #c22a48, inset 4px 4px 0 #ffc2cf;
+  }
+  .btn-outline {
+    background-color: var(--color-raised);
+    color: var(--color-base-content);
+    box-shadow: inset 0 0 0 2px var(--color-slate-light);
+  }
+  .btn-outline:hover {
+    background-color: var(--color-slate);
+    color: var(--color-base-content);
+  }
+  .btn-outline.btn-error {
+    color: var(--color-error);
+  }
+  .btn:active:not(:disabled) {
+    box-shadow: inset 4px 4px 0 rgb(0 0 0 / 0.35);
+  }
+  .btn:disabled, .btn[disabled] {
+    background-color: var(--color-raised);
+    color: var(--color-muted);
+    box-shadow: inset 0 0 0 2px var(--color-slate);
+    opacity: 1;
+  }
+
+  /* The striped grass behind match cards and the pitch. */
+  .pp-grass {
+    background: repeating-linear-gradient(90deg, var(--color-pitch) 0 32px, var(--color-pitch-dark) 32px 64px);
+  }
+
+  /* A small caps label above a value: "WHILE YOU WERE AWAY". */
+  .pp-label {
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+}
+
+/*
+ * Outside any layer on purpose, so it wins over Tailwind's size utility: the old display face was tiny at text-xs, so
+ * those labels (mostly buttons) are button-sized now.
+ */
+.font-display.text-xs { font-size: var(--text-lg); line-height: 1.1; }
+
+/* Button text sizes, through daisyUI's own variable (its button rules outrank a theme layer). A size class still wins. */
+.btn { --fontsize: var(--text-lg); font-weight: 400; }
+.btn-sm { --fontsize: var(--text-base); }
+.btn-xs { --fontsize: var(--text-sm); }
+
+/* Pack opening, eased: a gentle wobble while it waits, a card sliding in, the name rising after the flip. */
+@keyframes pp-wobble {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-2deg) translateY(-3px); }
+  75% { transform: rotate(2deg) translateY(-3px); }
+}
+
+@keyframes pp-card-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pp-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }

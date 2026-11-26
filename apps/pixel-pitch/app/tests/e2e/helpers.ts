@@ -40,16 +40,24 @@ export async function guest(page: Page) {
   await expect(page).toHaveURL(/\/onboarding/)
 }
 
+/** On the first match's intro (five-a-side, your squad is ready): starts the match. */
+export async function kickOff(page: Page) {
+  await expect(page.getByText('Your first match')).toBeVisible()
+  await page.getByRole('button', { name: 'Kick off' }).click()
+}
+
 /** Founds a club, watches nothing of the debut (skips it) and lands on the squad, as a new player would. */
 export async function foundClub(page: Page, name = 'Harbour Town') {
   await guest(page)
   await page.getByLabel('Club name').fill(name)
-  await page.getByRole('button', { name: 'Blue and white' }).click()
+  await page.getByRole('radio', { name: 'Blue and white' }).click()
   await page.getByRole('button', { name: 'Found the club' }).click()
   await expect(page).toHaveURL(/\/match\/-1/)
-  await page.getByRole('button', { name: 'Skip' }).click()
-  await page.getByRole('button', { name: 'Continue' }).click()
+  await kickOff(page)
+  await page.getByRole('button', { name: 'Skip to full time' }).click()
+  await page.getByRole('button', { name: 'Meet your squad' }).click()
   await expect(page).toHaveURL(/\/squad/)
+  await page.getByRole('button', { name: 'Got it' }).click()
 }
 
 /** The mock game runs on a clock Playwright can move. */
@@ -63,4 +71,23 @@ export const tab = (page: Page, name: string) => page.getByRole('navigation', { 
 export async function openSettings(page: Page) {
   await page.getByRole('link', { name: 'Settings' }).click()
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+}
+
+/**
+ * In the warm-up sheet: plays whichever arcade game it picked for the match, to the end. It taps the big button of a
+ * timing game (Kick Timer, the penalties) when there is one, and otherwise lets the game run out (the ball drops, a
+ * defender tackles, the shots go in), so it works for every game. Returns the sheet, showing the result.
+ */
+export async function playWarmup(page: Page) {
+  const sheet = page.getByRole('dialog', { name: 'Warm-up' })
+  await sheet.getByRole('button', { name: /^Warm up: play / }).click()
+  const result = sheet.getByLabel('Warm-up result')
+  const tap = sheet.getByRole('button', { name: /^(KICK!|SHOOT!)$/ })
+  for (let tries = 0; tries < 160 && !(await result.isVisible()); tries++) {
+    if (await tap.count() > 0 && await tap.isEnabled())
+      await tap.click({ timeout: 1000 }).catch(() => {})
+    await page.waitForTimeout(400)
+  }
+  await expect(result).toBeVisible()
+  return sheet
 }

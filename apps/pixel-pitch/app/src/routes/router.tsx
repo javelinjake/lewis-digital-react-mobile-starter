@@ -51,13 +51,16 @@ export const router = createBrowserRouter([
                 Component: StackLayout,
                 children: [
                   { path: '/match/:no', lazy: pages.match, handle: { title: 'Match' } },
+                  { path: '/challenge', lazy: pages.challenge, handle: { title: 'Daily challenge' } },
+                  { path: '/chances', lazy: pages.chances, handle: { title: 'Big Chances' } },
                   { path: '/goals', lazy: pages.goals, handle: { title: 'Goals' } },
                   { path: '/pass', lazy: pages.pass, handle: { title: 'League Pass' } },
                   { path: '/album', lazy: pages.album, handle: { title: 'Album' } },
                   { path: '/settings', lazy: pages.settings, handle: { title: 'Settings' } },
                   { path: '/shop', lazy: pages.shop, handle: { title: 'Shop' } },
                   { path: '/signing', lazy: pages.signing, handle: { title: 'Star Signing' } },
-                  { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade' } },
+                  // The back button on a game goes to the arcade, wherever the game was opened from.
+                  { path: '/arcade/:cabinet', lazy: pages.arcadePlay, handle: { title: 'Arcade', backTo: '/arcade' } },
                 ],
               },
             ],

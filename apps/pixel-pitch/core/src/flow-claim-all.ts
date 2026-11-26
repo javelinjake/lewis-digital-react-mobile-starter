@@ -6,7 +6,7 @@ import { dayIndex, pendingStadiumCoins, pendingTrayTokens } from './advance'
 import { albumSets, isSetComplete } from './album'
 import { GameRuleError } from './errors'
 import { collectTray } from './flow-arcade'
-import { claimAlbumSet, claimCalendar, claimFreePack, claimGoal, claimPassTier, nextCalendarDay } from './flow-rewards'
+import { claimAlbumSet, claimFreePack, nextCalendarDay } from './flow-rewards'
 import { collectStadium } from './flow-stadium'
 import { tierReached } from './progress'
 
@@ -26,7 +26,10 @@ export interface ClaimAllResult {
   kits: number
 }
 
-/** What is waiting to be claimed right now. `claimAll` takes all of it; the hub lists it. */
+/**
+ * What is waiting to be claimed right now, for the hub and the badges. `claimAll` takes the idle rewards; finished
+ * goals, the login streak's day and League Pass tiers are claimed on their own screens.
+ */
 export interface Waiting {
   /** Coins piled up in the stadium. */
   stadiumCoins: number
@@ -66,10 +69,12 @@ export function waitingToClaim(input: { state: ClubState, catalogue: readonly Pl
 }
 
 /**
- * Takes everything that is waiting, in one go: the stadium's coins, the arcade tray, today's calendar day and free
- * pack, every finished goal, every Pass tier reached and every finished album set. It is exactly those claims one
- * after another (each can finish the next: collecting the stadium can finish a goal), done in one transaction, so a
- * phone with ten things waiting makes one call. Refuses when there is nothing to take.
+ * Takes the idle rewards that are waiting, in one go: the stadium's coins, the arcade tray, today's free pack, and
+ * every finished album set. It is exactly those claims one after another, done in one transaction, so
+ * a phone with several things waiting makes one call. Refuses when there is nothing to take.
+ *
+ * Finished goals, the login streak's day and League Pass tiers are not taken here: the player claims them on the
+ * Goals and League Pass screens, where they see what each one was for.
  */
 export function claimAll(ctx: FlowContext): FlowResult<ClaimAllResult> {
   const { config, now } = ctx
@@ -82,29 +87,12 @@ export function claimAll(ctx: FlowContext): FlowResult<ClaimAllResult> {
     items++
   }
 
-  const today = dayIndex(now, config)
   if (pendingStadiumCoins(current.state.idle, config, now) >= 1)
     take(collectStadium(current))
   if (pendingTrayTokens(current.state.idle, config, now) >= 1)
     take(collectTray(current))
-  if (nextCalendarDay(current.state.calendar, today) !== null)
-    take(claimCalendar(current))
   if (!current.state.daily.freePackClaimed)
     take(claimFreePack(current))
-  for (const goal of current.state.daily.goals) {
-    if (goal.progress >= goal.target && !goal.claimed)
-      take(claimGoal(current, goal.id))
-  }
-
-  // Goals earn Pass XP, which can reach a new tier, so the Pass comes after them.
-  const reached = tierReached(current.state, config)
-  for (let tier = 1; tier <= reached; tier++) {
-    if (config.pass.free[tier - 1] && !current.state.pass.claimedFree.includes(tier))
-      take(claimPassTier(current, 'free', tier))
-    if (current.state.idle.hasPass && config.pass.premium[tier - 1] && !current.state.pass.claimedPremium.includes(tier))
-      take(claimPassTier(current, 'premium', tier))
-  }
-
   const collected = new Set(current.state.album.collected)
   for (const set of albumSets(ctx.catalogue, config)) {
     if (!current.state.album.claimed.includes(set.id) && isSetComplete(set, collected))

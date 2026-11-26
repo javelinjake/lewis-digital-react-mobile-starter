@@ -4,6 +4,7 @@
  * Run after changing the pack: `pnpm --filter @ld/app-pixel-pitch art:build`. The output is committed, so CI and
  * fresh clones need neither Python nor this step.
  */
+import { spawnSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -13,7 +14,7 @@ const here = path.dirname(new URL(import.meta.url).pathname)
 const source = path.join(here, 'source')
 const target = path.resolve(here, '../app/src/assets/game')
 
-// Only what the screens draw. Audio waits for the sound milestone (it needs converting to m4a/ogg first).
+// Only what the screens draw. Sound effects are converted below; the music is optional and left out for now.
 const FOLDERS = [
   'sprites/players',
   'sprites/crests',
@@ -42,6 +43,27 @@ for (const folder of FOLDERS) {
 // Re-indented to the repo's JSON style, so lint and the art build agree.
 writeFileSync(path.join(target, 'palette.json'), `${JSON.stringify(JSON.parse(readFileSync(path.join(source, 'palette/palette.json'), 'utf8')), null, 2)}\n`)
 console.log(`Copied ${FOLDERS.length} folders of art into ${path.relative(process.cwd(), target)}.`)
+
+// Sound effects: AAC in .m4a, mono, which every browser and both phones play, a fraction of the size of the WAVs.
+// Needs ffmpeg (Homebrew) or macOS's afconvert.
+const sfx = path.join(source, 'audio/sfx')
+const audio = path.join(target, 'audio')
+mkdirSync(audio, { recursive: true })
+const hasFfmpeg = spawnSync('ffmpeg', ['-version']).status === 0
+let converted = 0
+for (const file of readdirSync(sfx).filter(name => name.endsWith('.wav'))) {
+  const out = path.join(audio, file.replace(/\.wav$/, '.m4a'))
+  const input = path.join(sfx, file)
+  const result = hasFfmpeg
+    ? spawnSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', input, '-ac', '1', '-c:a', 'aac', '-b:a', '64k', '-map_metadata', '-1', '-fflags', '+bitexact', out])
+    : spawnSync('afconvert', ['-f', 'm4af', '-d', 'aac', '-c', '1', '-b', '64000', input, out])
+  if (result.status !== 0) {
+    console.error(`Could not convert ${file}: install ffmpeg (brew install ffmpeg).`)
+    process.exit(1)
+  }
+  converted++
+}
+console.log(`Converted ${converted} sound effects into ${path.relative(process.cwd(), audio)}.`)
 
 // Native icon and launch screen, from the pack's app art. The splash is a full-screen portrait picture (grass along
 // the bottom), so it goes in as it is: Capacitor's asset tool expects a square splash and would crop the grass off.

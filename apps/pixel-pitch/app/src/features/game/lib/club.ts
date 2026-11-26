@@ -5,6 +5,11 @@ export function kitOf(game: GameResponse): readonly [string, string] {
   return [game.club.kitPrimary, game.club.kitSecondary]
 }
 
+/** The other side's kit in the arcade: red, or blue if the club plays in red, so the two never look alike. */
+export function rivalKit(kit: readonly [string, string]): readonly [string, string] {
+  return kit[0].toLowerCase() === '#e2483d' ? ['#3f7fd6', '#f4f4f4'] : ['#e2483d', '#f4f4f4']
+}
+
 export function leagueName(tier: number) {
   const label = leagueLabel(tier)
   return label.kind === 'league' ? `League ${label.league}` : `Prestige ${label.level}`

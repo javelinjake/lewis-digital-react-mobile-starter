@@ -87,6 +87,8 @@ export interface MatchEvent {
   side: MatchSide
   kind: MatchEventKind
   slot: number
+  /** Set when this was a Big Chance or live moment the player played: a penalty or free kick scored, or a save. */
+  chance?: 'penalty' | 'freekick' | 'save'
 }
 
 export interface MatchInput extends Side {

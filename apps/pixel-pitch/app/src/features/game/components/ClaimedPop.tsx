@@ -1,5 +1,7 @@
 import type { ClaimAllResult, GameResponse } from '@ld/pixel-pitch-core'
+import { useEffect } from 'react'
 import { Link } from 'react-router'
+import { play } from '@/lib/sound/sound'
 import { Icon } from './sprites'
 
 export type Claimed = GameResponse & ClaimAllResult
@@ -16,6 +18,7 @@ export function ClaimedPop({ result, onClose }: { result: Claimed, onClose: () =
     { key: 'kit', icon: 'icons/ui_club.png', text: `+${result.kits} new ${result.kits === 1 ? 'kit' : 'kits'}, in the shop`, show: (result.kits ?? 0) > 0 },
   ].filter(line => line.show)
   const toOpen = result.club.state.idle.shelfPacks + result.club.state.starPacks
+  useEffect(() => play('collect'), [])
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-label="Claimed">
@@ -35,7 +38,7 @@ export function ClaimedPop({ result, onClose }: { result: Claimed, onClose: () =
         {toOpen > 0
           ? (
               <>
-                <Link to="/packs" className="btn btn-primary min-h-12 w-full font-display text-xs" onClick={onClose}>{`Open packs (${toOpen})`}</Link>
+                <Link to="/packs?open=1" className="btn btn-primary min-h-12 w-full font-display text-xs" onClick={onClose}>{`Open packs (${toOpen})`}</Link>
                 <button type="button" className="btn btn-ghost min-h-11 w-full" onClick={onClose}>Not now</button>
               </>
             )

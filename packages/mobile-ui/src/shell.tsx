@@ -54,6 +54,19 @@ export function ScreenContent({ children }: { children: ReactNode }) {
   return <main className="flex-1 overflow-y-auto px-4 py-4">{children}</main>
 }
 
+/**
+ * The screen's main actions, pinned to the bottom of `ScreenContent` while everything above them scrolls. Put it last
+ * in the screen. It stays in the flow when the screen is short, and sticks to the bottom when the screen is long, so
+ * the button is always in reach without scrolling to find it.
+ */
+export function BottomActions({ children, className = '' }: { children: ReactNode, className?: string }) {
+  return (
+    <div className={`sticky -bottom-4 z-10 -mx-4 -mb-4 mt-2 flex flex-col gap-2 border-t border-base-300 bg-base-200 px-4 py-3 ${className}`}>
+      {children}
+    </div>
+  )
+}
+
 export function AppBar({ title, onBack, end }: { title: string, onBack?: () => void, end?: ReactNode }) {
   return (
     <header
@@ -62,7 +75,9 @@ export function AppBar({ title, onBack, end }: { title: string, onBack?: () => v
     >
       {onBack
         ? <button type="button" className="btn btn-ghost btn-circle min-h-11 min-w-11" onClick={onBack} aria-label="Back">←</button>
-        : <span className="w-11" />}
+        // No back button: keep the title off the edge. A full button's width only when nothing sits on the right, so a
+        // header with buttons there still has room for its title.
+        : <span className={end ? 'w-2' : 'w-11'} />}
       <h1 className="flex-1 truncate text-lg">{title}</h1>
       {end}
     </header>

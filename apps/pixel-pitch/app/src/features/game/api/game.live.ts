@@ -1,4 +1,4 @@
-import type { FixtureResult, GameResponse, Player } from '@ld/pixel-pitch-core'
+import type { ChallengeBoard, FixtureResult, GameResponse, Player } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
 import { isApiError, newIdempotencyKey } from '@ld/api-client'
 import { DEFAULT_CONFIG, parseConfig } from '@ld/pixel-pitch-core'
@@ -43,6 +43,7 @@ export const gameApi: GameApi = {
   buyPack: () => act('/game/packs/buy'),
   arcadePack: position => act('/game/packs/arcade', { position }),
   decidePack: decisions => act('/game/packs/decide', { decisions }),
+  playFriendly: () => act('/game/friendly'),
   collectStadium: () => act('/game/stadium/collect'),
   upgradeStadium: () => act('/game/stadium/upgrade'),
   collectTray: () => act('/game/arcade/collect', {}),
@@ -50,7 +51,14 @@ export const gameApi: GameApi = {
   startPlay: (cabinet, paid) => act('/game/arcade/start', { cabinet, paid }),
   finishPlay: (cabinet, taps) => act('/game/arcade/finish', { cabinet, taps }),
   startWarmup: () => act('/game/warmup/start'),
-  finishWarmup: tapMs => act('/game/warmup/finish', { tapMs }),
+  finishWarmup: taps => act('/game/warmup/finish', { taps }),
+  startChance: fixtureNo => act('/game/chance/start', { fixtureNo }),
+  finishChance: taps => act('/game/chance/finish', { taps }),
+  skipChance: fixtureNo => act('/game/chance/skip', { fixtureNo }),
+  startChallenge: () => act('/game/challenge/start'),
+  finishChallenge: taps => act('/game/challenge/finish', { taps }),
+  readBoard: () => getApi().action<ChallengeBoard>('/game/challenge/board', {}, newIdempotencyKey()),
+  claimWeekly: () => act('/game/challenge/weekly'),
   claimGoal: goalId => act('/game/goals/claim', { goalId }),
   claimFreePack: () => act('/game/goals/free-pack'),
   claimCalendar: () => act('/game/calendar/claim'),
@@ -80,7 +88,7 @@ export const gameApi: GameApi = {
     return global.config ? parseConfig(global.config) : DEFAULT_CONFIG
   },
   async readFixtures(limit) {
-    const result = await getApi().collection<FixtureDoc>('fixtures').find({ sort: '-no', limit, depth: 0 })
+    const result = await getApi().collection<FixtureDoc>('fixtures').find({ sort: '-kickoffAt', limit, depth: 0 })
     return result.docs
   },
 }

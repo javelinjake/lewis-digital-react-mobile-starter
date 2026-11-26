@@ -1,8 +1,7 @@
 import type { GameConfig } from './config'
-import type { WarmupZone } from './match'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
 
-// The arcade games and the warm-up kick are played on the phone, but every one of them is a pure function of its
+// The arcade games are played on the phone, but every one of them is a pure function of its
 // seed and the player's taps. The server hands out a seed (a ticket), the phone plays, and the server replays the
 // taps to get the score. A phone cannot claim a score the taps do not make.
 
@@ -53,7 +52,7 @@ const TWISTS: readonly RoundKind[] = ['steady', 'fast', 'narrow', 'moving']
  * row are never the same (the one before the last is never fast either), so no two plays feel alike.
  */
 export function kickRounds(seed: string, config: Pick<GameConfig, 'minigames'>): Bar[] {
-  const { rounds, minSpeed, maxSpeed, fastFactor, narrowZone, drift } = config.minigames.kick
+  const { rounds, minSpeed, maxSpeed, fastFactor, narrowZone, drift, ramp } = config.minigames.kick
   const rng = createRng(hashSeed(seed, 'kick'))
   const bars: Bar[] = []
   for (let round = 0; round < rounds; round++) {
@@ -68,7 +67,7 @@ export function kickRounds(seed: string, config: Pick<GameConfig, 'minigames'>):
     bars.push({
       ...bar,
       kind,
-      speed: kind === 'fast' ? bar.speed * fastFactor : bar.speed,
+      speed: (kind === 'fast' ? bar.speed * fastFactor : bar.speed) * (1 + ramp * round),
       zone: kind === 'narrow' ? narrowZone : 1,
       drift: kind === 'moving' ? drift : 0,
       driftPhase: twist,
@@ -93,54 +92,195 @@ export function kickPoints(distance: number, config: Pick<GameConfig, 'minigames
   return distance <= perfect * zone ? 3 : distance <= good * zone ? 2 : distance <= ok * zone ? 1 : 0
 }
 
+/**
+ * In an endless play the taps stop at the first failed round: every round before it must have been passed, and the
+ * last tap either failed or was the last round. Throws for a play that went on after a fail or stopped while still in.
+ */
+export function checkEndless(passed: readonly boolean[], rounds: number) {
+  if (passed.length === 0 || passed.length > rounds)
+    throw new Error('An endless play has between one round and all of them.')
+  if (passed.slice(0, -1).some(ok => !ok))
+    throw new Error('An endless play stops at the first fail.')
+  if (passed.length < rounds && passed[passed.length - 1])
+    throw new Error('An endless play goes on until a fail.')
+}
+
 /** Scores a Kick Timer play from `taps`: the milliseconds each kick was taken after its round began. */
 export function scoreKick(seed: string, taps: readonly number[], config: Pick<GameConfig, 'minigames'>): KickScore {
-  const rounds = kickRounds(seed, config)
-  if (taps.length !== rounds.length)
-    throw new Error(`A Kick Timer play has ${rounds.length} kicks.`)
+  const all = kickRounds(seed, config)
+  if (!config.minigames.endless && taps.length !== all.length)
+    throw new Error(`A Kick Timer play has ${all.length} kicks.`)
+  const rounds = all.slice(0, taps.length)
   const base = rounds.map((bar, round) => kickPoints(Math.abs(markerAt(bar, taps[round]) - targetAt(bar, taps[round])), config, bar.zone))
+  if (config.minigames.endless)
+    checkEndless(base.map(points => points > 0), all.length)
   const doubled = base.map((_, round) => round > 0 && base[round - 1] === 3)
   const points = base.map((value, round) => (doubled[round] ? value * 2 : value))
-  return { points, doubled, total: points.reduce((sum, value) => sum + value, 0), max: 3 + (rounds.length - 1) * 6 }
+  return { points, doubled, total: points.reduce((sum, value) => sum + value, 0), max: 3 + (all.length - 1) * 6 }
 }
 
-// ---- Penalty Shootout: five penalties, tap to shoot while the aim sweeps the goal and the keeper shuffles. ----
+// ---- Penalty Shootout: five penalties. The ball wanders about the goal and the keeper shuffles; tap to shoot. ----
 
+/**
+ * A closed loop through `x` (and `y`) points: it is at point `i` at `at[i]` milliseconds into the loop, and back at
+ * the first at `loopMs`, then round again. Only + - * / on the way to a position, so every phone and the server get
+ * the same number to the last bit (no sines: they can differ in the last place from one engine to another).
+ */
+export interface Loop {
+  x: number[]
+  y: number[]
+  at: number[]
+  loopMs: number
+}
+
+/** A penalty: the ball's loop about the goal (where the shot goes) and the keeper's along the line (`x` only). */
 export interface PenaltyRound {
-  /** The aim sweeping across the width of the goal, 0 (left) to 1 (right). */
-  aim: Pick<Bar, 'speed' | 'phase'>
-  /** The keeper shuffling along the line. */
-  keeper: Pick<Bar, 'speed' | 'phase'>
+  ball: Loop
+  keeper: Loop
 }
 
-export type PenaltyOutcome = 'wide' | 'saved' | 'goal' | 'corner'
+export type PenaltyOutcome = 'wide' | 'over' | 'saved' | 'goal' | 'corner'
 
+const lerp = (from: number, to: number, t: number) => from + (to - from) * t
+const along = (index: number, count: number) => (count > 1 ? index / (count - 1) : 0)
+const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value))
+
+function makeLoop(rng: ReturnType<typeof createRng>, count: number, minLegMs: number, maxLegMs: number, point: (index: number) => { x: number, y: number }): Loop {
+  const loop: Loop = { x: [], y: [], at: [], loopMs: 0 }
+  for (let index = 0; index < count; index++) {
+    const { x, y } = point(index)
+    loop.x.push(x)
+    loop.y.push(y)
+    loop.at.push(loop.loopMs)
+    loop.loopMs += Math.round(minLegMs + rng.next() * (maxLegMs - minLegMs))
+  }
+  return loop
+}
+
+/** Which leg of the loop `ms` is on, and how far along it (0 to 1). */
+function legOf(loop: Loop, ms: number) {
+  const time = ((ms % loop.loopMs) + loop.loopMs) % loop.loopMs
+  let leg = loop.at.length - 1
+  while (leg > 0 && loop.at[leg] > time)
+    leg--
+  const length = legMs(loop, leg)
+  return { leg, u: (time - loop.at[leg]) / length }
+}
+
+function legMs(loop: Loop, leg: number) {
+  const count = loop.at.length
+  const index = ((leg % count) + count) % count
+  return (index + 1 < count ? loop.at[index + 1] : loop.loopMs) - loop.at[index]
+}
+
+/**
+ * A smooth curve through the points (a cubic Hermite, its tangents set from the legs either side so the speed carries
+ * on through each point): the ball sweeps about rather than stopping and starting.
+ */
+function smoothOn(values: readonly number[], loop: Loop, leg: number, u: number) {
+  const count = values.length
+  const before = (leg + count - 1) % count
+  const next = (leg + 1) % count
+  const after = (leg + 2) % count
+  const here = legMs(loop, leg)
+  const inTangent = ((values[next] - values[before]) / (legMs(loop, before) + here)) * here
+  const outTangent = ((values[after] - values[leg]) / (here + legMs(loop, next))) * here
+  const u2 = u * u
+  const u3 = u2 * u
+  return (2 * u3 - 3 * u2 + 1) * values[leg] + (u3 - 2 * u2 + u) * inTangent + (-2 * u3 + 3 * u2) * values[next] + (u3 - u2) * outTangent
+}
+
+/** Eases from one point to the next, settling at each: the keeper sets themself, then moves off again. */
+function easeOn(values: readonly number[], leg: number, u: number) {
+  const next = (leg + 1) % values.length
+  return values[leg] + (values[next] - values[leg]) * (u * u * (3 - 2 * u))
+}
+
+/**
+ * Five penalties from the seed. In each, the ball loops through points spread over the goal and around it (every
+ * fourth one in a corner of the goal, so the corners come round often), and the keeper moves between spots along the
+ * line at speeds drawn from the seed. Each round is quicker than the one before.
+ */
 export function penaltyRounds(seed: string, config: Pick<GameConfig, 'minigames'>): PenaltyRound[] {
-  const { rounds, aimMinSpeed, aimMaxSpeed, keeperMinSpeed, keeperMaxSpeed } = config.minigames.pens
+  const pens = config.minigames.pens
+  const { goalWidth, goalHeight, wide, over, ballRadius, cornerWidth, cornerHeight } = pens
   const rng = createRng(hashSeed(seed, 'pens'))
-  return Array.from({ length: rounds }, () => ({
-    aim: { speed: aimMinSpeed + rng.next() * (aimMaxSpeed - aimMinSpeed), phase: rng.next() },
-    keeper: { speed: keeperMinSpeed + rng.next() * (keeperMaxSpeed - keeperMinSpeed), phase: rng.next() },
-  }))
+  const anywhere = () => ({ x: -wide + rng.next() * (goalWidth + 2 * wide), y: ballRadius + rng.next() * (goalHeight + over - ballRadius) })
+  const corner = () => {
+    const right = rng.next() < 0.5
+    const top = rng.next() < 0.6
+    const x = 2 + rng.next() * (cornerWidth - 4)
+    const y = top ? goalHeight - 2 - rng.next() * (cornerHeight - 4) : ballRadius + rng.next() * (cornerHeight - 2 - ballRadius)
+    return { x: right ? goalWidth - x : x, y }
+  }
+  return Array.from({ length: pens.rounds }, (_, round) => {
+    const pace = lerp(1, pens.lastPace, along(round, pens.rounds))
+    let last = { x: goalWidth / 2, y: goalHeight / 2 }
+    const ball = makeLoop(rng, pens.aimPoints, pens.aimLegMinMs * pace, pens.aimLegMaxMs * pace, (index) => {
+      if (index % 4 === 1)
+        return (last = corner())
+      const far = (spot: { x: number, y: number }) => (spot.x - last.x) * (spot.x - last.x) + (spot.y - last.y) * (spot.y - last.y) >= pens.aimMinJump * pens.aimMinJump
+      let spot = anywhere()
+      for (let tries = 0; tries < 8 && !far(spot); tries++)
+        spot = anywhere()
+      return (last = spot)
+    })
+    const keeper = makeLoop(rng, pens.keeperPoints, pens.keeperLegMinMs * pace, pens.keeperLegMaxMs * pace, () => ({ x: lerp(pens.keeperMin, pens.keeperMax, rng.next()), y: 0 }))
+    return { ball, keeper }
+  })
 }
 
-/** Where the keeper stands `ms` into a round: always within the middle of the goal, so a corner can be out of reach. */
+/** Where the ball is `ms` into a round, in goal units: where a shot taken then goes. */
+export function penaltyBallAt(round: PenaltyRound, ms: number, config: Pick<GameConfig, 'minigames'>) {
+  const { goalWidth, goalHeight, wide, over, ballRadius } = config.minigames.pens
+  const { leg, u } = legOf(round.ball, ms)
+  return {
+    x: clamp(smoothOn(round.ball.x, round.ball, leg, u), -wide, goalWidth + wide),
+    y: clamp(smoothOn(round.ball.y, round.ball, leg, u), ballRadius, goalHeight + over),
+  }
+}
+
+/** Where the keeper's middle is along the line `ms` into a round, in goal units. */
 export function keeperAt(round: PenaltyRound, ms: number) {
-  return 0.2 + 0.6 * markerAt(round.keeper, ms)
+  const { leg, u } = legOf(round.keeper, ms)
+  return easeOn(round.keeper.x, leg, u)
 }
 
-/** What a penalty taken `ms` into its round comes to. Wide of the posts is nothing; the keeper's reach saves it; the corners are worth 2. */
-export function penaltyShot(round: PenaltyRound, ms: number, config: Pick<GameConfig, 'minigames'>): { outcome: PenaltyOutcome, points: number, aim: number, keeper: number } {
-  const { post, corner, reach } = config.minigames.pens
-  const aim = markerAt(round.aim, ms)
+/** Whether the keeper, standing at `keeper`, reaches a ball at (`x`, `y`). Squared, so every device agrees. */
+export function keeperReaches(keeper: number, ball: { x: number, y: number }, config: Pick<GameConfig, 'minigames'>) {
+  const { reachX, reachY, reachMid } = config.minigames.pens
+  const dx = ball.x - keeper
+  const dy = ball.y - reachMid
+  return dx * dx * reachY * reachY + dy * dy * reachX * reachX <= reachX * reachX * reachY * reachY
+}
+
+export interface PenaltyShot {
+  outcome: PenaltyOutcome
+  points: number
+  /** Where the shot went, in goal units. */
+  x: number
+  y: number
+  /** Where the keeper stood. */
+  keeper: number
+}
+
+/**
+ * What a penalty taken `ms` into its round comes to: it goes where the ball is. Wide of a post or over the bar is
+ * nothing; inside the keeper's reach is saved; in one of the four corners is 2; anywhere else in the goal is 1.
+ */
+export function penaltyShot(round: PenaltyRound, ms: number, config: Pick<GameConfig, 'minigames'>): PenaltyShot {
+  const { goalWidth, goalHeight, cornerWidth, cornerHeight } = config.minigames.pens
+  const { x, y } = penaltyBallAt(round, ms, config)
   const keeper = keeperAt(round, ms)
-  if (aim < post || aim > 1 - post)
-    return { outcome: 'wide', points: 0, aim, keeper }
-  if (Math.abs(aim - keeper) <= reach)
-    return { outcome: 'saved', points: 0, aim, keeper }
-  if (aim < corner || aim > 1 - corner)
-    return { outcome: 'corner', points: 2, aim, keeper }
-  return { outcome: 'goal', points: 1, aim, keeper }
+  const shot = (outcome: PenaltyOutcome, points: number): PenaltyShot => ({ outcome, points, x, y, keeper })
+  if (x < 0 || x > goalWidth)
+    return shot('wide', 0)
+  if (y > goalHeight)
+    return shot('over', 0)
+  if (keeperReaches(keeper, { x, y }, config))
+    return shot('saved', 0)
+  const inCorner = (x <= cornerWidth || x >= goalWidth - cornerWidth) && (y >= goalHeight - cornerHeight || y <= cornerHeight)
+  return inCorner ? shot('corner', 2) : shot('goal', 1)
 }
 
 export interface PenaltyScore {
@@ -152,41 +292,38 @@ export interface PenaltyScore {
 
 /** Scores a Penalty Shootout play from `taps`: the milliseconds each penalty was taken after its round began. */
 export function scorePenalties(seed: string, taps: readonly number[], config: Pick<GameConfig, 'minigames'>): PenaltyScore {
-  const rounds = penaltyRounds(seed, config)
-  if (taps.length !== rounds.length)
-    throw new Error(`A Penalty Shootout play has ${rounds.length} penalties.`)
-  const shots = rounds.map((round, index) => penaltyShot(round, taps[index], config))
-  return { points: shots.map(shot => shot.points), outcomes: shots.map(shot => shot.outcome), total: shots.reduce((sum, shot) => sum + shot.points, 0), max: rounds.length * 2 }
+  const all = penaltyRounds(seed, config)
+  if (!config.minigames.endless && taps.length !== all.length)
+    throw new Error(`A Penalty Shootout play has ${all.length} penalties.`)
+  const shots = all.slice(0, taps.length).map((round, index) => penaltyShot(round, taps[index], config))
+  if (config.minigames.endless)
+    checkEndless(shots.map(shot => shot.points > 0), all.length)
+  return { points: shots.map(shot => shot.points), outcomes: shots.map(shot => shot.outcome), total: shots.reduce((sum, shot) => sum + shot.points, 0), max: all.length * 2 }
 }
 
-// ---- Warm-up kick: one try at a timing bar before the match. ----
-
-export function warmupBar(seed: string, config: Pick<GameConfig, 'minigames'>): Bar {
-  const { minSpeed, maxSpeed } = config.minigames.warmup
-  return makeBar(createRng(hashSeed(seed, 'warmup')), minSpeed, maxSpeed)
-}
-
-export function warmupZone(seed: string, tapMs: number, config: Pick<GameConfig, 'minigames'>): WarmupZone {
-  const bar = warmupBar(seed, config)
-  const distance = Math.abs(markerAt(bar, tapMs) - bar.centre)
-  const { goldWidth, greenWidth } = config.minigames.warmup
-  return distance <= goldWidth / 2 ? 'gold' : distance <= greenWidth / 2 ? 'green' : 'miss'
-}
-
-// ---- Keepy-Uppy: tap to keep the ball up, which gets faster. ----
+// ---- Keepy-Uppy: tap the ball to keep it up. It drifts about and gets faster. ----
 
 /** The game runs at 60 steps a second whatever the phone's frame rate. */
 export const KEEPY_STEPS_PER_SECOND = 60
 const DT = 1 / KEEPY_STEPS_PER_SECOND
 
+/** A tap in Keepy-Uppy: the 60 Hz step it came on, and where, in pitch units (`x` from the left wall, `y` up from the ground). */
+export interface KeepyTap {
+  t: number
+  x: number
+  y: number
+}
+
 export interface KeepySim {
   seed: string
-  /** Height above the ground, in pitch units (the ball starts at 60). */
+  /** Where the ball is, in pitch units: `x` its middle from the left wall, `y` its underside up from the ground (it starts at 60, in the middle). */
+  x: number
   y: number
+  vx: number
   vy: number
   step: number
   kicks: number
-  /** Steps left in which a tap does nothing, after one badly timed. */
+  /** Steps left in which a tap does nothing, after one that missed the ball or came too early. */
   stumble: number
   dropped: boolean
   /** The game is over: the ball dropped, the player reached the kick cap, or the clock ran out. */
@@ -195,27 +332,52 @@ export interface KeepySim {
   timeUp: boolean
 }
 
-export function newKeepy(seed: string): KeepySim {
-  return { seed, y: 60, vy: 0, step: 0, kicks: 0, stumble: 0, dropped: false, over: false, timeUp: false }
+export function newKeepy(seed: string, config: Pick<GameConfig, 'minigames'>): KeepySim {
+  return { seed, x: config.minigames.keepy.width / 2, y: 60, vx: 0, vy: 0, step: 0, kicks: 0, stumble: 0, dropped: false, over: false, timeUp: false }
 }
 
 const gravityAt = (kicks: number, config: Pick<GameConfig, 'minigames'>) => config.minigames.keepy.gravity * (1 + config.minigames.keepy.ramp * kicks)
 
-/** One 60th of a second. `tap` is whether the player tapped during it. Pure: returns the next state. */
-export function stepKeepy(sim: KeepySim, tap: boolean, config: Pick<GameConfig, 'minigames'>): KeepySim {
+/** The middle of the ball, in pitch units: `y` is the height of its underside. */
+export function ballCentre(sim: Pick<KeepySim, 'x' | 'y'>, config: Pick<GameConfig, 'minigames'>) {
+  return { x: sim.x, y: sim.y + config.minigames.keepy.ballRadius }
+}
+
+/** Whether a tap at (`x`, `y`) touches the ball. Squared distances, so every device and the server agree to the last bit. */
+export function touchesBall(sim: Pick<KeepySim, 'x' | 'y'>, tap: { x: number, y: number }, config: Pick<GameConfig, 'minigames'>) {
+  const centre = ballCentre(sim, config)
+  const dx = tap.x - centre.x
+  const dy = tap.y - centre.y
+  const { hitRadius } = config.minigames.keepy
+  return dx * dx + dy * dy <= hitRadius * hitRadius
+}
+
+/** Whether the ball is low enough, and falling, for the foot to reach it. */
+export function inReach(sim: Pick<KeepySim, 'y' | 'vy'>, config: Pick<GameConfig, 'minigames'>) {
+  return sim.vy < 0 && sim.y <= config.minigames.keepy.reach
+}
+
+/**
+ * One 60th of a second. `tap` is where the player tapped during it, or null. A tap on the ball while it is low and
+ * falling kicks it up to a height, and off to one side, drawn from the seed (the same for the server's replay). A tap
+ * that misses the ball, or touches it too early, is a stumble. Pure: returns the next state.
+ */
+export function stepKeepy(sim: KeepySim, tap: { x: number, y: number } | null, config: Pick<GameConfig, 'minigames'>): KeepySim {
   if (sim.over)
     return sim
-  const { reach, stumbleSteps, minPeak, maxPeak, maxKicks, maxSeconds } = config.minigames.keepy
-  let { y, vy, kicks, stumble } = sim
+  const { stumbleSteps, minPeak, maxPeak, maxKicks, maxSeconds, width, ballRadius, drift } = config.minigames.keepy
+  let { x, y, vx, vy, kicks, stumble } = sim
 
-  if (stumble > 0)
+  if (stumble > 0) {
     stumble -= 1
+  }
   else if (tap) {
-    if (vy < 0 && y <= reach) {
-      // The foot meets the ball: kick it to a height drawn from the seed (the same for the server's replay).
+    if (touchesBall(sim, tap, config) && inReach(sim, config)) {
       kicks += 1
-      const peak = minPeak + createRng(hashSeed(sim.seed, 'kick', kicks)).next() * (maxPeak - minPeak)
+      const rng = createRng(hashSeed(sim.seed, 'kick', kicks))
+      const peak = minPeak + rng.next() * (maxPeak - minPeak)
       vy = Math.sqrt(2 * gravityAt(kicks, config) * Math.max(0, peak - y))
+      vx = (rng.next() * 2 - 1) * drift
     }
     else {
       stumble = stumbleSteps
@@ -224,10 +386,20 @@ export function stepKeepy(sim: KeepySim, tap: boolean, config: Pick<GameConfig, 
 
   vy -= gravityAt(kicks, config) * DT
   y += vy * DT
+  x += vx * DT
+  // Off the side walls.
+  if (x < ballRadius) {
+    x = 2 * ballRadius - x
+    vx = -vx
+  }
+  else if (x > width - ballRadius) {
+    x = 2 * (width - ballRadius) - x
+    vx = -vx
+  }
   const dropped = y <= 0
   const step = sim.step + 1
   const timeUp = !dropped && step >= maxSeconds * KEEPY_STEPS_PER_SECOND
-  return { ...sim, y: Math.max(0, y), vy, step, kicks, stumble, dropped, timeUp, over: dropped || timeUp || kicks >= maxKicks }
+  return { ...sim, x, y: Math.max(0, y), vx, vy, step, kicks, stumble, dropped, timeUp, over: dropped || timeUp || kicks >= maxKicks }
 }
 
 export interface KeepyResult {
@@ -253,14 +425,14 @@ export function nextKickGolden(kicks: number, config: Pick<GameConfig, 'minigame
   return (kicks + 1) % config.minigames.keepy.goldenEvery === 0
 }
 
-/** Replays a Keepy-Uppy play from the steps (0, 1, 2…) at which the player tapped. */
-export function runKeepy(seed: string, tapSteps: readonly number[], config: Pick<GameConfig, 'minigames'>): KeepyResult {
-  const taps = new Set(tapSteps)
-  let sim = newKeepy(seed)
+/** Replays a Keepy-Uppy play from its taps: the step of each and where it landed. */
+export function runKeepy(seed: string, taps: readonly KeepyTap[], config: Pick<GameConfig, 'minigames'>): KeepyResult {
+  const byStep = new Map(taps.map(tap => [tap.t, tap]))
+  let sim = newKeepy(seed, config)
   // The clock ends every play, so this always finishes; the bound is only a guard against a bad config.
   const bound = (config.minigames.keepy.maxSeconds + 1) * KEEPY_STEPS_PER_SECOND
   while (!sim.over && sim.step < bound)
-    sim = stepKeepy(sim, taps.has(sim.step), config)
+    sim = stepKeepy(sim, byStep.get(sim.step) ?? null, config)
   return { kicks: sim.kicks, score: keepyScore(sim.kicks, config), steps: sim.step, dropped: sim.dropped }
 }
 

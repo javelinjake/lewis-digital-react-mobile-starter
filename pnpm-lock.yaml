@@ -117,10 +117,7 @@ catalogs:
     '@eslint-react/eslint-plugin':
       specifier: ^1.38.4
       version: 1.53.1
-    '@fontsource/press-start-2p':
-      specifier: ^5.3.0
-      version: 5.3.0
-    '@fontsource/vt323':
+    '@fontsource/jersey-10':
       specifier: ^5.3.0
       version: 5.3.0
     '@hookform/resolvers':
@@ -441,10 +438,7 @@ importers:
       '@capgo/capacitor-social-login':
         specifier: 'catalog:'
         version: 8.7.7(@capacitor/core@8.5.2)
-      '@fontsource/press-start-2p':
-        specifier: 'catalog:'
-        version: 5.3.0
-      '@fontsource/vt323':
+      '@fontsource/jersey-10':
         specifier: 'catalog:'
         version: 5.3.0
       '@ld/api-client':
@@ -3024,11 +3018,8 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@fontsource/press-start-2p@5.3.0':
-    resolution: {integrity: sha512-gxWFxdeDglPhEYSwEeooomcaFK8kSQYLQwVxfnOJeYRj2sPEHXjpVtFgEaYfqzOjuAJGrIcJOipu2KY5YkbyuQ==}
-
-  '@fontsource/vt323@5.3.0':
-    resolution: {integrity: sha512-3w33Rg/0+R1587HQfz4t7Q7e0GGeCqr3wmzIwqdGInUnrGEwMA5eX39GP4Z9wpTQnwfhVOhYuxuRwRUeIcicbw==}
+  '@fontsource/jersey-10@5.3.0':
+    resolution: {integrity: sha512-1dOTUg3JXm/Ls6j4BEPLRF5DHGadCGQy/sIHS7L0SWauB2rEd2W6614Xufxoc+TVXtrt8kVR6IWh3RFkXmy/Cw==}
 
   '@formatjs/ecma402-abstract@2.3.6':
     resolution: {integrity: sha512-HJnTFeRM2kVFVr5gr5kH1XP6K0JcJtE7Lzvtr3FS/so5f1kpsqqqxy5JF+FRaO6H2qmcMfAUIox7AJteieRtVw==}
@@ -10283,9 +10274,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fontsource/press-start-2p@5.3.0': {}
-
-  '@fontsource/vt323@5.3.0': {}
+  '@fontsource/jersey-10@5.3.0': {}
 
   '@formatjs/ecma402-abstract@2.3.6':
     dependencies:

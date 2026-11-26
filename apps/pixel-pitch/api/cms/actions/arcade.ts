@@ -1,10 +1,10 @@
-import type { Cabinet } from '@ld/pixel-pitch-core'
+import type { AnyTaps, Cabinet } from '@ld/pixel-pitch-core'
 import { defineAction } from '@ld/backend'
 import { CABINETS, collectStadium, collectTray, finishPlay, finishWarmup, startPlay, startWarmup, upgradeStadium } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { flowContext, mutateClub } from '../game/mutate-club'
 
-// The stadium, the arcade and the warm-up kick. A game is started (the server issues a ticket with a seed and the
+// The stadium, the arcade and the warm-up (a free play of one arcade game before a match). A game is started (the server issues a ticket with a seed and the
 // time) and finished (the phone sends its taps; the server replays them with that seed and checks the clock), so a
 // phone cannot send a score of its own.
 
@@ -49,9 +49,10 @@ export const finishPlayAction = defineAction({
   handler: async (ctx) => {
     const cabinet = cabinetOf(ctx.body)
     const taps = ctx.body.taps
+    // Each cabinet has its own shape (see CabinetTaps in core); the rules check it before replaying the play.
     if (!Array.isArray(taps))
-      throw new APIError('Send taps: the numbers the game recorded.', 400)
-    return { body: await mutateClub(ctx, input => finishPlay(flowContext(input), cabinet, taps as number[])) }
+      throw new APIError('Send taps: what the game recorded.', 400)
+    return { body: await mutateClub(ctx, input => finishPlay(flowContext(input), cabinet, taps as AnyTaps)) }
   },
 })
 
@@ -65,10 +66,11 @@ export const finishWarmupAction = defineAction({
   path: '/game/warmup/finish',
   ...limits,
   handler: async (ctx) => {
-    const tapMs = ctx.body.tapMs
-    if (typeof tapMs !== 'number')
-      throw new APIError('Send tapMs: when the player tapped.', 400)
-    return { body: await mutateClub(ctx, input => finishWarmup(flowContext(input), tapMs)) }
+    const taps = ctx.body.taps
+    // The warm-up is a play of the arcade game its ticket names, so the taps are that cabinet's shape; the rules check it.
+    if (!Array.isArray(taps))
+      throw new APIError('Send taps: what the warm-up game recorded.', 400)
+    return { body: await mutateClub(ctx, input => finishWarmup(flowContext(input), taps as AnyTaps)) }
   },
 })
 

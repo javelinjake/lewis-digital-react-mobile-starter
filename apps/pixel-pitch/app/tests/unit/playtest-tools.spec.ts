@@ -66,9 +66,12 @@ describe('the playtest tools', () => {
     expect(state.idle.shelfPacks).toBeGreaterThanOrEqual(5)
     expect(state.daily.goals.every(goal => goal.progress >= goal.target)).toBe(true)
     expect(tierReached(state, config)).toBeGreaterThanOrEqual(5)
-    // Claim all takes the lot.
+    // The finished goals and Pass tiers are claimed on their own screens: Claim all leaves them.
     const claimed = await gameApi.claimAll()
-    expect(claimed.items).toBeGreaterThanOrEqual(5)
+    expect(claimed.club.state.daily.goals.every(goal => !goal.claimed)).toBe(true)
+    await gameApi.claimGoal(claimed.club.state.daily.goals[0].id)
+    // The free track pays every second tier.
+    await gameApi.claimPassTier('free', 2)
   })
 
   it('reset: the club is gone and the clock is back to real time', async () => {

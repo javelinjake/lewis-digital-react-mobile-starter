@@ -1,4 +1,4 @@
-import { expect, foundClub, openSettings, signIn, test } from './helpers'
+import { expect, foundClub, kickOff, openSettings, signIn, test } from './helpers'
 
 test.describe('Larger screens @layout', () => {
   test('on a tablet or desktop browser the game is a centred column with the tab bar inside it', async ({ page }) => {
@@ -33,8 +33,9 @@ test.describe('Accounts @auth', () => {
     await expect(page).toHaveURL(/\/onboarding/)
     await page.getByLabel('Club name').fill('Ada United')
     await page.getByRole('button', { name: 'Found the club' }).click()
-    await page.getByRole('button', { name: 'Skip' }).click()
-    await page.getByRole('button', { name: 'Continue' }).click()
+    await kickOff(page)
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
+    await page.getByRole('button', { name: 'Meet your squad' }).click()
     await openSettings(page)
     await page.getByRole('button', { name: /ada@example.com/ }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
@@ -53,8 +54,9 @@ test.describe('Accounts @auth', () => {
     await signIn(page, 'ada@example.com')
     await page.getByLabel('Club name').fill('Ada United')
     await page.getByRole('button', { name: 'Found the club' }).click()
-    await page.getByRole('button', { name: 'Skip' }).click()
-    await page.getByRole('button', { name: 'Continue' }).click()
+    await kickOff(page)
+    await page.getByRole('button', { name: 'Skip to full time' }).click()
+    await page.getByRole('button', { name: 'Meet your squad' }).click()
     await openSettings(page)
     await page.getByRole('button', { name: /ada@example.com/ }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
