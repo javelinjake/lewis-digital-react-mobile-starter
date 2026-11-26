@@ -50,7 +50,7 @@ export async function kickOff(page: Page) {
 export async function foundClub(page: Page, name = 'Harbour Town') {
   await guest(page)
   await page.getByLabel('Club name').fill(name)
-  await page.getByRole('button', { name: 'Blue and white' }).click()
+  await page.getByRole('radio', { name: 'Blue and white' }).click()
   await page.getByRole('button', { name: 'Found the club' }).click()
   await expect(page).toHaveURL(/\/match\/-1/)
   await kickOff(page)
