@@ -1,4 +1,4 @@
-import { ActionSheet, ListGroup, ListItem } from '@ld/mobile-ui'
+import { ActionSheet } from '@ld/mobile-ui'
 import { getPlatform, isNativePlatform } from '@ld/native'
 import { usePushNotifications } from '@ld/native/react'
 import { ConfirmDialog, useToast } from '@ld/ui'
@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
 import { saveJson } from '../lib/save-json'
 import { PlaytestTools } from './PlaytestTools'
+import { SettingsGroup, SettingsRow, SettingsSwitch } from './SettingsRows'
 
 export function SettingsOverview() {
   const logout = useAuthStore(state => state.logout)
@@ -24,16 +25,14 @@ export function SettingsOverview() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   return (
-    <div className="flex flex-col gap-4">
-      <ListGroup label="Settings">
-        <ListItem title="Platform" subtitle={getPlatform()} />
+    <div className="flex flex-col gap-5">
+      <SettingsGroup label="Notifications">
         {NOTIFICATION_TYPES.map(entry => (
-          <ListItem
+          <SettingsSwitch
             key={entry.type}
-            title={`Alert: ${entry.label}`}
-            subtitle={alerts.includes(entry.type) ? 'On' : 'Off'}
-            onClick={() => {
-              const on = !alerts.includes(entry.type)
+            title={entry.label}
+            on={alerts.includes(entry.type)}
+            onChange={(on) => {
               setAlert(entry.type, on)
               // The first time one is turned on, ask the phone for permission to show alerts.
               if (on && isNativePlatform())
@@ -41,29 +40,39 @@ export function SettingsOverview() {
             }}
           />
         ))}
-        <ListItem
-          title="Notifications"
-          subtitle={push.permission}
+        <SettingsRow
+          title="Push notifications"
+          subtitle={`This phone: ${push.permission}`}
           onClick={() => {
             void push.register().then((permission) => {
               toast.push(permission === 'granted' ? 'Notifications enabled' : `Notifications ${permission}`, 'info')
             })
           }}
         />
-        {user?.isAnonymous
-          ? null
-          : <ListItem title="Account" subtitle={user?.email ?? 'Sign out, export or delete'} onClick={() => setSheetOpen(true)} />}
-      </ListGroup>
+      </SettingsGroup>
+
       {/* A playtest build is offline, with no server to save to. */}
       {user?.isAnonymous && !isPlaytestBuild
         ? (
-            <ListGroup label="Cloud save">
-              <ListItem title="Save to the cloud" subtitle="Keep your club safe and play on any device" onClick={() => navigate('/register?link=1')} />
-              <ListItem title="Sign in to the cloud" subtitle="Already have a cloud club? Play it here" onClick={() => navigate('/login?redirect=/club')} />
-              <ListItem title="This device" subtitle="Export or delete" onClick={() => setSheetOpen(true)} />
-            </ListGroup>
+            <SettingsGroup label="Cloud save">
+              <SettingsRow title="Save to the cloud" subtitle="Keep your club safe and play on any device" onClick={() => navigate('/register?link=1')} />
+              <SettingsRow title="Sign in to the cloud" subtitle="Already have a cloud club? Play it here" onClick={() => navigate('/login?redirect=/club')} />
+              <SettingsRow title="This device" subtitle="Export or delete" onClick={() => setSheetOpen(true)} />
+            </SettingsGroup>
           )
         : null}
+      {user?.isAnonymous
+        ? null
+        : (
+            <SettingsGroup label="Account">
+              <SettingsRow title="Account" subtitle={user?.email ?? 'Sign out, export or delete'} onClick={() => setSheetOpen(true)} />
+            </SettingsGroup>
+          )}
+
+      <SettingsGroup label="About">
+        <SettingsRow title="Platform" subtitle={getPlatform()} />
+      </SettingsGroup>
+
       {isPlaytestBuild ? <PlaytestTools /> : null}
       <ActionSheet
         open={sheetOpen}

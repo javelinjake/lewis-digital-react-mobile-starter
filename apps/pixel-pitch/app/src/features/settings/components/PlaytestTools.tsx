@@ -1,8 +1,8 @@
-import { ListGroup, ListItem } from '@ld/mobile-ui'
 import { ConfirmDialog, useToast } from '@ld/ui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { SettingsGroup, SettingsRow } from './SettingsRows'
 
 const HOUR = 60 * 60 * 1000
 
@@ -33,39 +33,39 @@ export function PlaytestTools() {
 
   return (
     <>
-      <ListGroup label="Playtest: time">
-        <ListItem title="Game clock" subtitle={ahead > 0 ? `${ahead >= 48 ? `${Math.round(ahead / 24)} days` : `${ahead}h`} ahead of real time` : 'Real time'} />
-        <ListItem title="Start the next day" subtitle="New goals, calendar day, free pack and gems" onClick={() => run(tools.nextDay, 'A new day')} />
-        <ListItem title="Skip ahead 1 hour" subtitle="Shelf, tray and the stadium fill" onClick={() => skip(1, '1h')} />
-        <ListItem title="Skip ahead 3 hours" subtitle="Plays the next league match" onClick={() => skip(3, '3h')} />
-        <ListItem title="Skip ahead 8 hours" subtitle="A night away" onClick={() => skip(8, '8h')} />
-        <ListItem title="Skip ahead 7 days" subtitle="A week of league and Pass progress" onClick={() => skip(24 * 7, '7 days')} />
-      </ListGroup>
+      <SettingsGroup label="Playtest: time">
+        <SettingsRow title="Game clock" subtitle={ahead > 0 ? `${ahead >= 48 ? `${Math.round(ahead / 24)} days` : `${ahead}h`} ahead of real time` : 'Real time'} />
+        <SettingsRow title="Start the next day" subtitle="New goals, calendar day, free pack and gems" onClick={() => run(tools.nextDay, 'A new day')} />
+        <SettingsRow title="Skip ahead 1 hour" subtitle="Shelf, tray and the stadium fill" onClick={() => skip(1, '1h')} />
+        <SettingsRow title="Skip ahead 3 hours" subtitle="Plays the next league match" onClick={() => skip(3, '3h')} />
+        <SettingsRow title="Skip ahead 8 hours" subtitle="A night away" onClick={() => skip(8, '8h')} />
+        <SettingsRow title="Skip ahead 7 days" subtitle="A week of league and Pass progress" onClick={() => skip(24 * 7, '7 days')} />
+      </SettingsGroup>
 
-      <ListGroup label="Playtest: shop (pretend purchases)">
-        <ListItem
+      <SettingsGroup label="Playtest: shop (pretend purchases)">
+        <SettingsRow
           title="League Pass"
           subtitle={status.hasPass ? 'On: premium track, 6 energy, bigger shelf. Tap to turn off' : 'Off. Tap to buy it'}
           onClick={() => run(() => window.__pixelPitchClock?.setPass(!status.hasPass), status.hasPass ? 'League Pass off' : 'League Pass on')}
         />
-        <ListItem title="Gem pack" subtitle="+100 gems" onClick={() => run(() => tools.grant({ gems: 100 }), '+100 gems')} />
-        <ListItem title="Big gem pack" subtitle="+500 gems" onClick={() => run(() => tools.grant({ gems: 500 }), '+500 gems')} />
-        <ListItem title="Starter bundle" subtitle="3 Star packs, 5,000 coins and 100 gems" onClick={() => run(() => tools.grant({ starPacks: 3, coins: 5000, gems: 100 }), 'Starter bundle added')} />
-      </ListGroup>
+        <SettingsRow title="Gem pack" subtitle="+100 gems" onClick={() => run(() => tools.grant({ gems: 100 }), '+100 gems')} />
+        <SettingsRow title="Big gem pack" subtitle="+500 gems" onClick={() => run(() => tools.grant({ gems: 500 }), '+500 gems')} />
+        <SettingsRow title="Starter bundle" subtitle="3 Star packs, 5,000 coins and 100 gems" onClick={() => run(() => tools.grant({ starPacks: 3, coins: 5000, gems: 100 }), 'Starter bundle added')} />
+      </SettingsGroup>
 
-      <ListGroup label="Playtest: top up">
-        <ListItem title="Refill arcade energy" subtitle="Back to full" onClick={() => run(tools.refillEnergy, 'Energy refilled')} />
-        <ListItem title="Coins" subtitle="+10,000 coins" onClick={() => run(() => tools.grant({ coins: 10_000 }), '+10,000 coins')} />
-        <ListItem title="Tokens" subtitle="+300 tokens (one Arcade pack)" onClick={() => run(() => tools.grant({ tokens: 300 }), '+300 tokens')} />
-        <ListItem title="Packs" subtitle="+5 packs on the shelf" onClick={() => run(() => tools.grant({ packs: 5 }), '+5 packs')} />
-        <ListItem title="Star pack" subtitle="+1 Star pack" onClick={() => run(() => tools.grant({ starPacks: 1 }), '+1 Star pack')} />
-        <ListItem title="Finish today's goals" subtitle="Ready to claim" onClick={() => run(tools.finishGoals, 'Goals finished')} />
-        <ListItem title="Pass XP" subtitle="+500 XP (5 tiers)" onClick={() => run(() => tools.addPassXp(500), '+500 Pass XP')} />
-      </ListGroup>
+      <SettingsGroup label="Playtest: top up">
+        <SettingsRow title="Refill arcade energy" subtitle="Back to full" onClick={() => run(tools.refillEnergy, 'Energy refilled')} />
+        <SettingsRow title="Coins" subtitle="+10,000 coins" onClick={() => run(() => tools.grant({ coins: 10_000 }), '+10,000 coins')} />
+        <SettingsRow title="Tokens" subtitle="+300 tokens (one Arcade pack)" onClick={() => run(() => tools.grant({ tokens: 300 }), '+300 tokens')} />
+        <SettingsRow title="Packs" subtitle="+5 packs on the shelf" onClick={() => run(() => tools.grant({ packs: 5 }), '+5 packs')} />
+        <SettingsRow title="Star pack" subtitle="+1 Star pack" onClick={() => run(() => tools.grant({ starPacks: 1 }), '+1 Star pack')} />
+        <SettingsRow title="Finish today's goals" subtitle="Ready to claim" onClick={() => run(tools.finishGoals, 'Goals finished')} />
+        <SettingsRow title="Pass XP" subtitle="+500 XP (5 tiers)" onClick={() => run(() => tools.addPassXp(500), '+500 Pass XP')} />
+      </SettingsGroup>
 
-      <ListGroup label="Playtest: start again">
-        <ListItem title="Reset the club" subtitle="Deletes it and puts the clock back to real time" onClick={() => setResetOpen(true)} />
-      </ListGroup>
+      <SettingsGroup label="Playtest: start again">
+        <SettingsRow title="Reset the club" subtitle="Deletes it and puts the clock back to real time" onClick={() => setResetOpen(true)} destructive />
+      </SettingsGroup>
       <ConfirmDialog
         open={resetOpen}
         title="Reset the club?"
