@@ -352,7 +352,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await page.goto('/arcade')
     await expect(page.getByRole('region', { name: 'Energy' }).getByText('0 / 5')).toBeVisible()
     const keepy = page.getByRole('region', { name: 'Keepy-Uppy' })
-    await expect(keepy.getByText(/Out of energy/)).toBeVisible()
+    await expect(page.getByText(/^Out of energy/)).toBeVisible()
     await expect(keepy.getByRole('link', { name: /Extra play · 20 gems/ })).toBeVisible()
     // The other game shares the same bar.
     await expect(page.getByRole('region', { name: 'Kick Timer' }).getByRole('link', { name: /Play · 1 energy/ })).toHaveCount(0)

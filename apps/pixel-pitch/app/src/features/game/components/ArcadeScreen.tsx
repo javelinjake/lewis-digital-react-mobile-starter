@@ -1,4 +1,5 @@
-import type { GameResponse } from '@ld/pixel-pitch-core'
+import type { Cabinet, GameResponse } from '@ld/pixel-pitch-core'
+import type { CabinetInfo } from '../lib/cabinets'
 import { energyAt, hotCabinet, pendingTrayTokens } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { Link } from 'react-router'
@@ -11,7 +12,41 @@ import { useGameConfig } from '../queries/use-game'
 import { EnergyBar } from './EnergyBar'
 import { Icon } from './sprites'
 
-/** The arcade: one energy bar for every game, one token tray, and a game of the day that pays extra. */
+/** One game in the arcade: a strip of grass with its best score, its name and line, and Play. */
+function CabinetCard({ info, best, max, hot, bonus, hasEnergy, gemCost, wide }: {
+  info: CabinetInfo
+  best: number
+  max: number
+  hot: boolean
+  bonus: number
+  hasEnergy: boolean
+  gemCost: number
+  wide: boolean
+}) {
+  return (
+    <section
+      className={`flex flex-col bg-base-100 ${hot ? 'shadow-[inset_0_0_0_3px_var(--color-warning)]' : 'shadow-[inset_0_0_0_2px_var(--color-slate)]'} ${wide ? 'col-span-2' : ''}`}
+      aria-label={info.name}
+    >
+      <div className={`pp-grass relative flex items-start justify-between gap-1 border-b-2 border-slate p-1.5 ${wide ? 'h-16' : 'h-11'}`}>
+        {hot ? <span className="bg-warning px-1.5 text-sm text-warning-content">{`Today +${bonus}% tokens`}</span> : <span />}
+        <span className="bg-base-200 px-1.5 text-sm text-primary tabular-nums">{best > 0 ? `Best: ${best} / ${max}` : 'Not played yet'}</span>
+      </div>
+      <div className="flex flex-1 flex-col gap-1 p-2.5">
+        <h2 className="text-primary">{info.name}</h2>
+        <span className={`text-sm text-muted ${wide ? '' : 'line-clamp-2'}`}>{info.blurb}</span>
+        {hasEnergy
+          ? <Link to={`/arcade/${info.cabinet}`} className="btn btn-primary mt-auto min-h-11" aria-label="Play · 1 energy">{wide ? 'Play · 1 energy' : 'Play'}</Link>
+          : <Link to={`/arcade/${info.cabinet}?paid=1`} className="btn btn-outline mt-auto min-h-11" aria-label={`Extra play · ${gemCost} gems`}>{`${gemCost} gems`}</Link>}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * The arcade: one energy bar for every game and one token tray at the top, then the games. Today's game, which pays
+ * extra tokens, comes first and wide; the rest sit two to a row.
+ */
 export function ArcadeScreen({ game }: { game: GameResponse }) {
   const config = useGameConfig()
   const toast = useToast()
@@ -20,54 +55,48 @@ export function ArcadeScreen({ game }: { game: GameResponse }) {
   const collect = useGameAction(() => gameApi.collectTray())
   const tray = pendingTrayTokens(state.idle, config, now)
   const trayHours = state.idle.hasPass ? config.cabinets.trayCapHoursWithPass : config.cabinets.trayCapHours
-  const hot = hotCabinet(now, config)
+  const hot: Cabinet = hotCabinet(now, config)
   const hasEnergy = energyAt(state, config, now) >= 1
   const bonus = Math.round(config.cabinets.hotBonus * 100)
+  const ordered = [...CABINETS.filter(info => info.cabinet === hot), ...CABINETS.filter(info => info.cabinet !== hot)]
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <EnergyBar game={game} />
 
-      <section className="flex flex-col gap-2 border-2 border-slate bg-base-100 p-3" aria-label="Token tray">
-        <div className="flex items-center justify-between text-lg">
-          <span className="flex items-center gap-1">
-            <Icon path="icons/currency_token.png" label="Tokens" />
-            <span>{`Tray: ${tray} tokens`}</span>
-          </span>
-          <button
-            type="button"
-            className="btn btn-outline btn-sm min-h-11"
-            disabled={tray < 1 || collect.isPending}
-            onClick={() => collect.mutate(undefined, { onError: error => toast.push(formatError(error), 'error') })}
-          >
-            Collect
-          </button>
+      <section className="flex items-center gap-3 bg-base-100 p-3 shadow-[inset_0_0_0_2px_var(--color-slate)]" aria-label="Token tray">
+        <Icon path="icons/currency_token.png" label="Tokens" scale={3} />
+        <div className="min-w-0 flex-1">
+          <div className="text-lg">{`Tray: ${tray} tokens`}</div>
+          <div className="text-sm text-muted">{`You have ${state.tokens}. Fills while you are away, up to ${trayHours}h.`}</div>
         </div>
-        <span className="text-muted">{`The tray fills while you are away and holds ${trayHours} hours of tokens. You have ${state.tokens}. Tokens buy Arcade packs.`}</span>
+        <button
+          type="button"
+          className="btn btn-accent min-h-11 shrink-0 px-4"
+          disabled={tray < 1 || collect.isPending}
+          onClick={() => collect.mutate(undefined, { onError: error => toast.push(formatError(error), 'error') })}
+        >
+          Collect
+        </button>
       </section>
 
-      {CABINETS.map(({ cabinet, name, blurb }) => {
-        const best = state.arcade.best[cabinet]
-        const isHot = cabinet === hot
-        return (
-          <section key={cabinet} className={`flex flex-col gap-2 border-2 bg-base-100 p-3 ${isHot ? 'border-warning' : 'border-slate'}`} aria-label={name}>
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-primary">{name}</h2>
-              {isHot ? <span className="bg-warning px-2 text-warning-content">{`Today +${bonus}% tokens`}</span> : null}
-            </div>
-            <span className="text-muted">{blurb}</span>
-            <span className="text-lg tabular-nums">{best > 0 ? `Best: ${best} / ${topScore(cabinet, config)}` : 'Not played yet'}</span>
-            {hasEnergy
-              ? <Link to={`/arcade/${cabinet}`} className="btn btn-primary min-h-12 font-display text-xs">Play · 1 energy</Link>
-              : (
-                  <>
-                    <Link to={`/arcade/${cabinet}?paid=1`} className="btn btn-outline min-h-12">{`Extra play · ${config.cabinets.gemPlayCost} gems`}</Link>
-                    <span className="text-muted">Out of energy. An extra play pays coins and Pass XP, not tokens.</span>
-                  </>
-                )}
-          </section>
-        )
-      })}
+      {hasEnergy ? null : <span className="text-sm text-muted">Out of energy. An extra play pays coins and Pass XP, not tokens.</span>}
+
+      <div className="grid grid-cols-2 gap-2.5">
+        {ordered.map(info => (
+          <CabinetCard
+            key={info.cabinet}
+            info={info}
+            best={state.arcade.best[info.cabinet]}
+            max={topScore(info.cabinet, config)}
+            hot={info.cabinet === hot}
+            bonus={bonus}
+            hasEnergy={hasEnergy}
+            gemCost={config.cabinets.gemPlayCost}
+            wide={info.cabinet === hot}
+          />
+        ))}
+      </div>
     </div>
   )
 }

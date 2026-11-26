@@ -84,7 +84,7 @@ export function GameTabs() {
       header = <ScreenHeader title="Packs" sub="Sign players · three to a pack" end={end} below={wallet} />
     }
     else if (screen === 'arcade') {
-      header = <ScreenHeader title="Arcade" sub="Win tokens · spend them on Arcade packs" end={end} below={wallet} />
+      header = <ScreenHeader title="Arcade" sub="Win tokens for Arcade packs" end={end} below={wallet} />
     }
     else if (screen === 'squad') {
       header = (
