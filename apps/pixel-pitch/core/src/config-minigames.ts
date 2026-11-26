@@ -26,20 +26,44 @@ export const minigamesSchema = z.object({
     /** A moving round: the target swings this far either side of its middle, as a fraction of the bar. */
     drift: z.number().min(0).max(0.3).default(0.14),
   }),
-  /** Penalty Shootout: five penalties, an aim sweeping across the goal and a keeper shuffling along the line. */
+  /**
+   * Penalty Shootout: five penalties. A ball wanders about the goal (and over the bar and wide of the posts) and the
+   * keeper shuffles along the line; the shot goes where the ball is at the tap. In goal units: `x` from the left post,
+   * `y` up from the ground. Every field has a default, so a config saved before these existed still loads.
+   */
   pens: z.object({
-    rounds: z.number().int().positive(),
-    aimMinSpeed: positive,
-    aimMaxSpeed: positive,
-    keeperMinSpeed: positive,
-    keeperMaxSpeed: positive,
-    /** The posts: an aim closer to the edge than this (a fraction of the width) is wide. */
-    post: z.number().min(0).max(0.3),
-    /** An aim this close to a post is in the corner, worth 2. */
-    corner: z.number().min(0).max(0.5),
-    /** The keeper saves anything within this of where they stand. */
-    reach: positive,
-  }).default({ rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 }),
+    rounds: z.number().int().positive().default(5),
+    /** The goal, post to post and ground to bar. */
+    goalWidth: positive.default(100),
+    goalHeight: positive.default(40),
+    /** How far the ball wanders wide of each post, and above the bar. */
+    wide: z.number().nonnegative().default(18),
+    over: z.number().nonnegative().default(16),
+    /** The ball's radius, drawn; it never wanders lower than this. */
+    ballRadius: positive.default(4),
+    /** The ball's loop: this many points, a leg between two taking between these (in the first round). */
+    aimPoints: z.number().int().min(3).default(12),
+    aimLegMinMs: positive.default(480),
+    aimLegMaxMs: positive.default(900),
+    /** Each point is at least this far from the one before, so the ball keeps travelling. */
+    aimMinJump: z.number().nonnegative().default(30),
+    /** The keeper's middle stays between these, so a corner is never always covered. */
+    keeperMin: z.number().default(26),
+    keeperMax: z.number().default(74),
+    /** The keeper's loop along the line: this many stops, a move between two taking between these. */
+    keeperPoints: z.number().int().min(2).default(8),
+    keeperLegMinMs: positive.default(450),
+    keeperLegMaxMs: positive.default(1300),
+    /** The last round's legs are this fraction of the first's (the rounds between fall evenly): it gets quicker. */
+    lastPace: z.number().min(0.3).max(1).default(0.75),
+    /** The keeper saves a ball inside this ellipse: `reachX` either side of them, `reachY` above and below `reachMid`. */
+    reachX: positive.default(20),
+    reachY: positive.default(28),
+    reachMid: z.number().nonnegative().default(14),
+    /** The four corners of the goal, worth 2: this wide from a post and this deep from the bar or the ground. */
+    cornerWidth: positive.default(22),
+    cornerHeight: positive.default(14),
+  }).default({ rounds: 5, goalWidth: 100, goalHeight: 40, wide: 18, over: 16, ballRadius: 4, aimPoints: 12, aimLegMinMs: 480, aimLegMaxMs: 900, aimMinJump: 30, keeperMin: 26, keeperMax: 74, keeperPoints: 8, keeperLegMinMs: 450, keeperLegMaxMs: 1300, lastPace: 0.75, reachX: 20, reachY: 28, reachMid: 14, cornerWidth: 22, cornerHeight: 14 }),
   keepy: z.object({
     /** Gravity at the start, in pitch units a second squared; the ball is 100 units from the ground up to the top. */
     gravity: positive,
@@ -67,18 +91,36 @@ export const minigamesSchema = z.object({
     /** A kick sends the ball sideways at up to this many pitch units a second, left or right, drawn from the seed. */
     drift: z.number().nonnegative().default(22),
   }),
-  /** Keeper Reflex: a shot at the left, centre or right after a wait; dive that way in time. */
+  /**
+   * Keeper Reflex: a shot flies from the penalty spot at a point in the goal after a wait; tap the ball before it
+   * crosses the line. In goal units, as the Penalty Shootout's: `x` from the left post, `y` up from the ground, and
+   * the spot below the goal line (negative `y`), where it is drawn. Every field has a default.
+   */
   keeper: z.object({
-    shots: z.number().int().positive(),
+    shots: z.number().int().positive().default(10),
     /** The wait before each shot, so it cannot be anticipated. */
-    minDelayMs: positive,
-    maxDelayMs: positive,
-    /** Time to dive after the shot: the first shot's, falling evenly to the last one's. */
-    firstWindowMs: positive,
-    lastWindowMs: positive,
-    /** A dive sooner than this after the shot is a guess, and counts as diving early. */
-    minReactionMs: z.number().nonnegative(),
-  }).default({ shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 900, lastWindowMs: 420, minReactionMs: 100 }),
+    minDelayMs: positive.default(600),
+    maxDelayMs: positive.default(1500),
+    /** The ball's flight, strike to line: the first shot's, falling evenly to the last one's. */
+    firstWindowMs: positive.default(1000),
+    lastWindowMs: positive.default(520),
+    /** A tap sooner than this after the strike is a guess, and counts as diving early. */
+    minReactionMs: z.number().nonnegative().default(100),
+    /** The goal, post to post and ground to bar. */
+    width: positive.default(100),
+    height: positive.default(40),
+    /** Shots cross the line at least this far inside the frame. */
+    margin: z.number().nonnegative().default(6),
+    /** How far below the goal line the spot is drawn: where every shot starts. */
+    spotDepth: positive.default(46),
+    /** A shot bends up to this far either way in flight. */
+    maxCurve: z.number().nonnegative().default(14),
+    /** The ball's radius on the spot and at the line (it shrinks as it flies away). */
+    spotRadius: positive.default(6),
+    lineRadius: positive.default(3.5),
+    /** A tap this close to the middle of the ball saves it. Forgiving: a finger is bigger than the ball. */
+    hitRadius: positive.default(14),
+  }).default({ shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 1000, lastWindowMs: 520, minReactionMs: 100, width: 100, height: 40, margin: 6, spotDepth: 46, maxCurve: 14, spotRadius: 6, lineRadius: 3.5, hitRadius: 14 }),
   /** Pass Master: watch the passing move, then repeat it. A pass longer every round. */
   pass: z.object({
     players: z.number().int().min(2),
@@ -149,9 +191,9 @@ export const DEFAULT_MINIGAMES: z.infer<typeof minigamesSchema> = {
   minTapGapMs: 120,
   clockSlack: 0.85,
   kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14 },
-  pens: { rounds: 5, aimMinSpeed: 0.9, aimMaxSpeed: 1.6, keeperMinSpeed: 0.35, keeperMaxSpeed: 0.8, post: 0.1, corner: 0.28, reach: 0.12 },
+  pens: { rounds: 5, goalWidth: 100, goalHeight: 40, wide: 18, over: 16, ballRadius: 4, aimPoints: 12, aimLegMinMs: 480, aimLegMaxMs: 900, aimMinJump: 30, keeperMin: 26, keeperMax: 74, keeperPoints: 8, keeperLegMinMs: 450, keeperLegMaxMs: 1300, lastPace: 0.75, reachX: 20, reachY: 28, reachMid: 14, cornerWidth: 22, cornerHeight: 14 },
   keepy: { gravity: 110, ramp: 0.18, minPeak: 36, maxPeak: 56, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10, width: 75, ballRadius: 5, hitRadius: 12, drift: 22 },
-  keeper: { shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 900, lastWindowMs: 420, minReactionMs: 100 },
+  keeper: { shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 1000, lastWindowMs: 520, minReactionMs: 100, width: 100, height: 40, margin: 6, spotDepth: 46, maxCurve: 14, spotRadius: 6, lineRadius: 3.5, hitRadius: 14 },
   pass: { players: 4, start: 3, rounds: 8, showMs: 480, gapMs: 160 },
   dribble: { lanes: 3, defenders: 32, firstAtMs: 900, firstGapMs: 950, lastGapMs: 430, gapJitterMs: 120, firstFallMs: 1700, lastFallMs: 950, tackleFrom: 0.8, tackleTo: 0.96 },
   targets: { count: 15, width: 100, height: 80, margin: 12, minJump: 30, radius: 8, hitRadius: 11, firstLifeMs: 1150, lastLifeMs: 560 },

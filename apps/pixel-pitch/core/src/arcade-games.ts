@@ -18,59 +18,93 @@ export interface GameScore {
   playMs: number
 }
 
-// ---- Keeper Reflex: a shot comes at one side of the goal after a wait; dive that way in time. ----
-
-export type DiveSide = 'left' | 'centre' | 'right'
-export const DIVE_SIDES: readonly DiveSide[] = ['left', 'centre', 'right']
+// ---- Keeper Reflex: you are in goal. A shot flies from the spot after a wait; tap the ball before it is in. ----
 
 export interface KeeperShot {
   /** The wait before the shot is struck, so it cannot be anticipated. */
   delayMs: number
-  side: DiveSide
-  /** How long the keeper has to dive once it is struck. Shorter with every shot. */
+  /** How long the ball takes from the spot to the line. Shorter with every shot. */
   windowMs: number
+  /** Where it crosses the line, in goal units (`x` from the left post, `y` up from the ground). */
+  x: number
+  y: number
+  /** How far it bends sideways in flight, at the most (halfway): under 0 to the left. */
+  curve: number
 }
 
-/** A dive: which way, and when, in milliseconds after the shot's round began (the wait included). */
-export interface KeeperDive {
-  side: DiveSide
+/** A tap at a shot: when (milliseconds after the shot's round began, the wait included) and where, in goal units. */
+export interface KeeperTap {
   ms: number
+  x: number
+  y: number
 }
 
 export function keeperShots(seed: string, config: Config): KeeperShot[] {
-  const { shots, minDelayMs, maxDelayMs, firstWindowMs, lastWindowMs } = config.minigames.keeper
+  const { shots, minDelayMs, maxDelayMs, firstWindowMs, lastWindowMs, width, height, margin, maxCurve } = config.minigames.keeper
   const rng = createRng(hashSeed(seed, 'keeper'))
   return Array.from({ length: shots }, (_, index) => ({
     delayMs: rng.int(minDelayMs, maxDelayMs),
-    side: rng.pick(DIVE_SIDES),
     windowMs: Math.round(lerp(firstWindowMs, lastWindowMs, along(index, shots))),
+    x: Math.round(lerp(margin, width - margin, rng.next())),
+    y: Math.round(lerp(margin, height - margin, rng.next())),
+    curve: Math.round(lerp(-maxCurve, maxCurve, rng.next())),
   }))
 }
 
-export type KeeperOutcome = 'saved' | 'early' | 'wrong' | 'late'
+/**
+ * Where the ball is `ms` into the shot's round, in goal units, and how big (`radius`): on the spot until it is struck,
+ * then flying at the goal, quick at first and slower as it goes away (it shrinks as it goes), bending on the way.
+ * `progress` is 0 on the spot and 1 at the line. Only + - * /, so every phone and the server agree to the last bit.
+ */
+export function keeperBallAt(shot: KeeperShot, ms: number, config: Config) {
+  const { width, spotDepth, spotRadius, lineRadius } = config.minigames.keeper
+  const progress = Math.min(1, Math.max(0, (ms - shot.delayMs) / shot.windowMs))
+  const eased = 1 - (1 - progress) * (1 - progress)
+  const spotX = width / 2
+  return {
+    x: spotX + (shot.x - spotX) * eased + shot.curve * 4 * progress * (1 - progress),
+    y: -spotDepth + (shot.y + spotDepth) * eased,
+    radius: spotRadius + (lineRadius - spotRadius) * eased,
+    progress,
+  }
+}
 
-/** What a dive (or none: `null`) comes to. A dive before the shot, or quicker than a person can react, is a guess. */
-export function keeperOutcome(shot: KeeperShot, dive: KeeperDive | null, config: Config): KeeperOutcome {
-  if (!dive || dive.ms > shot.delayMs + shot.windowMs)
+export type KeeperOutcome = 'saved' | 'early' | 'missed' | 'late'
+
+/**
+ * What a tap (or none: `null`) comes to. On the ball while it is in the air is a save. A tap before the shot, or
+ * quicker than a person can react, is a guess: diving early. Off the ball is a goal, and so is no tap in time.
+ */
+export function keeperOutcome(shot: KeeperShot, tap: KeeperTap | null, config: Config): KeeperOutcome {
+  if (!tap || tap.ms > shot.delayMs + shot.windowMs)
     return 'late'
-  if (dive.ms < shot.delayMs + config.minigames.keeper.minReactionMs)
+  if (tap.ms < shot.delayMs + config.minigames.keeper.minReactionMs)
     return 'early'
-  return dive.side === shot.side ? 'saved' : 'wrong'
+  return touchesShot(shot, tap, config) ? 'saved' : 'missed'
 }
 
-/** When a round is over: at the dive, or when the shot goes in. */
-export function keeperRoundMs(shot: KeeperShot, dive: KeeperDive | null) {
-  return dive ? Math.min(dive.ms, shot.delayMs + shot.windowMs) : shot.delayMs + shot.windowMs
+/** Whether a tap lands on the ball, where it is at the tap. Squared distances, so every device and the server agree. */
+export function touchesShot(shot: KeeperShot, tap: KeeperTap, config: Config) {
+  const ball = keeperBallAt(shot, tap.ms, config)
+  const dx = tap.x - ball.x
+  const dy = tap.y - ball.y
+  const { hitRadius } = config.minigames.keeper
+  return dx * dx + dy * dy <= hitRadius * hitRadius
 }
 
-export function scoreKeeper(seed: string, dives: ReadonlyArray<KeeperDive | null>, config: Config): GameScore {
+/** When a round is over: at the tap, or when the shot goes in. */
+export function keeperRoundMs(shot: KeeperShot, tap: KeeperTap | null) {
+  return tap ? Math.min(tap.ms, shot.delayMs + shot.windowMs) : shot.delayMs + shot.windowMs
+}
+
+export function scoreKeeper(seed: string, taps: ReadonlyArray<KeeperTap | null>, config: Config): GameScore {
   const shots = keeperShots(seed, config)
-  if (dives.length !== shots.length)
+  if (taps.length !== shots.length)
     throw new Error(`A Keeper Reflex play has ${shots.length} shots.`)
   return {
-    total: shots.filter((shot, index) => keeperOutcome(shot, dives[index], config) === 'saved').length,
+    total: shots.filter((shot, index) => keeperOutcome(shot, taps[index], config) === 'saved').length,
     max: shots.length,
-    playMs: shots.reduce((sum, shot, index) => sum + keeperRoundMs(shot, dives[index]), 0),
+    playMs: shots.reduce((sum, shot, index) => sum + keeperRoundMs(shot, taps[index]), 0),
   }
 }
 

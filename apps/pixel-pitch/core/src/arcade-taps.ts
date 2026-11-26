@@ -1,8 +1,8 @@
-import type { KeeperDive, LaneMove, TargetTap } from './arcade-games'
+import type { KeeperTap, LaneMove, TargetTap } from './arcade-games'
 import type { Cabinet } from './club-state'
 import type { GameConfig } from './config'
 import type { KeepyTap } from './minigames'
-import { DIVE_SIDES, scoreCones, scoreDribble, scoreKeeper, scorePass, scoreTargets } from './arcade-games'
+import { scoreCones, scoreDribble, scoreKeeper, scorePass, scoreTargets } from './arcade-games'
 import { GameRuleError } from './errors'
 import { KEEPY_STEPS_PER_SECOND, keepyMax, runKeepy, scoreKick, scorePenalties } from './minigames'
 
@@ -11,9 +11,9 @@ type Config = Pick<GameConfig, 'minigames'>
 /**
  * What the phone sends when a play ends, for each cabinet: enough for the server to replay the play and score it.
  *
- * - kick, pens: the milliseconds into each round at which the player tapped.
+ * - kick, pens: the milliseconds into each round at which the player tapped (a penalty goes where the ball is then).
  * - keepy: each tap's 60 Hz step and where it landed, in pitch units.
- * - keeper: each shot's dive (which way, and when), or null for none.
+ * - keeper: each shot's tap (when, and where in the goal), or null for none.
  * - pass: the players tapped in each round, in order.
  * - dribble: each lane change, with when.
  * - targets: each target's tap (when after it appeared, and where), or null for none.
@@ -23,7 +23,7 @@ export interface CabinetTaps {
   kick: number[]
   pens: number[]
   keepy: KeepyTap[]
-  keeper: Array<KeeperDive | null>
+  keeper: Array<KeeperTap | null>
   pass: number[][]
   dribble: LaneMove[]
   targets: Array<TargetTap | null>
@@ -103,9 +103,9 @@ export function scorePlay(cabinet: Cabinet, seed: string, taps: unknown, config:
     }
 
     case 'keeper': {
-      if (!taps.every(dive => dive === null || (isObject(dive) && DIVE_SIDES.includes(dive.side as never) && isTime(dive.ms))))
+      if (!taps.every(tap => tap === null || (isObject(tap) && isTime(tap.ms) && isNumber(tap.x) && isNumber(tap.y))))
         throw bad()
-      return scored(() => scoreKeeper(seed, taps as Array<KeeperDive | null>, config))
+      return scored(() => scoreKeeper(seed, taps as Array<KeeperTap | null>, config))
     }
 
     case 'pass': {

@@ -240,6 +240,21 @@ describe('keepy-Uppy taps on the ball', () => {
   })
 })
 
+describe('keeper Reflex taps on the ball', () => {
+  it('saves only taps on the ball, wherever the phone says it was, and refuses the old dive shape', async () => {
+    now += DAY
+    const started = await act(alice, 'arcade/start', { cabinet: 'keeper' }, { at: now })
+    const taps = perfectTaps('keeper', started.json.club.state.ticket.seed, config)
+    const sides = await act(alice, 'arcade/finish', { cabinet: 'keeper', taps: taps.map(tap => ({ side: 'left', ms: tap!.ms })) }, { at: now + 60_000 })
+    expect(sides.status).toBe(400)
+    expect(JSON.stringify(sides.json)).toContain('taps')
+    const wide = taps.map(tap => ({ ...tap!, x: tap!.x + config.minigames.keeper.hitRadius + 5 }))
+    const finished = await act(alice, 'arcade/finish', { cabinet: 'keeper', taps: wide, score: 10 }, { at: now + 60_000 })
+    expect(finished.status).toBe(200)
+    expect(finished.json).toMatchObject({ score: 0, max: 10, tokens: 0 })
+  })
+})
+
 describe('the five newer cabinets', () => {
   const fresh = ['keeper', 'pass', 'dribble', 'targets', 'cones'] as const
 

@@ -104,43 +104,168 @@ export function scoreKick(seed: string, taps: readonly number[], config: Pick<Ga
   return { points, doubled, total: points.reduce((sum, value) => sum + value, 0), max: 3 + (rounds.length - 1) * 6 }
 }
 
-// ---- Penalty Shootout: five penalties, tap to shoot while the aim sweeps the goal and the keeper shuffles. ----
+// ---- Penalty Shootout: five penalties. The ball wanders about the goal and the keeper shuffles; tap to shoot. ----
 
+/**
+ * A closed loop through `x` (and `y`) points: it is at point `i` at `at[i]` milliseconds into the loop, and back at
+ * the first at `loopMs`, then round again. Only + - * / on the way to a position, so every phone and the server get
+ * the same number to the last bit (no sines: they can differ in the last place from one engine to another).
+ */
+export interface Loop {
+  x: number[]
+  y: number[]
+  at: number[]
+  loopMs: number
+}
+
+/** A penalty: the ball's loop about the goal (where the shot goes) and the keeper's along the line (`x` only). */
 export interface PenaltyRound {
-  /** The aim sweeping across the width of the goal, 0 (left) to 1 (right). */
-  aim: Pick<Bar, 'speed' | 'phase'>
-  /** The keeper shuffling along the line. */
-  keeper: Pick<Bar, 'speed' | 'phase'>
+  ball: Loop
+  keeper: Loop
 }
 
-export type PenaltyOutcome = 'wide' | 'saved' | 'goal' | 'corner'
+export type PenaltyOutcome = 'wide' | 'over' | 'saved' | 'goal' | 'corner'
 
+const lerp = (from: number, to: number, t: number) => from + (to - from) * t
+const along = (index: number, count: number) => (count > 1 ? index / (count - 1) : 0)
+const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value))
+
+function makeLoop(rng: ReturnType<typeof createRng>, count: number, minLegMs: number, maxLegMs: number, point: (index: number) => { x: number, y: number }): Loop {
+  const loop: Loop = { x: [], y: [], at: [], loopMs: 0 }
+  for (let index = 0; index < count; index++) {
+    const { x, y } = point(index)
+    loop.x.push(x)
+    loop.y.push(y)
+    loop.at.push(loop.loopMs)
+    loop.loopMs += Math.round(minLegMs + rng.next() * (maxLegMs - minLegMs))
+  }
+  return loop
+}
+
+/** Which leg of the loop `ms` is on, and how far along it (0 to 1). */
+function legOf(loop: Loop, ms: number) {
+  const time = ((ms % loop.loopMs) + loop.loopMs) % loop.loopMs
+  let leg = loop.at.length - 1
+  while (leg > 0 && loop.at[leg] > time)
+    leg--
+  const length = legMs(loop, leg)
+  return { leg, u: (time - loop.at[leg]) / length }
+}
+
+function legMs(loop: Loop, leg: number) {
+  const count = loop.at.length
+  const index = ((leg % count) + count) % count
+  return (index + 1 < count ? loop.at[index + 1] : loop.loopMs) - loop.at[index]
+}
+
+/**
+ * A smooth curve through the points (a cubic Hermite, its tangents set from the legs either side so the speed carries
+ * on through each point): the ball sweeps about rather than stopping and starting.
+ */
+function smoothOn(values: readonly number[], loop: Loop, leg: number, u: number) {
+  const count = values.length
+  const before = (leg + count - 1) % count
+  const next = (leg + 1) % count
+  const after = (leg + 2) % count
+  const here = legMs(loop, leg)
+  const inTangent = ((values[next] - values[before]) / (legMs(loop, before) + here)) * here
+  const outTangent = ((values[after] - values[leg]) / (here + legMs(loop, next))) * here
+  const u2 = u * u
+  const u3 = u2 * u
+  return (2 * u3 - 3 * u2 + 1) * values[leg] + (u3 - 2 * u2 + u) * inTangent + (-2 * u3 + 3 * u2) * values[next] + (u3 - u2) * outTangent
+}
+
+/** Eases from one point to the next, settling at each: the keeper sets themself, then moves off again. */
+function easeOn(values: readonly number[], leg: number, u: number) {
+  const next = (leg + 1) % values.length
+  return values[leg] + (values[next] - values[leg]) * (u * u * (3 - 2 * u))
+}
+
+/**
+ * Five penalties from the seed. In each, the ball loops through points spread over the goal and around it (every
+ * fourth one in a corner of the goal, so the corners come round often), and the keeper moves between spots along the
+ * line at speeds drawn from the seed. Each round is quicker than the one before.
+ */
 export function penaltyRounds(seed: string, config: Pick<GameConfig, 'minigames'>): PenaltyRound[] {
-  const { rounds, aimMinSpeed, aimMaxSpeed, keeperMinSpeed, keeperMaxSpeed } = config.minigames.pens
+  const pens = config.minigames.pens
+  const { goalWidth, goalHeight, wide, over, ballRadius, cornerWidth, cornerHeight } = pens
   const rng = createRng(hashSeed(seed, 'pens'))
-  return Array.from({ length: rounds }, () => ({
-    aim: { speed: aimMinSpeed + rng.next() * (aimMaxSpeed - aimMinSpeed), phase: rng.next() },
-    keeper: { speed: keeperMinSpeed + rng.next() * (keeperMaxSpeed - keeperMinSpeed), phase: rng.next() },
-  }))
+  const anywhere = () => ({ x: -wide + rng.next() * (goalWidth + 2 * wide), y: ballRadius + rng.next() * (goalHeight + over - ballRadius) })
+  const corner = () => {
+    const right = rng.next() < 0.5
+    const top = rng.next() < 0.6
+    const x = 2 + rng.next() * (cornerWidth - 4)
+    const y = top ? goalHeight - 2 - rng.next() * (cornerHeight - 4) : ballRadius + rng.next() * (cornerHeight - 2 - ballRadius)
+    return { x: right ? goalWidth - x : x, y }
+  }
+  return Array.from({ length: pens.rounds }, (_, round) => {
+    const pace = lerp(1, pens.lastPace, along(round, pens.rounds))
+    let last = { x: goalWidth / 2, y: goalHeight / 2 }
+    const ball = makeLoop(rng, pens.aimPoints, pens.aimLegMinMs * pace, pens.aimLegMaxMs * pace, (index) => {
+      if (index % 4 === 1)
+        return (last = corner())
+      const far = (spot: { x: number, y: number }) => (spot.x - last.x) * (spot.x - last.x) + (spot.y - last.y) * (spot.y - last.y) >= pens.aimMinJump * pens.aimMinJump
+      let spot = anywhere()
+      for (let tries = 0; tries < 8 && !far(spot); tries++)
+        spot = anywhere()
+      return (last = spot)
+    })
+    const keeper = makeLoop(rng, pens.keeperPoints, pens.keeperLegMinMs * pace, pens.keeperLegMaxMs * pace, () => ({ x: lerp(pens.keeperMin, pens.keeperMax, rng.next()), y: 0 }))
+    return { ball, keeper }
+  })
 }
 
-/** Where the keeper stands `ms` into a round: always within the middle of the goal, so a corner can be out of reach. */
+/** Where the ball is `ms` into a round, in goal units: where a shot taken then goes. */
+export function penaltyBallAt(round: PenaltyRound, ms: number, config: Pick<GameConfig, 'minigames'>) {
+  const { goalWidth, goalHeight, wide, over, ballRadius } = config.minigames.pens
+  const { leg, u } = legOf(round.ball, ms)
+  return {
+    x: clamp(smoothOn(round.ball.x, round.ball, leg, u), -wide, goalWidth + wide),
+    y: clamp(smoothOn(round.ball.y, round.ball, leg, u), ballRadius, goalHeight + over),
+  }
+}
+
+/** Where the keeper's middle is along the line `ms` into a round, in goal units. */
 export function keeperAt(round: PenaltyRound, ms: number) {
-  return 0.2 + 0.6 * markerAt(round.keeper, ms)
+  const { leg, u } = legOf(round.keeper, ms)
+  return easeOn(round.keeper.x, leg, u)
 }
 
-/** What a penalty taken `ms` into its round comes to. Wide of the posts is nothing; the keeper's reach saves it; the corners are worth 2. */
-export function penaltyShot(round: PenaltyRound, ms: number, config: Pick<GameConfig, 'minigames'>): { outcome: PenaltyOutcome, points: number, aim: number, keeper: number } {
-  const { post, corner, reach } = config.minigames.pens
-  const aim = markerAt(round.aim, ms)
+/** Whether the keeper, standing at `keeper`, reaches a ball at (`x`, `y`). Squared, so every device agrees. */
+export function keeperReaches(keeper: number, ball: { x: number, y: number }, config: Pick<GameConfig, 'minigames'>) {
+  const { reachX, reachY, reachMid } = config.minigames.pens
+  const dx = ball.x - keeper
+  const dy = ball.y - reachMid
+  return dx * dx * reachY * reachY + dy * dy * reachX * reachX <= reachX * reachX * reachY * reachY
+}
+
+export interface PenaltyShot {
+  outcome: PenaltyOutcome
+  points: number
+  /** Where the shot went, in goal units. */
+  x: number
+  y: number
+  /** Where the keeper stood. */
+  keeper: number
+}
+
+/**
+ * What a penalty taken `ms` into its round comes to: it goes where the ball is. Wide of a post or over the bar is
+ * nothing; inside the keeper's reach is saved; in one of the four corners is 2; anywhere else in the goal is 1.
+ */
+export function penaltyShot(round: PenaltyRound, ms: number, config: Pick<GameConfig, 'minigames'>): PenaltyShot {
+  const { goalWidth, goalHeight, cornerWidth, cornerHeight } = config.minigames.pens
+  const { x, y } = penaltyBallAt(round, ms, config)
   const keeper = keeperAt(round, ms)
-  if (aim < post || aim > 1 - post)
-    return { outcome: 'wide', points: 0, aim, keeper }
-  if (Math.abs(aim - keeper) <= reach)
-    return { outcome: 'saved', points: 0, aim, keeper }
-  if (aim < corner || aim > 1 - corner)
-    return { outcome: 'corner', points: 2, aim, keeper }
-  return { outcome: 'goal', points: 1, aim, keeper }
+  const shot = (outcome: PenaltyOutcome, points: number): PenaltyShot => ({ outcome, points, x, y, keeper })
+  if (x < 0 || x > goalWidth)
+    return shot('wide', 0)
+  if (y > goalHeight)
+    return shot('over', 0)
+  if (keeperReaches(keeper, { x, y }, config))
+    return shot('saved', 0)
+  const inCorner = (x <= cornerWidth || x >= goalWidth - cornerWidth) && (y >= goalHeight - cornerHeight || y <= cornerHeight)
+  return inCorner ? shot('corner', 2) : shot('goal', 1)
 }
 
 export interface PenaltyScore {

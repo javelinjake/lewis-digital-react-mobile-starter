@@ -1,6 +1,6 @@
-import type { Cabinet, LaneMove } from '../src'
+import type { Cabinet, KeeperShot, LaneMove } from '../src'
 import { describe, expect, it } from 'vitest'
-import { ballSlot, cabinetMax, CABINETS, coneRound, defenderProgress, defendersBeaten, DEFAULT_CONFIG, DIVE_SIDES, dribbleEndMs, dribbleRun, dribbleTackle, hitsTarget, isGameRuleError, keeperOutcome, keeperShots, laneAt, passLength, passSequence, perfectTaps, scoreCones, scoreDribble, scoreKeeper, scorePass, scorePlay, scoreTargets, startLane, targetSpots } from '../src'
+import { ballSlot, cabinetMax, CABINETS, coneRound, defenderProgress, defendersBeaten, DEFAULT_CONFIG, dribbleEndMs, dribbleRun, dribbleTackle, hitsTarget, isGameRuleError, keeperBallAt, keeperOutcome, keeperShots, laneAt, passLength, passSequence, perfectTaps, scoreCones, scoreDribble, scoreKeeper, scorePass, scorePlay, scoreTargets, startLane, targetSpots } from '../src'
 
 const config = DEFAULT_CONFIG
 const games = config.minigames
@@ -40,9 +40,15 @@ describe('every cabinet', () => {
 })
 
 describe('Keeper Reflex', () => {
-  const { shots, minDelayMs, maxDelayMs, firstWindowMs, lastWindowMs, minReactionMs } = games.keeper
+  const { shots, minDelayMs, maxDelayMs, firstWindowMs, lastWindowMs, minReactionMs, width, height, margin, spotDepth, hitRadius } = games.keeper
+  /** A tap `after` milliseconds after the strike, on the ball or `off` units to the side of it. */
+  const tapAt = (shot: KeeperShot, after: number, off = 0) => {
+    const ms = shot.delayMs + after
+    const ball = keeperBallAt(shot, ms, config)
+    return { ms, x: ball.x + off, y: ball.y }
+  }
 
-  it('has ten shots, the same for a seed, with less time to dive on each', () => {
+  it('has ten shots, the same for a seed, with less time to react on each', () => {
     const all = keeperShots('a', config)
     expect(all).toHaveLength(shots)
     expect(keeperShots('a', config)).toEqual(all)
@@ -53,32 +59,56 @@ describe('Keeper Reflex', () => {
     expect(all.at(-1)!.windowMs).toBe(lastWindowMs)
   })
 
-  it('shoots at every side over many games, after a wait that cannot be anticipated', () => {
+  it('shoots all over the goal over many games, after a wait that cannot be anticipated', () => {
     const all = seeds.flatMap(seed => keeperShots(seed, config))
-    expect(new Set(all.map(shot => shot.side))).toEqual(new Set(DIVE_SIDES))
+    for (const shot of all) {
+      expect(shot.x).toBeGreaterThanOrEqual(margin)
+      expect(shot.x).toBeLessThanOrEqual(width - margin)
+      expect(shot.y).toBeGreaterThanOrEqual(margin)
+      expect(shot.y).toBeLessThanOrEqual(height - margin)
+    }
+    expect(all.some(shot => shot.x < width / 4) && all.some(shot => shot.x > (width * 3) / 4)).toBe(true)
+    expect(all.some(shot => shot.y < height / 3) && all.some(shot => shot.y > (height * 2) / 3)).toBe(true)
     expect(Math.min(...all.map(shot => shot.delayMs))).toBeGreaterThanOrEqual(minDelayMs)
     expect(Math.max(...all.map(shot => shot.delayMs))).toBeLessThanOrEqual(maxDelayMs)
     expect(new Set(all.map(shot => shot.delayMs)).size).toBeGreaterThan(100)
   })
 
-  it('saves a dive the right way in time; diving early, the wrong way or too late is a goal', () => {
-    const [shot] = keeperShots('c', config)
-    const other = DIVE_SIDES.find(side => side !== shot.side)!
-    expect(keeperOutcome(shot, { side: shot.side, ms: shot.delayMs + 200 }, config)).toBe('saved')
-    expect(keeperOutcome(shot, { side: other, ms: shot.delayMs + 200 }, config)).toBe('wrong')
-    expect(keeperOutcome(shot, { side: shot.side, ms: shot.delayMs - 50 }, config)).toBe('early')
-    // Quicker than anyone can react is a guess.
-    expect(keeperOutcome(shot, { side: shot.side, ms: shot.delayMs + minReactionMs - 1 }, config)).toBe('early')
-    expect(keeperOutcome(shot, { side: shot.side, ms: shot.delayMs + shot.windowMs + 1 }, config)).toBe('late')
-    expect(keeperOutcome(shot, null, config)).toBe('late')
+  it('flies the ball from the spot to its point on the line, shrinking as it goes', () => {
+    const [shot] = keeperShots('e', config)
+    expect(keeperBallAt(shot, 0, config)).toMatchObject({ x: width / 2, y: -spotDepth, progress: 0 })
+    expect(keeperBallAt(shot, shot.delayMs, config)).toMatchObject({ x: width / 2, y: -spotDepth, progress: 0 })
+    const line = keeperBallAt(shot, shot.delayMs + shot.windowMs, config)
+    expect(line.x).toBeCloseTo(shot.x, 9)
+    expect(line.y).toBeCloseTo(shot.y, 9)
+    expect(line.progress).toBe(1)
+    expect(line.radius).toBeLessThan(keeperBallAt(shot, 0, config).radius)
   })
 
-  it('scores the saves, and needs a dive (or none) for every shot', () => {
+  it('saves a tap on the ball in time; tapping early, off the ball or too late is a goal', () => {
+    const [shot] = keeperShots('c', config)
+    expect(keeperOutcome(shot, tapAt(shot, 200), config)).toBe('saved')
+    expect(keeperOutcome(shot, tapAt(shot, 200, hitRadius - 1), config)).toBe('saved')
+    expect(keeperOutcome(shot, tapAt(shot, 200, hitRadius + 1), config)).toBe('missed')
+    expect(keeperOutcome(shot, tapAt(shot, -50), config)).toBe('early')
+    // Quicker than anyone can react is a guess, even on the ball.
+    expect(keeperOutcome(shot, tapAt(shot, minReactionMs - 1), config)).toBe('early')
+    expect(keeperOutcome(shot, tapAt(shot, shot.windowMs), config)).toBe('saved')
+    expect(keeperOutcome(shot, tapAt(shot, shot.windowMs + 1), config)).toBe('late')
+    expect(keeperOutcome(shot, null, config)).toBe('late')
+    // Where the ball will cross the line is no good while it is still in the air elsewhere.
+    expect(keeperOutcome(shot, { ms: shot.delayMs + 200, x: shot.x, y: shot.y }, config)).toBe('missed')
+  })
+
+  it('scores the saves, and needs a tap (or none) for every shot, each a time and a place', () => {
     const all = keeperShots('d', config)
-    const dives = all.map((shot, index) => (index % 2 === 0 ? { side: shot.side, ms: shot.delayMs + 250 } : null))
-    expect(scoreKeeper('d', dives, config)).toMatchObject({ total: 5, max: 10 })
-    expect(code(() => scorePlay('keeper', 'd', dives.slice(1), config))).toBe('taps')
-    expect(code(() => scorePlay('keeper', 'd', dives.map(() => ({ side: 'up', ms: 900 })), config))).toBe('taps')
+    const taps = all.map((shot, index) => (index % 2 === 0 ? tapAt(shot, 250) : null))
+    expect(scoreKeeper('d', taps, config)).toMatchObject({ total: 5, max: 10 })
+    expect(scorePlay('keeper', 'd', JSON.parse(JSON.stringify(taps)), config)).toMatchObject({ score: 5, max: 10 })
+    expect(code(() => scorePlay('keeper', 'd', taps.slice(1), config))).toBe('taps')
+    // The old shape, a side to dive, is refused.
+    expect(code(() => scorePlay('keeper', 'd', all.map(() => ({ side: 'left', ms: 900 })), config))).toBe('taps')
+    expect(code(() => scorePlay('keeper', 'd', all.map(() => ({ ms: 900, x: 'middle', y: 10 })), config))).toBe('taps')
   })
 })
 

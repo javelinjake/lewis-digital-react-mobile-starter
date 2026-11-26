@@ -50,7 +50,9 @@ test.describe('The arcade games @game', () => {
     await foundClub(page)
     await play(page, 'Keeper Reflex')
     await expect(page.getByText('Shot 1 of 10')).toBeVisible()
-    await page.getByRole('button', { name: 'Centre' }).click()
+    await expect(page.getByRole('button', { name: /Left|Centre|Right/ })).toHaveCount(0)
+    // You save by tapping the ball itself; a tap before the shot is struck is a dive too early.
+    await page.getByLabel(/Keeper Reflex: you are in goal/).click({ position: { x: 10, y: 10 } })
     await expect(page.getByText(/Too early!|Goal!|Saved!/)).toBeVisible()
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 40_000 })
