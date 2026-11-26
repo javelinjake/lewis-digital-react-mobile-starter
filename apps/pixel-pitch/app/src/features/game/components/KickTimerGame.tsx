@@ -43,7 +43,8 @@ export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (tap
     setTotal(current => current + (hot ? points * 2 : points))
     setHot(points === 3)
     setTimeout(() => {
-      if (round + 1 < rounds.length) {
+      // Endless (the daily challenge): the first miss ends it.
+      if (!(config.minigames.endless && points === 0) && round + 1 < rounds.length) {
         startedAt.current = performance.now()
         setRound(round + 1)
         setVerdict(null)
@@ -57,7 +58,7 @@ export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (tap
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex w-full items-baseline justify-between">
-        <span>{`Kick ${round + 1} of ${rounds.length}${round === rounds.length - 1 ? ' · last' : ''}`}</span>
+        <span>{config.minigames.endless ? `Kick ${round + 1} · until you miss` : `Kick ${round + 1} of ${rounds.length}${round === rounds.length - 1 ? ' · last' : ''}`}</span>
         <span className="font-display text-xs text-primary tabular-nums">{`${total} pts`}</span>
       </div>
       <TimingBar

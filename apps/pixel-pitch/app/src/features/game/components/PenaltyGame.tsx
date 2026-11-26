@@ -77,7 +77,8 @@ export function PenaltyGame({ seed, onFinish }: { seed: string, onFinish: (taps:
     taken.current = { result, ms, at: now }
     setOutcomes(current => [...current, result.outcome])
     setTimeout(() => {
-      if (round + 1 < rounds.length) {
+      // Endless (the daily challenge): the first penalty not scored ends it.
+      if (!(config.minigames.endless && result.points === 0) && round + 1 < rounds.length) {
         startedAt.current = performance.now()
         taken.current = null
         roundRef.current = round + 1
@@ -192,7 +193,7 @@ export function PenaltyGame({ seed, onFinish }: { seed: string, onFinish: (taps:
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="flex w-full items-center justify-between">
-        <span>{`Penalty ${round + 1} of ${rounds.length}${round === rounds.length - 1 ? ' · last' : ''}`}</span>
+        <span>{config.minigames.endless ? `Penalty ${round + 1} · score until you miss` : `Penalty ${round + 1} of ${rounds.length}${round === rounds.length - 1 ? ' · last' : ''}`}</span>
         <span className="flex items-center gap-1" aria-hidden>
           {rounds.map((_, index) => ({ id: `penalty-${index + 1}`, outcome: outcomes.at(index) })).map(({ id, outcome }) => <span key={id} className={`size-3 border-2 border-slate ${outcome ? DOT[outcome] : 'bg-base-100'}`} />)}
         </span>

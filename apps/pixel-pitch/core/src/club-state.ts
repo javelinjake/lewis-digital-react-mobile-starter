@@ -57,7 +57,7 @@ export interface Chance {
 /** One play of an arcade game, the warm-up or a match moment. The server hands it out and checks the result against it. */
 export interface Ticket {
   id: string
-  kind: Cabinet | 'warmup' | 'chance'
+  kind: Cabinet | 'warmup' | 'chance' | 'challenge'
   /** For the warm-up and a match moment: the arcade game it is a play of. */
   cabinet?: Cabinet
   /** The league the club was in when the play started: the games get harder each league. Older tickets have none (League 5). */
@@ -124,6 +124,13 @@ export interface ClubState {
   chances: Chance[]
   /** The live moment of the match the player is watching, if there is one. */
   live: Chance | null
+  /**
+   * The daily challenge: the last day played and its score, the last week whose reward was taken, and the recent
+   * weeks played in (the last few), so the app knows when there is a week's reward to look at.
+   */
+  challenge: { day: number, score: number, claimedWeek: number, weeks: number[] }
+  /** Cosmetic badges the club has won, kept for good. */
+  badges: string[]
 }
 
 export function newClubState(now: number, config: GameConfig): ClubState {
@@ -151,6 +158,8 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     friendlies: { played: 0, paid: { day: -1, count: 0 } },
     chances: [],
     live: null,
+    challenge: { day: -1, score: 0, claimedWeek: -1, weeks: [] },
+    badges: [],
   }
 }
 
@@ -167,7 +176,7 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
   // A play of a game since taken out of the arcade, or a warm-up from when it was a timing bar, cannot be finished: it
   // goes. An unfinished warm-up gives its try back, since it never paid anything.
   const ticket = saved.ticket ?? null
-  const stale = ticket !== null && (ticket.kind === 'warmup' ? !isCabinet(ticket.cabinet) : ticket.kind === 'chance' ? !isCabinet(ticket.cabinet) || !ticket.chance : !isCabinet(ticket.kind))
+  const stale = ticket !== null && (ticket.kind === 'warmup' ? !isCabinet(ticket.cabinet) : ticket.kind === 'chance' ? !isCabinet(ticket.cabinet) || !ticket.chance : ticket.kind === 'challenge' ? !isCabinet(ticket.cabinet) : !isCabinet(ticket.kind))
   const warmupBack = stale && ticket.kind === 'warmup' && saved.warmupTriedFor === saved.league.fixtureNo
   return {
     ...fresh,
@@ -188,5 +197,6 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
     album: { ...fresh.album, ...saved.album },
     extraPacks: { ...fresh.extraPacks, ...saved.extraPacks },
     friendlies: { ...fresh.friendlies, ...saved.friendlies },
+    challenge: { ...fresh.challenge, ...saved.challenge },
   }
 }

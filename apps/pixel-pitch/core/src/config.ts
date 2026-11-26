@@ -37,6 +37,25 @@ export type GoalDef = z.infer<typeof goalSchema>
 const medalShares = z.tuple([z.number().min(0).max(1), z.number().min(0).max(1), z.number().min(0).max(1)])
 
 type Shares = [number, number, number]
+/** Bronze, silver and gold scores, rising. */
+const medalScores = z.tuple([count, count, count])
+
+const DEFAULT_CHALLENGE = {
+  endless: { kickRounds: 80, kickRamp: 0.07, pensRounds: 80, pensLastPace: 0.12, keeperShots: 80, keeperLastWindowMs: 110, keepySeconds: 300, dribbleDefenders: 400, dribbleLastGapMs: 120, dribbleLastFallMs: 240 },
+  tokens: 25,
+  targets: { kick: [12, 30, 60], keepy: [15, 30, 50], pens: [4, 10, 20], keeper: [5, 12, 20], dribble: [15, 35, 60] } as Record<'kick' | 'keepy' | 'pens' | 'keeper' | 'dribble', Shares>,
+  rewards: { bronze: { kind: 'coins', amount: 400 }, silver: { kind: 'tokens', amount: 60 }, gold: { kind: 'gems', amount: 10 } } as Record<'bronze' | 'silver' | 'gold', Reward>,
+  ceiling: { kick: 300, keepy: 250, pens: 110, keeper: 70, dribble: 260 },
+  regularity: 0.03,
+  regularityMinTaps: 8,
+  bestDays: 5,
+  weekly: [
+    { id: 'top3', label: 'Top 3', top: 3, rewards: [{ kind: 'starPacks', amount: 1 }], badge: 'challenge-podium' },
+    { id: 'top10', label: 'Top 10%', share: 0.1, rewards: [{ kind: 'starPacks', amount: 1 }, { kind: 'gems', amount: 30 }] },
+    { id: 'tophalf', label: 'Top half', share: 0.5, rewards: [{ kind: 'gems', amount: 20 }, { kind: 'packs', amount: 1 }] },
+    { id: 'played', label: 'Played 3 days', days: 3, rewards: [{ kind: 'packs', amount: 1 }] },
+  ] as Array<{ id: string, label: string, top?: number, share?: number, days?: number, rewards: Reward[], badge?: string }>,
+}
 const DEFAULT_MASTERY: { shares: Record<'kick' | 'keepy' | 'pens' | 'keeper' | 'dribble', Shares>, rewards: Record<'bronze' | 'silver' | 'gold', Reward> } = {
   shares: { kick: [0.4, 0.65, 0.85], keepy: [0.3, 0.55, 0.8], pens: [0.4, 0.6, 0.8], keeper: [0.5, 0.7, 0.9], dribble: [0.3, 0.55, 0.8] },
   rewards: { bronze: { kind: 'coins', amount: 500 }, silver: { kind: 'tokens', amount: 80 }, gold: { kind: 'gems', amount: 15 } },
@@ -143,6 +162,53 @@ export const gameConfigSchema = z.object({
     shares: z.object({ kick: medalShares, keepy: medalShares, pens: medalShares, keeper: medalShares, dribble: medalShares }),
     rewards: z.object({ bronze: rewardSchema, silver: rewardSchema, gold: rewardSchema }),
   }).default(DEFAULT_MASTERY),
+
+  /**
+   * The daily challenge: every player gets the day's featured game in endless mode, with the same pattern, once a day.
+   * PLACEHOLDERS, to tune in playtest.
+   */
+  challenge: z.object({
+    /** How endless each game is: rounds before it runs out (nobody should get there) and how fast it gets. */
+    endless: z.object({
+      kickRounds: z.number().int().positive(),
+      kickRamp: z.number().min(0).max(1),
+      pensRounds: z.number().int().positive(),
+      pensLastPace: z.number().min(0.05).max(1),
+      keeperShots: z.number().int().positive(),
+      keeperLastWindowMs: positive,
+      keepySeconds: positive,
+      dribbleDefenders: z.number().int().positive(),
+      dribbleLastGapMs: positive,
+      dribbleLastFallMs: positive,
+    }),
+    /** Tokens just for taking part. */
+    tokens: count,
+    /** Bronze, silver and gold scores for each game, and what beating each pays (once a day). */
+    targets: z.object({ kick: medalScores, keepy: medalScores, pens: medalScores, keeper: medalScores, dribble: medalScores }),
+    rewards: z.object({ bronze: rewardSchema, silver: rewardSchema, gold: rewardSchema }),
+    /** A score above this is held off the boards until someone looks at it. */
+    ceiling: z.object({ kick: count, keepy: count, pens: count, keeper: count, dribble: count }),
+    /**
+     * Taps this even are held too: the spread of the gaps between taps, as a share of their average, under this.
+     * A person's timing wobbles; a script's does not. Only plays with at least `regularityMinTaps` taps are judged.
+     */
+    regularity: z.number().min(0).max(1),
+    regularityMinTaps: z.number().int().min(3),
+    /** Days in a week that count towards its score: the best ones. */
+    bestDays: z.number().int().min(1).max(7),
+    /** Weekly rewards, best band first; each player gets the first they reach. Bands do not stack. */
+    weekly: z.array(z.object({
+      id: z.string(),
+      label: z.string(),
+      /** Reached by finishing in the top `top` places, or the top `share` of players (0.1 is 10%), or playing `days` days. */
+      top: count.optional(),
+      share: z.number().min(0).max(1).optional(),
+      days: z.number().int().min(1).max(7).optional(),
+      rewards: z.array(rewardSchema),
+      /** A cosmetic badge for the club, kept for good. */
+      badge: z.string().optional(),
+    })),
+  }).default(DEFAULT_CHALLENGE),
 
   /**
    * Match moments: one penalty, free kick or save, played with an arcade game. A Big Chance is banked from a league
@@ -349,6 +415,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 },
   moments: { bank: 5, liveWindowMinutes: 5, decideSeconds: 10, freeKickPoints: 2 },
   mastery: DEFAULT_MASTERY,
+  challenge: DEFAULT_CHALLENGE,
   match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.

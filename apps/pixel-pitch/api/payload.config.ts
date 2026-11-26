@@ -9,7 +9,9 @@ import { gameActions } from './cms/actions/game'
 import { momentActions } from './cms/actions/moments'
 import { packActions } from './cms/actions/packs'
 import { rewardActions } from './cms/actions/rewards'
+import { challengeActions } from './cms/actions/challenge'
 import { cardsCollection } from './cms/collections/cards'
+import { challengeEntriesCollection } from './cms/collections/challenge-entries'
 import { clubsCollection } from './cms/collections/clubs'
 import { fixturesCollection } from './cms/collections/fixtures'
 import { ledgerCollection } from './cms/collections/ledger'
@@ -28,8 +30,8 @@ export default buildConfig(createAppBackend({
   importMapBaseDir: root,
   auth: { ...appMeta.auth, requireEmailVerification: true },
   guestLink: keepAccountClub,
-  collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, notesCollection],
+  collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, challengeEntriesCollection, notesCollection],
   globals: [gameConfigGlobal],
-  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, ...momentActions, duplicateNoteAction],
+  endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, ...momentActions, ...challengeActions, duplicateNoteAction],
   adminMeta: { titleSuffix: `· ${appMeta.name} admin` },
 }))

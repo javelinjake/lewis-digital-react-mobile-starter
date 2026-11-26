@@ -1,5 +1,6 @@
 import type { GameConfig } from './config'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
+import { checkEndless } from './minigames'
 
 // Two more arcade games, each a different skill. Like the first three, each layout is a pure function of the play's
 // seed and each score a pure function of the layout and what the player did, so the server can replay a play and
@@ -98,12 +99,16 @@ export function keeperRoundMs(shot: KeeperShot, tap: KeeperTap | null) {
 }
 
 export function scoreKeeper(seed: string, taps: ReadonlyArray<KeeperTap | null>, config: Config): GameScore {
-  const shots = keeperShots(seed, config)
-  if (taps.length !== shots.length)
-    throw new Error(`A Keeper Reflex play has ${shots.length} shots.`)
+  const all = keeperShots(seed, config)
+  if (!config.minigames.endless && taps.length !== all.length)
+    throw new Error(`A Keeper Reflex play has ${all.length} shots.`)
+  const shots = all.slice(0, taps.length)
+  const saved = shots.map((shot, index) => keeperOutcome(shot, taps[index], config) === 'saved')
+  if (config.minigames.endless)
+    checkEndless(saved, all.length)
   return {
-    total: shots.filter((shot, index) => keeperOutcome(shot, taps[index], config) === 'saved').length,
-    max: shots.length,
+    total: saved.filter(Boolean).length,
+    max: all.length,
     playMs: shots.reduce((sum, shot, index) => sum + keeperRoundMs(shot, taps[index]), 0),
   }
 }

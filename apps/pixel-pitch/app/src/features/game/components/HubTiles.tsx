@@ -1,11 +1,12 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { ReactNode } from 'react'
-import { albumSets, dayIndex, energyAt, maxXp, nextEnergyAt, tierReached } from '@ld/pixel-pitch-core'
+import { albumSets, challengeCabinet, challengePlayed, dayIndex, energyAt, maxXp, nextEnergyAt, tierReached } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
+import { CABINETS } from '../lib/cabinets'
 import { claimable } from '../lib/claimable'
 import { serverOffset } from '../lib/club'
 import { useServerNow } from '../lib/server-clock'
@@ -121,6 +122,19 @@ export function HubTiles({ game }: { game: GameResponse }) {
           {waiting.pass > 0 ? <Corner label={`${waiting.pass} to claim`}>{waiting.pass}</Corner> : null}
         </Link>
       </div>
+
+      <Link to="/challenge" className="relative flex min-h-11 items-center justify-between bg-base-100 px-3 shadow-[inset_0_0_0_2px_var(--color-warning)]">
+        <span>
+          <span className="font-bold text-warning">Daily challenge</span>
+          <span className="text-sm text-muted">
+            {challengePlayed(state, now, config)
+              ? ` · played: ${state.challenge.score}`
+              : ` · ${CABINETS.find(entry => entry.cabinet === challengeCabinet(now, config))!.name}, ready`}
+          </span>
+        </span>
+        <span className="text-muted" aria-hidden="true">›</span>
+        {challengePlayed(state, now, config) ? null : <Corner label="Ready to play">1</Corner>}
+      </Link>
 
       {state.chances.length > 0
         ? (

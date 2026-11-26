@@ -114,7 +114,9 @@ export function KeeperGame({ seed, onFinish }: { seed: string, onFinish: (taps: 
       }
       // The next shot once this one is in (or saved) and the outcome has shown.
       if (now >= Math.max(settled.current.at, startedAt.current + lineMs) + FEEDBACK_MS) {
-        if (indexRef.current + 1 < shots.length) {
+        // Endless (the daily challenge): the first goal ends it.
+        const ended = config.minigames.endless && settled.current.outcome !== 'saved'
+        if (!ended && indexRef.current + 1 < shots.length) {
           indexRef.current += 1
           startedAt.current = now
           settled.current = null
@@ -199,7 +201,7 @@ export function KeeperGame({ seed, onFinish }: { seed: string, onFinish: (taps: 
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="flex w-full items-baseline justify-between">
-        <span>{`Shot ${index + 1} of ${shots.length}`}</span>
+        <span>{config.minigames.endless ? `Shot ${index + 1} · until one goes in` : `Shot ${index + 1} of ${shots.length}`}</span>
         <span className="font-display text-xs text-primary tabular-nums">{`${saves} saved`}</span>
       </div>
       <div className="relative w-full max-w-sm">

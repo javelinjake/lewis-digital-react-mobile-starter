@@ -52,7 +52,7 @@ const TWISTS: readonly RoundKind[] = ['steady', 'fast', 'narrow', 'moving']
  * row are never the same (the one before the last is never fast either), so no two plays feel alike.
  */
 export function kickRounds(seed: string, config: Pick<GameConfig, 'minigames'>): Bar[] {
-  const { rounds, minSpeed, maxSpeed, fastFactor, narrowZone, drift } = config.minigames.kick
+  const { rounds, minSpeed, maxSpeed, fastFactor, narrowZone, drift, ramp } = config.minigames.kick
   const rng = createRng(hashSeed(seed, 'kick'))
   const bars: Bar[] = []
   for (let round = 0; round < rounds; round++) {
@@ -67,7 +67,7 @@ export function kickRounds(seed: string, config: Pick<GameConfig, 'minigames'>):
     bars.push({
       ...bar,
       kind,
-      speed: kind === 'fast' ? bar.speed * fastFactor : bar.speed,
+      speed: (kind === 'fast' ? bar.speed * fastFactor : bar.speed) * (1 + ramp * round),
       zone: kind === 'narrow' ? narrowZone : 1,
       drift: kind === 'moving' ? drift : 0,
       driftPhase: twist,
@@ -92,15 +92,31 @@ export function kickPoints(distance: number, config: Pick<GameConfig, 'minigames
   return distance <= perfect * zone ? 3 : distance <= good * zone ? 2 : distance <= ok * zone ? 1 : 0
 }
 
+/**
+ * In an endless play the taps stop at the first failed round: every round before it must have been passed, and the
+ * last tap either failed or was the last round. Throws for a play that went on after a fail or stopped while still in.
+ */
+export function checkEndless(passed: readonly boolean[], rounds: number) {
+  if (passed.length === 0 || passed.length > rounds)
+    throw new Error('An endless play has between one round and all of them.')
+  if (passed.slice(0, -1).some(ok => !ok))
+    throw new Error('An endless play stops at the first fail.')
+  if (passed.length < rounds && passed[passed.length - 1])
+    throw new Error('An endless play goes on until a fail.')
+}
+
 /** Scores a Kick Timer play from `taps`: the milliseconds each kick was taken after its round began. */
 export function scoreKick(seed: string, taps: readonly number[], config: Pick<GameConfig, 'minigames'>): KickScore {
-  const rounds = kickRounds(seed, config)
-  if (taps.length !== rounds.length)
-    throw new Error(`A Kick Timer play has ${rounds.length} kicks.`)
+  const all = kickRounds(seed, config)
+  if (!config.minigames.endless && taps.length !== all.length)
+    throw new Error(`A Kick Timer play has ${all.length} kicks.`)
+  const rounds = all.slice(0, taps.length)
   const base = rounds.map((bar, round) => kickPoints(Math.abs(markerAt(bar, taps[round]) - targetAt(bar, taps[round])), config, bar.zone))
+  if (config.minigames.endless)
+    checkEndless(base.map(points => points > 0), all.length)
   const doubled = base.map((_, round) => round > 0 && base[round - 1] === 3)
   const points = base.map((value, round) => (doubled[round] ? value * 2 : value))
-  return { points, doubled, total: points.reduce((sum, value) => sum + value, 0), max: 3 + (rounds.length - 1) * 6 }
+  return { points, doubled, total: points.reduce((sum, value) => sum + value, 0), max: 3 + (all.length - 1) * 6 }
 }
 
 // ---- Penalty Shootout: five penalties. The ball wanders about the goal and the keeper shuffles; tap to shoot. ----
@@ -276,11 +292,13 @@ export interface PenaltyScore {
 
 /** Scores a Penalty Shootout play from `taps`: the milliseconds each penalty was taken after its round began. */
 export function scorePenalties(seed: string, taps: readonly number[], config: Pick<GameConfig, 'minigames'>): PenaltyScore {
-  const rounds = penaltyRounds(seed, config)
-  if (taps.length !== rounds.length)
-    throw new Error(`A Penalty Shootout play has ${rounds.length} penalties.`)
-  const shots = rounds.map((round, index) => penaltyShot(round, taps[index], config))
-  return { points: shots.map(shot => shot.points), outcomes: shots.map(shot => shot.outcome), total: shots.reduce((sum, shot) => sum + shot.points, 0), max: rounds.length * 2 }
+  const all = penaltyRounds(seed, config)
+  if (!config.minigames.endless && taps.length !== all.length)
+    throw new Error(`A Penalty Shootout play has ${all.length} penalties.`)
+  const shots = all.slice(0, taps.length).map((round, index) => penaltyShot(round, taps[index], config))
+  if (config.minigames.endless)
+    checkEndless(shots.map(shot => shot.points > 0), all.length)
+  return { points: shots.map(shot => shot.points), outcomes: shots.map(shot => shot.outcome), total: shots.reduce((sum, shot) => sum + shot.points, 0), max: all.length * 2 }
 }
 
 // ---- Keepy-Uppy: tap the ball to keep it up. It drifts about and gets faster. ----

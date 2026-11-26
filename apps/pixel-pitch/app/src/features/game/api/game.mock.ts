@@ -1,8 +1,10 @@
 import type { ClubState, FixtureChange, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
+import type { MockEntry } from './challenge.mock'
 import type { GameApi } from './game-api.types'
-import { addXp, arcadePack, buyPack, changeFixture, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, skipChance, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
+import { addXp, arcadePack, buyPack, changeFixture, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, claimWeekly, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChallenge, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, skipChance, startChallenge, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState, weekOf } from '@ld/pixel-pitch-core'
 import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
+import { mockBoard, mockWeekStanding } from './challenge.mock'
 
 // The game rules running in the browser instead of on the server: development, Playwright and Lighthouse use it.
 // It mirrors the api's actions using the same rules from @ld/pixel-pitch-core, and keeps each user's club in
@@ -78,10 +80,19 @@ if (typeof window !== 'undefined') {
     finishGoals: () => patchState(state => ({ ...state, daily: { ...state.daily, goals: state.daily.goals.map(goal => ({ ...goal, progress: goal.target })) } })),
     addPassXp: xp => patchState(state => addXp(state, xp, config)),
     reset: () => {
+      mockStorage().removeItem(challengeKey())
       mockStorage().removeItem(storageKey())
       mockStorage().removeItem(CLOCK_KEY)
     },
   }
+}
+
+function challengeKey() {
+  return `pp-mock-challenge:${useAuthStore.getState().userId ?? 'anonymous'}`
+}
+
+function challengeEntries(): MockEntry[] {
+  return JSON.parse(mockStorage().getItem(challengeKey()) ?? '[]') as MockEntry[]
 }
 
 function storageKey() {
@@ -224,6 +235,22 @@ export const gameApi: GameApi = {
     return { ...result, fixtureChanges: result.extra?.change ? [result.extra.change] : [] }
   }),
   skipChance: fixtureNo => respond((_mock, _at, ctx) => wrap(() => skipChance(ctx, fixtureNo))),
+  startChallenge: () => respond((_mock, _at, ctx) => wrap(() => startChallenge(ctx))),
+  async finishChallenge(taps) {
+    const response = await respond((_mock, _at, ctx) => wrap(() => finishChallenge(ctx, taps)))
+    mockStorage().setItem(challengeKey(), JSON.stringify([...challengeEntries().filter(entry => entry.day !== response.day), { day: response.day, score: response.score }]))
+    return response
+  },
+  async readBoard() {
+    const game = await gameApi.sync()
+    if (!game)
+      throw new MockRuleError('Create your club first.', 404)
+    return mockBoard(game, challengeEntries(), config, now())
+  },
+  claimWeekly: () => respond((_mock, at, ctx) => {
+    const week = weekOf(dayIndex(at, config)) - 1
+    return wrap(() => claimWeekly(ctx, week, mockWeekStanding(challengeEntries(), week, config)))
+  }),
   claimGoal: goalId => respond((_mock, _at, ctx) => wrap(() => claimGoal(ctx, goalId))),
   claimFreePack: () => respond((_mock, _at, ctx) => wrap(() => claimFreePack(ctx))),
   claimCalendar: () => respond((_mock, _at, ctx) => wrap(() => claimCalendar(ctx))),

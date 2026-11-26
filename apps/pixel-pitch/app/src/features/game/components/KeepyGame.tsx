@@ -147,7 +147,7 @@ export function KeepyGame({ seed, onFinish }: { seed: string, onFinish: (taps: K
     <div className="flex flex-col items-center gap-3">
       <div className="flex w-full items-baseline justify-between">
         <span className="tabular-nums">{`${secondsLeft}s`}</span>
-        <span className="font-display text-xs text-primary tabular-nums" aria-live="polite">{`${keepyScore(kicks, config)} / ${keepyMax(config)}`}</span>
+        <span className="font-display text-xs text-primary tabular-nums" aria-live="polite">{config.minigames.endless ? String(keepyScore(kicks, config)) : `${keepyScore(kicks, config)} / ${keepyMax(config)}`}</span>
       </div>
       <canvas
         ref={canvasRef}

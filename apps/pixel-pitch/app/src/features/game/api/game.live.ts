@@ -1,4 +1,4 @@
-import type { FixtureResult, GameResponse, Player } from '@ld/pixel-pitch-core'
+import type { ChallengeBoard, FixtureResult, GameResponse, Player } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
 import { isApiError, newIdempotencyKey } from '@ld/api-client'
 import { DEFAULT_CONFIG, parseConfig } from '@ld/pixel-pitch-core'
@@ -55,6 +55,10 @@ export const gameApi: GameApi = {
   startChance: fixtureNo => act('/game/chance/start', { fixtureNo }),
   finishChance: taps => act('/game/chance/finish', { taps }),
   skipChance: fixtureNo => act('/game/chance/skip', { fixtureNo }),
+  startChallenge: () => act('/game/challenge/start'),
+  finishChallenge: taps => act('/game/challenge/finish', { taps }),
+  readBoard: () => getApi().action<ChallengeBoard>('/game/challenge/board', {}, newIdempotencyKey()),
+  claimWeekly: () => act('/game/challenge/weekly'),
   claimGoal: goalId => act('/game/goals/claim', { goalId }),
   claimFreePack: () => act('/game/goals/free-pack'),
   claimCalendar: () => act('/game/calendar/claim'),

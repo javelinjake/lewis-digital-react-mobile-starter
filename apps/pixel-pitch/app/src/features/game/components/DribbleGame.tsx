@@ -232,7 +232,7 @@ export function DribbleGame({ seed, onFinish }: { seed: string, onFinish: (moves
     <div className="flex flex-col items-center gap-4">
       <div className="flex w-full items-baseline justify-between">
         <span>{tackled ? 'Tackled!' : 'Keep going'}</span>
-        <span className="font-display text-xs text-primary tabular-nums" aria-live="polite">{`${beaten} of ${defenders.length} beaten`}</span>
+        <span className="font-display text-xs text-primary tabular-nums" aria-live="polite">{config.minigames.endless ? `${beaten} beaten` : `${beaten} of ${defenders.length} beaten`}</span>
       </div>
       <div className="relative max-w-full border-2 border-slate" style={{ width: WIDTH * SCALE + 4 }}>
         <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} className="pixel block w-full" role="img" aria-label="The pitch" />

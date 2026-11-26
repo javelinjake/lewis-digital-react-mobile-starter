@@ -1,4 +1,4 @@
-import type { AnyTaps, Cabinet, CabinetTaps, ChanceResult, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupResult } from '@ld/pixel-pitch-core'
+import type { AnyTaps, Cabinet, CabinetTaps, ChallengeBoard, ChallengeResult, ChanceResult, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupResult, WeeklyClaim } from '@ld/pixel-pitch-core'
 
 /** Everything the game screens ask the server for. `game.live.ts` calls the api; `game.mock.ts` runs the rules here. */
 export interface GameApi {
@@ -34,6 +34,14 @@ export interface GameApi {
   finishChance: (taps: AnyTaps) => Promise<GameResponse & ChanceResult>
   /** Lets a moment go ("Let it play", or no tap in time): a miss. */
   skipChance: (fixtureNo: number) => Promise<GameResponse>
+  /** Starts today's challenge: one attempt, so it counts as played from now. The ticket names the game. */
+  startChallenge: () => Promise<GameResponse>
+  /** Sends the challenge play's taps; the server replays them, pays and puts the score on the board. */
+  finishChallenge: (taps: AnyTaps) => Promise<GameResponse & ChallengeResult>
+  /** Today's board, this week's, and where the player stands. */
+  readBoard: () => Promise<ChallengeBoard>
+  /** Takes last week's reward. */
+  claimWeekly: () => Promise<GameResponse & WeeklyClaim>
   /** Takes everything that is waiting (stadium, tray, calendar, free pack, goals, Pass, album) in one call. */
   claimAll: () => Promise<GameResponse & ClaimAllResult>
   claimGoal: (goalId: string) => Promise<GameResponse & { reward: Reward }>

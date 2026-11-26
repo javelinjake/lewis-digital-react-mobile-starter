@@ -6,6 +6,11 @@ const positive = z.number().positive()
 
 /** Tuning of the arcade games and the warm-up. PLACEHOLDERS: balance in the first playtest. */
 export const minigamesSchema = z.object({
+  /**
+   * Endless: a play goes on until the player fails (a missed kick, a penalty not scored, a shot not saved, the ball
+   * dropped, a tackle) or runs out of rounds, and the score is how far they got. The daily challenge only.
+   */
+  endless: z.boolean().default(false),
   /** A tap sooner than this after the last one is not a person. */
   minTapGapMs: positive,
   /** The server's clock must have run at least this fraction of the play's own length (leaves room for latency). */
@@ -25,6 +30,8 @@ export const minigamesSchema = z.object({
     narrowZone: positive.default(0.6),
     /** A moving round: the target swings this far either side of its middle, as a fraction of the bar. */
     drift: z.number().min(0).max(0.3).default(0.14),
+    /** Each round's marker is this much quicker than the round before (0.07 is 7%). 0 in the arcade; the daily challenge ramps. */
+    ramp: z.number().min(0).max(1).default(0),
   }),
   /**
    * Penalty Shootout: five penalties. A ball wanders about the goal (and over the bar and wide of the posts) and the
@@ -187,9 +194,10 @@ export function minigamesAt(minigames: Minigames, tier: number): Minigames {
 }
 
 export const DEFAULT_MINIGAMES: Minigames = {
+  endless: false,
   minTapGapMs: 120,
   clockSlack: 0.85,
-  kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14 },
+  kick: { rounds: 5, minSpeed: 0.9, maxSpeed: 1.7, perfect: 0.04, good: 0.1, ok: 0.2, fastFactor: 1.4, narrowZone: 0.6, drift: 0.14, ramp: 0 },
   pens: { rounds: 5, goalWidth: 100, goalHeight: 40, wide: 18, over: 16, ballRadius: 4, aimPoints: 12, aimLegMinMs: 480, aimLegMaxMs: 900, aimMinJump: 30, keeperMin: 26, keeperMax: 74, keeperPoints: 8, keeperLegMinMs: 450, keeperLegMaxMs: 1300, lastPace: 0.75, reachX: 20, reachY: 28, reachMid: 14, cornerWidth: 22, cornerHeight: 14 },
   keepy: { gravity: 110, ramp: 0.18, minPeak: 36, maxPeak: 56, reach: 26, stumbleSteps: 30, maxKicks: 30, maxSeconds: 30, goldenEvery: 10, width: 75, ballRadius: 5, hitRadius: 12, drift: 22 },
   keeper: { shots: 10, minDelayMs: 600, maxDelayMs: 1500, firstWindowMs: 1000, lastWindowMs: 520, minReactionMs: 100, width: 100, height: 40, margin: 6, spotDepth: 46, maxCurve: 14, spotRadius: 6, lineRadius: 3.5, hitRadius: 14 },
