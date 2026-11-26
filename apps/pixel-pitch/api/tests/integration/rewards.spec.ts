@@ -217,19 +217,22 @@ describe('time', () => {
 })
 
 describe('claim all', () => {
-  it('takes everything waiting in one call, pays each thing once with its own ledger rows, and says what the wallet gained', async () => {
+  it('takes the idle rewards in one call, pays each thing once with its own ledger rows, and says what the wallet gained', async () => {
     now += 3 * DAY
-    // Time has passed, so the stadium and the tray are full, and today's calendar day and free pack are waiting.
+    // Time has passed, so the stadium and the tray are full, and today's free pack is waiting. So is the login streak's
+    // day, which Claim all leaves for the Goals screen (as it leaves goals and League Pass tiers).
     const before = await sync(alice)
     const key = crypto.randomUUID()
     const first = await act(alice, 'claim-all', {}, { key, at: now })
     expect(first.status).toBe(200)
     const state = first.json.club.state as State
-    expect(first.json.items).toBeGreaterThanOrEqual(4)
+    expect(first.json.items).toBeGreaterThanOrEqual(3)
     expect(state.coins - before.coins).toBe(first.json.coins)
     expect(state.tokens - before.tokens).toBe(first.json.tokens)
     expect(state.daily.freePackClaimed).toBe(true)
-    expect(state.calendar.lastClaimDay).toBe(Math.floor(now / DAY))
+    expect(state.calendar.lastClaimDay).toBe(before.calendar.lastClaimDay)
+    expect(state.daily.goals.every(goal => goal.claimed === before.daily.goals.find(entry => entry.id === goal.id)?.claimed)).toBe(true)
+    expect(state.pass).toEqual(before.pass)
 
     // The same call again with the same key is a replay: same answer, nothing paid twice.
     const replay = await act(alice, 'claim-all', {}, { key, at: now })

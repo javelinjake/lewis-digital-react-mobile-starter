@@ -14,7 +14,8 @@ const plural = (count: number, one: string, many: string) => `${count} ${count =
 
 /**
  * What is ready for the player right now, most useful first: the things Claim all will take, then the things worth
- * going to do (packs to open, arcade energy to spend). Empty means there is nothing to do but wait.
+ * going to do (goals, the login streak and League Pass rewards to claim on their screens, packs to open, arcade energy
+ * to spend). Empty means there is nothing to do but wait.
  */
 export function readyItems(game: GameResponse, config: GameConfig, catalogue: readonly Player[]): ReadyItem[] {
   const { state } = game.club
@@ -24,16 +25,16 @@ export function readyItems(game: GameResponse, config: GameConfig, catalogue: re
     items.push({ id: 'stadium', claim: true, label: `${waiting.stadiumCoins.toLocaleString('en-GB')} ${waiting.stadiumCoins === 1 ? 'coin' : 'coins'} in the stadium`, to: '/club' })
   if (waiting.trayTokens >= 1)
     items.push({ id: 'tray', claim: true, label: `${plural(waiting.trayTokens, 'token', 'tokens')} in the arcade tray`, to: '/arcade' })
-  if (waiting.calendarDay !== null)
-    items.push({ id: 'calendar', claim: true, label: `Calendar reward, day ${waiting.calendarDay}`, to: '/goals' })
   if (waiting.freePack)
     items.push({ id: 'freePack', claim: true, label: config.daily.freePackCount === 1 ? 'Your free pack' : `Your ${config.daily.freePackCount} free packs`, to: '/packs' })
+  if (waiting.albumSets > 0)
+    items.push({ id: 'album', claim: true, label: `${plural(waiting.albumSets, 'finished album set', 'finished album sets')}`, to: '/album' })
+  if (waiting.calendarDay !== null)
+    items.push({ id: 'calendar', claim: false, label: `Login streak: day ${waiting.calendarDay} to claim`, to: '/goals' })
   if (waiting.goals > 0)
     items.push({ id: 'goals', claim: false, label: `${plural(waiting.goals, 'goal', 'goals')} to claim`, to: '/goals' })
   if (waiting.passTiers > 0)
     items.push({ id: 'pass', claim: false, label: `${plural(waiting.passTiers, 'League Pass reward', 'League Pass rewards')} to claim`, to: '/pass' })
-  if (waiting.albumSets > 0)
-    items.push({ id: 'album', claim: true, label: `${plural(waiting.albumSets, 'finished album set', 'finished album sets')}`, to: '/album' })
 
   const packs = state.idle.shelfPacks + state.starPacks + (state.pendingPack ? 1 : 0)
   if (packs > 0)

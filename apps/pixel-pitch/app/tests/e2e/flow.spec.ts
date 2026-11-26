@@ -37,7 +37,8 @@ test.describe('The next tap is always on screen @flow', () => {
     const ready = page.getByRole('region', { name: 'Ready now' })
     await expect(ready.getByText(/coins in the stadium/)).toBeVisible()
     await expect(ready.getByText(/tokens in the arcade tray/)).toBeVisible()
-    await expect(ready.getByText(/Calendar reward, day 1/)).toBeVisible()
+    // The login streak's day is claimed on Goals, not here.
+    await expect(ready.getByText(/Login streak/)).toHaveCount(0)
     await expect(ready.getByText(/Your free pack/)).toBeVisible()
     // The things to go and do (not claim) are on the tiles under the match card.
     const tiles = page.getByRole('navigation', { name: 'More to do' })

@@ -1,6 +1,6 @@
 import type { ClubState, FlowContext } from '../src'
 import { describe, expect, it } from 'vitest'
-import { albumSets, claimAll, claimAlbumSet, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, DEFAULT_CONFIG, generateCatalogue, isGameRuleError, newClubState, rollDaily, rollSeason, tierReached, waitingToClaim } from '../src'
+import { albumSets, claimAll, claimAlbumSet, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, DEFAULT_CONFIG, generateCatalogue, isGameRuleError, newClubState, nextCalendarDay, rollDaily, rollSeason, tierReached, waitingToClaim } from '../src'
 
 const config = DEFAULT_CONFIG
 const HOUR = 60 * 60 * 1000
@@ -45,7 +45,7 @@ describe('what is waiting', () => {
     expect(waiting).toMatchObject({ calendarDay: 1, freePack: true, goals: 1, albumSets: 1 })
     expect(waiting.passTiers).toBeGreaterThan(0)
     const after = waitingToClaim({ ...ctx, state: claimAll(ctx).state })
-    expect(after).toMatchObject({ stadiumCoins: 0, trayTokens: 0, calendarDay: null, freePack: false, albumSets: 0 })
+    expect(after).toMatchObject({ stadiumCoins: 0, trayTokens: 0, calendarDay: 1, freePack: false, albumSets: 0 })
     // Collecting the stadium finishes the stadium goal too, so there is at least as much to claim on Goals as before.
     expect(after.goals).toBeGreaterThanOrEqual(1)
     expect(after.passTiers).toBe(waiting.passTiers)
@@ -70,15 +70,15 @@ describe('claim all', () => {
     }
     then(collectStadium(by))
     then(collectTray(by))
-    then(claimCalendar(by))
     then(claimFreePack(by))
     then(claimAlbumSet(by, set.id))
 
     const all = claimAll(ctx)
     expect(all.state).toEqual(by.state)
     expect(all.ledger).toEqual(results.flatMap(result => result.ledger ?? []))
-    // The stadium, the tray, the calendar day, the free pack and the album set.
-    expect(all.extra!.items).toBe(5)
+    // The stadium, the tray, the free pack and the album set; not the login streak's day.
+    expect(all.extra!.items).toBe(4)
+    expect(nextCalendarDay(all.state.calendar, 0)).toBe(1)
     // No goal and no Pass tier was claimed.
     expect(all.state.daily.goals.some(goal => goal.claimed)).toBe(false)
     expect(all.state.pass.claimedFree).toEqual([])
@@ -121,10 +121,10 @@ describe('claim all', () => {
   it('leaves nothing to claim: a second go is refused, and so is a club with nothing waiting', () => {
     const done = claimAll(busy())
     expect(code(() => claimAll({ ...busy(), state: done.state }))).toBe('nothing')
-    // A brand new club still has the calendar and the free pack, but after taking them there is nothing left.
+    // A brand new club has its free pack to take (the login streak's day waits for the Goals screen), then nothing.
     const fresh = context()
     const first = claimAll(fresh)
-    expect(first.extra!.items).toBe(2)
+    expect(first.extra!.items).toBe(1)
     expect(code(() => claimAll({ ...fresh, state: first.state }))).toBe('nothing')
   })
 
