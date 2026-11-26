@@ -72,6 +72,10 @@ export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[],
 
   const moments = takeMoments(state, league.results, clubId, config, now)
   state = moments.state
+  for (const match of league.results) {
+    if (match.promotedTo)
+      state = { ...state, trophies: [...state.trophies, { tier: match.promotedTo, at: match.kickoffAt }] }
+  }
 
   const events = [...idle.events]
   if (league.results.length > 0 || league.skipped > 0) {

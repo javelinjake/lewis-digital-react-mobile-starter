@@ -1,8 +1,8 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
-import { leagueTable, promotionGate } from '@ld/pixel-pitch-core'
+import { leagueTable, prestigeLevel, promotionGate } from '@ld/pixel-pitch-core'
 import { useMemo } from 'react'
 import { Link } from 'react-router'
-import { nextRival, serverOffset } from '../lib/club'
+import { leagueName, nextRival, serverOffset } from '../lib/club'
 import { useFixtures, useGameConfig } from '../queries/use-game'
 import { Countdown } from './Countdown'
 
@@ -77,6 +77,26 @@ export function LeagueScreen({ game }: { game: GameResponse }) {
           <div className="truncate font-bold">{`v ${nextRival(game, config).name}`}</div>
         </div>
         <Link to="/squad" className="btn btn-primary min-h-11 shrink-0 px-4">Set lineup</Link>
+      </section>
+
+      <section className="flex flex-col gap-2" aria-label="Trophy cabinet">
+        <span className="pp-label">Trophy cabinet</span>
+        {game.club.state.trophies.length > 0
+          ? (
+              <ul className="flex flex-col gap-1.5">
+                {[...game.club.state.trophies].reverse().map(trophy => (
+                  <li key={trophy.tier} className="flex min-h-11 items-center gap-2.5 bg-base-100 px-3 shadow-[inset_0_0_0_2px_var(--color-slate)]">
+                    <span className="text-warning" aria-hidden="true">{trophy.tier > 5 ? '★' : '▲'}</span>
+                    <span className="min-w-0 flex-1">{trophy.tier > 5 ? `Reached ${leagueName(trophy.tier)}` : `Promoted to ${leagueName(trophy.tier)}`}</span>
+                    {trophy.at > 0 ? <span className="text-sm text-muted">{new Date(trophy.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            )
+          : <span className="text-muted">Win promotion to put your first trophy here.</span>}
+        {prestigeLevel(league.tier) > 0
+          ? <span className="text-sm text-success">{`Prestige bonus: +${Math.round(prestigeLevel(league.tier) * config.prestige.coinBonusPerTier * 100)}% coins from matches and the stadium.`}</span>
+          : <span className="text-sm text-muted">{`Past League 1 come the Prestige tiers: each one a star on your crest and +${Math.round(config.prestige.coinBonusPerTier * 100)}% coins for good. Nothing you have collected is ever reset.`}</span>}
       </section>
 
       <section className="flex flex-col gap-2" aria-label="Results">

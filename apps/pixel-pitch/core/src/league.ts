@@ -80,9 +80,23 @@ export function leagueLabel(tier: number): LeagueLabel {
   return tier <= 5 ? { kind: 'league', league: 6 - Math.max(1, tier) } : { kind: 'prestige', level: tier - 5 }
 }
 
-/** Average rating of the rivals in a tier. Each league up adds `rivalStep`. */
+/**
+ * Average rating of the rivals in a tier. Each league up adds `rivalStep`; each Prestige tier `prestigeRivalStep`, so
+ * they keep getting stronger without passing what a squad can reach (`rivalCap`).
+ */
 export function tierRating(tier: number, config: GameConfig): number {
-  return config.league.rivalBaseRating + (Math.max(1, tier) - 1) * config.league.rivalStep
+  const { rivalBaseRating, rivalStep, prestigeRivalStep, rivalCap } = config.league
+  const leagues = Math.min(Math.max(1, tier), 5) - 1
+  const prestige = Math.max(0, tier - 5)
+  return Math.min(rivalCap, rivalBaseRating + leagues * rivalStep + prestige * prestigeRivalStep)
+}
+
+/** Prestige tiers reached: 0 until the club goes up from League 1. */
+export const prestigeLevel = (tier: number) => Math.max(0, tier - 5)
+
+/** Coins with the club's Prestige bonus: +2% for each Prestige tier reached, by default. */
+export function withPrestige(coins: number, tier: number, config: GameConfig): number {
+  return Math.round(coins * (1 + prestigeLevel(tier) * config.prestige.coinBonusPerTier))
 }
 
 export interface Rival {
@@ -215,7 +229,7 @@ export function playDueFixtures(input: { league: LeagueState, lineup: LineupForM
     }, config)
 
     const points = pointsFor(outcome.result, config)
-    const matchCoins = coinsFor(outcome.result, config)
+    const matchCoins = withPrestige(coinsFor(outcome.result, config), league.tier, config)
     const kickoffAt = league.nextKickoffAt
     const tier = league.tier
 

@@ -183,6 +183,8 @@ export function finishChance(ctx: FlowContext, taps: AnyTaps): FlowResult<Chance
   }
 
   let next: ClubState = { ...cleared, league, coins: state.coins + coins }
+  if (promotedTo)
+    next = { ...next, trophies: [...next.trophies, { tier: promotedTo, at: ctx.now }] }
   if (moved === 'win' && chance.result !== 'win')
     next = addXp(next, config.pass.xp.win, config)
   const ledger: LedgerEntry[] = coins > 0 ? [{ currency: 'coins', amount: coins, reason: chance.live ? 'live-moment' : 'big-chance', ref: `fixture ${chance.fixtureNo}` }] : []

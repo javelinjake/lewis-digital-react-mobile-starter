@@ -1,5 +1,5 @@
 import type { GameConfig, GameResponse, Player } from '@ld/pixel-pitch-core'
-import { DEFAULT_CONFIG, parseConfig } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, parseConfig, upgradeState } from '@ld/pixel-pitch-core'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { gameApi } from '../api/game-api'
@@ -14,7 +14,20 @@ export function useClub() {
     queryKey: gameKeys.club(),
     queryFn: gameApi.sync,
     staleTime: 30_000,
+    select: upgradeCached,
   })
+}
+
+/**
+ * The club in the persisted cache can be from an older version of the app, without fields added since: it is shown
+ * at once on opening, before the sync answers. It goes through `upgradeState`, as the server does with a saved club,
+ * so a screen never reads a field that is not there.
+ */
+function upgradeCached(game: GameResponse | null): GameResponse | null {
+  if (!game)
+    return game
+  const state = upgradeState(game.club.state, DEFAULT_CONFIG)
+  return state === game.club.state ? game : { ...game, club: { ...game.club, state } }
 }
 
 export function useCatalogue() {

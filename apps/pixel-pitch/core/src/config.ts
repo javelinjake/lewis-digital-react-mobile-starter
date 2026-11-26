@@ -121,6 +121,9 @@ export const gameConfigSchema = z.object({
      */
     promotionPoints: z.array(z.number().int().positive()).min(1).default([50, 65, 80, 100, 125]),
     prestigeGateStep: count.default(20),
+    /** Rivals in the Prestige tiers: this much stronger each tier than the one before, up to `rivalCap`. */
+    prestigeRivalStep: z.number().nonnegative().default(2),
+    rivalCap: positive.default(96),
     /** Points for each result (a loss pays none), and coins for every result, so a losing club still grows. */
     winPoints: count,
     drawPoints: count,
@@ -152,6 +155,15 @@ export const gameConfigSchema = z.object({
     /** Friendlies a day that pay coins. More can be played for fun. */
     paidPerDay: count,
   }).default({ winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 }),
+
+  /**
+   * Prestige: every tier past League 1 is another league with a higher gate and stronger rivals. Each one reached is
+   * for good: a star on the crest, a line in the trophy cabinet, and a small permanent bonus. Nothing is ever reset.
+   */
+  prestige: z.object({
+    /** More coins from league matches and the stadium for each Prestige tier reached (0.02 is +2%). PLACEHOLDER. */
+    coinBonusPerTier: z.number().min(0).max(0.5),
+  }).default({ coinBonusPerTier: 0.02 }),
 
   /**
    * Mastery: bronze, silver and gold in each arcade game in each league, as shares of the game's top score. The games
@@ -400,6 +412,8 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     // one in about 17.
     promotionPoints: [50, 65, 80, 100, 125],
     prestigeGateStep: 20,
+    prestigeRivalStep: 2,
+    rivalCap: 96,
     winPoints: 3,
     drawPoints: 1,
     lossPoints: 0,
@@ -414,6 +428,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   },
   friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 },
   moments: { bank: 5, liveWindowMinutes: 5, decideSeconds: 10, freeKickPoints: 2 },
+  prestige: { coinBonusPerTier: 0.02 },
   mastery: DEFAULT_MASTERY,
   challenge: DEFAULT_CHALLENGE,
   match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },

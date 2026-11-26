@@ -1,6 +1,7 @@
 import type { FlowContext, FlowResult, LedgerEntry } from './flow'
 import { pendingStadiumCoins } from './advance'
 import { GameRuleError } from './errors'
+import { withPrestige } from './league'
 import { recordProgress } from './progress'
 
 /** The stadium's picture: stage 1 for levels 1-3, stage 2 for 4-7, stage 3 for 8-10. */
@@ -11,7 +12,7 @@ export function stadiumStage(level: number) {
 /** Takes the coins that have piled up in the stadium. The pile fills at the level's rate, up to 8 hours' worth (12 with the Pass). */
 export function collectStadium(ctx: FlowContext): FlowResult<{ coins: number }> {
   const { state, config, now } = ctx
-  const coins = pendingStadiumCoins(state.idle, config, now)
+  const coins = withPrestige(pendingStadiumCoins(state.idle, config, now), state.league.tier, config)
   if (coins < 1)
     throw new GameRuleError('empty', 'There is nothing to collect yet.')
   const next = { ...state, coins: state.coins + coins, idle: { ...state.idle, stadiumCollectedAt: now } }
@@ -25,7 +26,7 @@ export function upgradeStadium(ctx: FlowContext): FlowResult<{ level: number, co
   if (level >= config.stadium.coinsPerHour.length)
     throw new GameRuleError('max-level', 'Your stadium is as big as it gets.')
   const cost = config.stadium.upgradeCost[level - 1]
-  const pile = pendingStadiumCoins(state.idle, config, now)
+  const pile = withPrestige(pendingStadiumCoins(state.idle, config, now), state.league.tier, config)
   if (state.coins + pile < cost)
     throw new GameRuleError('coins', `The next level costs ${cost.toLocaleString('en-GB')} coins.`)
 

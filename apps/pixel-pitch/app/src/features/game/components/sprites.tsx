@@ -32,13 +32,26 @@ export function PlayerSprite({ player, kit, role, scale = 3 }: { player: Player,
     : <span style={{ width: 12 * scale, height: 16 * scale }} className="inline-block" />
 }
 
-/** A club crest: a base shape in the kit colours with an emblem on top. */
-export function Crest({ crest, kit, scale = 3, label }: { crest: number, kit: readonly [string, string], scale?: number, label?: string }) {
+/**
+ * A club crest: a base shape in the kit colours with an emblem on top. `stars` puts a row of gold stars over it, one
+ * for each Prestige tier reached (up to five drawn; more show as a number).
+ */
+export function Crest({ crest, kit, scale = 3, label, stars = 0 }: { crest: number, kit: readonly [string, string], scale?: number, label?: string, stars?: number }) {
   const { base, emblem } = crestParts(crest)
   const url = useComposed([{ path: `crests/base_${base}_template.png`, kit }, { path: `crests/emblem_${emblem}.png`, x: 4, y: 4 }], 16, 18)
-  return url
+  const image = url
     ? <img src={url} width={16 * scale} height={18 * scale} alt={label ?? ''} className="pixel" />
     : <span style={{ width: 16 * scale, height: 18 * scale }} className="inline-block" />
+  if (stars < 1)
+    return image
+  return (
+    <span className="inline-flex flex-col items-center" style={{ gap: scale }}>
+      <span className="flex leading-none text-warning" style={{ fontSize: 4 * scale, gap: scale / 2 }} aria-label={`${stars} Prestige ${stars === 1 ? 'star' : 'stars'}`}>
+        {stars > 5 ? `★${stars}` : '★'.repeat(stars)}
+      </span>
+      {image}
+    </span>
+  )
 }
 
 /** A plain sprite from the pack, e.g. an icon, scaled by a whole number. */

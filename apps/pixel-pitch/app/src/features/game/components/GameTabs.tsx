@@ -1,7 +1,7 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
 import type { ReactNode } from 'react'
 import type { IconTab } from '@/components/layout/GameChrome'
-import { albumSets, energyAt, promotionGate } from '@ld/pixel-pitch-core'
+import { albumSets, energyAt, prestigeLevel, promotionGate } from '@ld/pixel-pitch-core'
 import { useMemo } from 'react'
 import { useLocation } from 'react-router'
 import { HeaderButton, ScreenHeader } from '@/components/layout/GameChrome'
@@ -74,7 +74,7 @@ export function GameTabs() {
           highlight
           title={game.club.name}
           sub={`${leagueName(state.league.tier)} · ${state.league.points}/${promotionGate(state.league.tier, config)} pts`}
-          crest={<Crest crest={game.club.crest} kit={kitOf(game)} scale={3} label={`${game.club.name} crest`} />}
+          crest={<Crest crest={game.club.crest} kit={kitOf(game)} scale={3} label={`${game.club.name} crest`} stars={prestigeLevel(state.league.tier)} />}
           end={end}
           below={wallet}
         />

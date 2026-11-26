@@ -131,6 +131,8 @@ export interface ClubState {
   challenge: { day: number, score: number, claimedWeek: number, weeks: number[] }
   /** Cosmetic badges the club has won, kept for good. */
   badges: string[]
+  /** The trophy cabinet: each league the club went up into, and when (0 for one won before the cabinet existed). */
+  trophies: Array<{ tier: number, at: number }>
 }
 
 export function newClubState(now: number, config: GameConfig): ClubState {
@@ -160,6 +162,7 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     live: null,
     challenge: { day: -1, score: 0, claimedWeek: -1, weeks: [] },
     badges: [],
+    trophies: [],
   }
 }
 
@@ -198,5 +201,7 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
     extraPacks: { ...fresh.extraPacks, ...saved.extraPacks },
     friendlies: { ...fresh.friendlies, ...saved.friendlies },
     challenge: { ...fresh.challenge, ...saved.challenge },
+    // A club from before the cabinet gets its promotions so far, undated.
+    trophies: saved.trophies ?? Array.from({ length: Math.max(0, saved.league.tier - 1) }, (_, index) => ({ tier: index + 2, at: 0 })),
   }
 }
