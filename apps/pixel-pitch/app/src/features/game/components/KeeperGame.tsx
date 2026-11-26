@@ -5,6 +5,7 @@ import type { KeeperPose } from '../lib/goalkeeper-sprite'
 import { loadImage, useCanvasLoop } from '@ld/game'
 import { keeperBallAt, keeperOutcome, keeperShots } from '@ld/pixel-pitch-core'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { play } from '@/lib/sound/sound'
 import { art } from '../lib/art'
 import { drawGoalFrame, drawGoalScene, drawNetRipple, pointerOnCanvas, toCanvas, toGoal } from '../lib/goal-scene'
 import { drawKeeper, KEEPER_HEIGHT } from '../lib/goalkeeper-sprite'
@@ -70,6 +71,7 @@ export function KeeperGame({ seed, onFinish }: { seed: string, onFinish: (taps: 
     settled.current = { tap, outcome: result, at: performance.now() }
     setOutcome(result)
     setPhase('done')
+    play(result === 'saved' ? 'perfect' : 'error', 0.8)
     if (result === 'saved')
       setSaves(current => current + 1)
   }

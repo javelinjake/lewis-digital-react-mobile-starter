@@ -1,6 +1,7 @@
 import type { RoundKind } from '@ld/pixel-pitch-core'
 import { kickPoints, kickRounds, markerAt, targetAt } from '@ld/pixel-pitch-core'
 import { useMemo, useRef, useState } from 'react'
+import { play } from '@/lib/sound/sound'
 import { usePlayConfig } from '../queries/use-play-config'
 import { TimingBar } from './TimingBar'
 
@@ -38,6 +39,7 @@ export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (tap
     const bar = rounds[round]
     const points = kickPoints(Math.abs(markerAt(bar, ms) - targetAt(bar, ms)), config, bar.zone)
     taps.current.push(ms)
+    play(points === 3 ? 'perfect' : points > 0 ? 'kick' : 'error', 0.8)
     setVerdict(points)
     setDoubled(hot)
     setTotal(current => current + (hot ? points * 2 : points))

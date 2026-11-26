@@ -3,6 +3,7 @@ import type { RunnerFrames } from '../lib/runner-frames'
 import { useCanvasLoop } from '@ld/game'
 import { defenderProgress, defendersBeaten, dribbleEndMs, dribbleRun, dribbleTackle, HAIR_COLOURS, HAIR_STYLES, SKIN_TONES, startLane } from '@ld/pixel-pitch-core'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { play } from '@/lib/sound/sound'
 import { kitOf, rivalKit } from '../lib/club'
 import { FRAME_HEIGHT, FRAME_WIDTH, runnerFrames } from '../lib/runner-frames'
 import { useCatalogue, useClub } from '../queries/use-game'
@@ -142,6 +143,7 @@ export function DribbleGame({ seed, onFinish }: { seed: string, onFinish: (moves
         if (hit || now > end) {
           finished.current = { atMs: hit ? hit.atMs : now, tackled: Boolean(hit) }
           setTackled(Boolean(hit))
+          play(hit ? 'error' : 'whistle_fulltime')
           timer.current = setTimeout(() => finishRef.current(moves.current), 800)
         }
       }
@@ -212,6 +214,7 @@ export function DribbleGame({ seed, onFinish }: { seed: string, onFinish: (moves
     if (next < 0 || next >= lanes || (last && ms - last.ms < config.minigames.minTapGapMs))
       return
     moves.current.push({ ms, lane: next })
+    play('swap', 0.6)
     stepRef.current = { from: laneRef.current, at: ms }
     laneRef.current = next
     setLane(next)

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
 import { gameKeys } from '@/features/game/queries/game.keys'
+import { installTapSound } from '@/lib/sound/sound'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -17,6 +18,9 @@ export function App() {
   useEffect(() => {
     void useAuthStore.getState().bootstrap()
   }, [])
+
+  // A quiet tap on every button.
+  useEffect(() => installTapSound(), [])
 
   useEffect(() => {
     if (status !== 'bootstrapping')

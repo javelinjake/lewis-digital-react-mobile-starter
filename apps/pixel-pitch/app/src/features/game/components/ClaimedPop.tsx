@@ -1,5 +1,7 @@
 import type { ClaimAllResult, GameResponse } from '@ld/pixel-pitch-core'
+import { useEffect } from 'react'
 import { Link } from 'react-router'
+import { play } from '@/lib/sound/sound'
 import { Icon } from './sprites'
 
 export type Claimed = GameResponse & ClaimAllResult
@@ -14,6 +16,7 @@ export function ClaimedPop({ result, onClose }: { result: Claimed, onClose: () =
     { key: 'star', icon: 'icons/currency_star.png', text: `+${result.starPacks} Star ${result.starPacks === 1 ? 'pack' : 'packs'}`, show: result.starPacks > 0 },
   ].filter(line => line.show)
   const toOpen = result.club.state.idle.shelfPacks + result.club.state.starPacks
+  useEffect(() => play('collect'), [])
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-label="Claimed">

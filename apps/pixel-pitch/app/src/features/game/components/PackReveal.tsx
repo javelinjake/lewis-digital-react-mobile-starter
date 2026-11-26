@@ -4,6 +4,7 @@ import { benchCount, lineupForMatch, toFielded, upgradeDelta } from '@ld/pixel-p
 import { useReducedEffects } from '@ld/react-utils'
 import { useToast } from '@ld/ui'
 import { useMemo, useState } from 'react'
+import { play } from '@/lib/sound/sound'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { art } from '../lib/art'
@@ -104,6 +105,7 @@ export function PackReveal({ game, source, quick = false, onClose, onNext }: { g
       setPhase('reveal')
       return
     }
+    play('pack_rip')
     setTearing(true)
     setTimeout(() => setPhase('reveal'), 380)
   }
@@ -157,7 +159,22 @@ export function PackReveal({ game, source, quick = false, onClose, onNext }: { g
           ? (
               <>
                 <span className="text-muted tabular-nums">{`Player ${index + 1} of ${players.length}`}</span>
-                <button key={index} type="button" className="pp-flip" style={{ animation: reduced ? undefined : 'pp-card-in 300ms cubic-bezier(.2,.8,.2,1)' }} onClick={() => (flipped ? next() : setFlipped(true))} aria-label={flipped ? 'Next player' : 'Turn the card over'}>
+                <button
+                  key={index}
+                  type="button"
+                  className="pp-flip"
+                  style={{ animation: reduced ? undefined : 'pp-card-in 300ms cubic-bezier(.2,.8,.2,1)' }}
+                  onClick={() => {
+                    if (flipped) {
+                      next()
+                      return
+                    }
+                    play('card_flip')
+                    play(player.rarity === 'legend' ? 'reveal_legend' : player.rarity === 'star' ? 'reveal_star' : player.rarity === 'pro' ? 'reveal_pro' : 'reveal_common', 0.8)
+                    setFlipped(true)
+                  }}
+                  aria-label={flipped ? 'Next player' : 'Turn the card over'}
+                >
                   <div className="pp-flip-inner" data-flipped={flipped} style={reduced ? { transition: 'none' } : undefined}>
                     <div className="pp-flip-face"><CardBack scale={4} /></div>
                     <div className="pp-flip-face pp-flip-back"><PlayerCard player={player} rating={toFielded({ id: 'x', playerId: player.id, stars: 1, trained: 0 }, player, config).rating} kit={kit} scale={4} tag={tags[index]} /></div>

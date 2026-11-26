@@ -2,6 +2,7 @@ import type { AnyTaps, Chance, ChanceResult, GameResponse } from '@ld/pixel-pitc
 import { CHANCE_CABINET } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useEffect, useRef, useState } from 'react'
+import { play } from '@/lib/sound/sound'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { CHANCE_NAME, chanceHow, chanceStakes } from '../lib/chances'
@@ -56,6 +57,9 @@ export function ChancePlay({ game, chance, started = false, onStart, onDone }: {
             seed={ticket.seed}
             onFinish={taps => finish.mutate(taps, {
               onSuccess: (response) => {
+                play(response.scored ? (chance.kind === 'save' ? 'perfect' : 'goal') : 'error')
+                if (response.promotedTo)
+                  setTimeout(() => play('promoted'), 900)
                 setResult(response)
                 setPlaying(false)
               },

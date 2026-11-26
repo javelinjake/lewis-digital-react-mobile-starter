@@ -1,8 +1,9 @@
 import type { FixtureResult, MatchMoment, MomentKind } from '@ld/pixel-pitch-core'
 import type { ReactNode } from 'react'
 import { commentate } from '@ld/pixel-pitch-core'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useOsReducedMotion } from '@/hooks/use-os-reduced-motion'
+import { play } from '@/lib/sound/sound'
 import { beatsOf } from '../lib/beats'
 import { reportable } from '../lib/fixture'
 import { useGameConfig } from '../queries/use-game'
@@ -138,6 +139,28 @@ export function MatchTextReplay({ fixture, clubName, crest, label, ended, onEnd,
     if (shown >= beats.length && !ended)
       onEnd()
   }, [shown, beats.length, ended, onEnd])
+
+  // The match's sounds as it is told: the whistles, our goals, and the result. Not for a match already seen.
+  const told = useRef(ended)
+  useEffect(() => {
+    if (told.current)
+      return
+    const current = beats[Math.min(shown, beats.length) - 1]
+    const said = moments[current.moment]
+    if (said.kind === 'kickoff') {
+      play('whistle_kickoff', 0.7)
+    }
+    else if (said.kind === 'goal' && current.part === 'outcome' && said.side === 'for') {
+      play('goal')
+    }
+    else if (said.kind === 'fulltime') {
+      told.current = true
+      play('whistle_fulltime', 0.8)
+      const result = fixture.result
+      const timer = setTimeout(() => play(result === 'win' ? 'win' : result === 'draw' ? 'draw' : 'loss', 0.7), 900)
+      return () => clearTimeout(timer)
+    }
+  }, [shown, beats, moments, fixture.result])
 
   const beat = beats[(finished ? beats.length : shown) - 1]
   const index = beat.moment

@@ -3,6 +3,7 @@ import { bestIn, energyAt, hotCabinet, medalIn, medalTargets } from '@ld/pixel-p
 import { useToast } from '@ld/ui'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { play } from '@/lib/sound/sound'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { CABINETS, topScore } from '../lib/cabinets'
@@ -50,6 +51,10 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   })
   const submit = (taps: AnyTaps) => finish.mutate(taps, {
     onSuccess: (response) => {
+      if (response.medals.length > 0)
+        play('upgrade')
+      else if (response.newBest)
+        play('score_up')
       setResult(response)
       setPhase('result')
     },

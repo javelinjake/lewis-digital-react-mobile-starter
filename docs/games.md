@@ -92,6 +92,10 @@ Five 70-rated players a side (win % for the row against the column):
 
 Scored 3 for a win, 2 for a draw and 1 for a loss (so 2 is an even record), every formation averages 2 points against the field, and the best reply changes with the rival's formation. Without any edge, defending pays against a stronger side (against a +7 rival: Wall 1.84 points, Blitz 1.71) and attacking pays against a weaker one (against −7: Blitz 2.31, Wall 2.19). `bestFormation(squad, rival)` ranks the five for the squad screen's hint. `tests/match.spec.ts` checks the balance, the counter-picks and the stronger/weaker rule, so a config change that breaks them fails CI.
 
+### Sound
+
+Sound effects from the asset pack (`art/source/audio/sfx`), converted to mono AAC `.m4a` by `art:build` and precached by the service worker with the app shell. `src/lib/sound/sound.ts` plays them with Web Audio, each fetched and decoded the first time it is wanted: the pack tear, card flips and a sting by rarity, the kick-off and full-time whistles, our goals and the result, every arcade hit and miss, medals and new bests, claims, promotions, match moments, and a quiet tap on every button. Settings has a switch (kept on the device). The music loop is not used yet.
+
 ## Art
 
 Source in `apps/<slug>/art`. Scale by whole numbers only. Fonts must be bundled (never loaded from a CDN).

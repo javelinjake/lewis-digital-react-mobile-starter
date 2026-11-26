@@ -4,6 +4,7 @@ import type { KeeperPose } from '../lib/goalkeeper-sprite'
 import { loadImage, useCanvasLoop } from '@ld/game'
 import { keeperAt, penaltyBallAt, penaltyRounds, penaltyShot } from '@ld/pixel-pitch-core'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { play } from '@/lib/sound/sound'
 import { art } from '../lib/art'
 import { drawGoalFrame, drawGoalScene, drawNetRipple, toCanvas } from '../lib/goal-scene'
 import { drawKeeper, KEEPER_HEIGHT } from '../lib/goalkeeper-sprite'
@@ -74,6 +75,9 @@ export function PenaltyGame({ seed, onFinish }: { seed: string, onFinish: (taps:
       return
     const result = penaltyShot(rounds[round], ms, config)
     taps.current.push(ms)
+    play('kick')
+    if (result.points > 0)
+      setTimeout(() => play(result.outcome === 'corner' ? 'perfect' : 'goal', 0.8), 350)
     taken.current = { result, ms, at: now }
     setOutcomes(current => [...current, result.outcome])
     setTimeout(() => {

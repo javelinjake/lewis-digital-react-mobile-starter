@@ -1,6 +1,8 @@
 import type { GameResponse, WelcomeBackEvent } from '@ld/pixel-pitch-core'
 import { pendingStadiumCoins, pendingTrayTokens } from '@ld/pixel-pitch-core'
+import { useEffect } from 'react'
 import { Link } from 'react-router'
+import { play } from '@/lib/sound/sound'
 import { art } from '../lib/art'
 import { leagueName } from '../lib/club'
 import { wasWatched } from '../lib/watched'
@@ -18,6 +20,8 @@ export function WelcomeBack({ game, events, claims, claiming, onClaimAll, onClos
   const toWatch = played.find(fixture => !wasWatched(fixture))
   const shown = played.slice(0, 3)
   const waitingChances = game.club.state.chances.length
+  const promoted = events.some(event => event.type === 'matches' && event.promotedTo)
+  useEffect(() => play(promoted ? 'promoted' : 'notification', 0.7), [promoted])
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-label="Welcome back">
       <div className="flex max-h-full w-full max-w-sm flex-col items-center gap-4 overflow-y-auto border-2 border-primary bg-base-100 p-5">

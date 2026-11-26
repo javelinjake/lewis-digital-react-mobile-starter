@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { clearUserData } from '@/app/session-data'
 import { NOTIFICATION_TYPES, useNotificationSettings } from '@/hooks/use-notification-settings'
+import { useSoundSetting } from '@/hooks/use-sound-setting'
 import { authApi } from '@/lib/auth/auth-api'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
@@ -21,11 +22,16 @@ export function SettingsOverview() {
   const navigate = useNavigate()
   const toast = useToast()
   const [alerts, setAlert] = useNotificationSettings()
+  const [sound, setSound] = useSoundSetting()
   const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   return (
     <div className="flex flex-col gap-5">
+      <SettingsGroup label="Sound">
+        <SettingsSwitch title="Sound effects" subtitle="Packs, matches, the arcade and buttons" on={sound} onChange={setSound} />
+      </SettingsGroup>
+
       <SettingsGroup label="Notifications">
         {NOTIFICATION_TYPES.map(entry => (
           <SettingsSwitch

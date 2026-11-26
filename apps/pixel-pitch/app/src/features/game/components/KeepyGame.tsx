@@ -3,6 +3,7 @@ import type { PointerEvent } from 'react'
 import { loadImage, useCanvasLoop } from '@ld/game'
 import { ballCentre, KEEPY_STEPS_PER_SECOND, keepyMax, keepyScore, newKeepy, nextKickGolden, stepKeepy } from '@ld/pixel-pitch-core'
 import { useEffect, useRef, useState } from 'react'
+import { play } from '@/lib/sound/sound'
 import { art } from '../lib/art'
 import { usePlayConfig } from '../queries/use-play-config'
 
@@ -93,6 +94,8 @@ export function KeepyGame({ seed, onFinish }: { seed: string, onFinish: (taps: K
       sim.current = stepKeepy(sim.current, tap, config)
       if (tap)
         mark.current = { x: tap.x, y: tap.y, step: sim.current.step, hit: sim.current.kicks !== before }
+      if (tap && sim.current.kicks !== before)
+        play('kick', 0.7)
       if (sim.current.kicks !== before)
         setKicks(sim.current.kicks)
       const left = Math.ceil(keepy.maxSeconds - sim.current.step / KEEPY_STEPS_PER_SECOND)
