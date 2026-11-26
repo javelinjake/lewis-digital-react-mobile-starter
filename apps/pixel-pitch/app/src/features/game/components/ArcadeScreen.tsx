@@ -1,6 +1,6 @@
 import type { Cabinet, GameResponse } from '@ld/pixel-pitch-core'
 import type { CabinetInfo } from '../lib/cabinets'
-import { energyAt, hotCabinet, pendingTrayTokens } from '@ld/pixel-pitch-core'
+import { bestIn, energyAt, hotCabinet, medalIn, pendingTrayTokens } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { Link } from 'react-router'
 import { formatError } from '@/utils/format-error'
@@ -12,13 +12,15 @@ import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
 import { CabinetArt } from './CabinetArt'
 import { EnergyBar } from './EnergyBar'
+import { MedalPips } from './Medals'
 import { Icon } from './sprites'
 
 /** One game in the arcade: a strip of grass with a picture of the game and its best score, its name and line, and Play. */
-function CabinetCard({ info, kit, best, max, hot, bonus, hasEnergy, gemCost, wide }: {
+function CabinetCard({ info, kit, best, medal, max, hot, bonus, hasEnergy, gemCost, wide }: {
   info: CabinetInfo
   kit: readonly [string, string]
   best: number
+  medal: number
   max: number
   hot: boolean
   bonus: number
@@ -38,7 +40,10 @@ function CabinetCard({ info, kit, best, max, hot, bonus, hasEnergy, gemCost, wid
         <span className="absolute top-1.5 right-1.5 bg-base-200 px-1.5 text-sm text-primary tabular-nums">{best > 0 ? `Best: ${best} / ${max}` : 'Not played yet'}</span>
       </div>
       <div className="flex flex-1 flex-col gap-1 p-2.5">
-        <h2 className="text-primary">{info.name}</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-primary">{info.name}</h2>
+          <MedalPips level={medal} label="Medal in this league" />
+        </div>
         <span className={`text-sm text-muted ${wide ? '' : 'line-clamp-2'}`}>{info.blurb}</span>
         {hasEnergy
           ? <Link to={`/arcade/${info.cabinet}`} className="btn btn-primary mt-auto min-h-11" aria-label="Play · 1 energy">{wide ? 'Play · 1 energy' : 'Play'}</Link>
@@ -85,6 +90,8 @@ export function ArcadeScreen({ game }: { game: GameResponse }) {
         </button>
       </section>
 
+      <span className="text-sm text-muted">Bests and medals are for this league. Each league the games get quicker, and there are medals to win again.</span>
+
       {hasEnergy ? null : <span className="text-sm text-muted">Out of energy. An extra play pays coins and Pass XP, not tokens.</span>}
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -93,7 +100,8 @@ export function ArcadeScreen({ game }: { game: GameResponse }) {
             key={info.cabinet}
             info={info}
             kit={kitOf(game)}
-            best={state.arcade.best[info.cabinet]}
+            best={bestIn(state, info.cabinet, state.league.tier)}
+            medal={medalIn(state, info.cabinet, state.league.tier)}
             max={topScore(info.cabinet, config)}
             hot={info.cabinet === hot}
             bonus={bonus}

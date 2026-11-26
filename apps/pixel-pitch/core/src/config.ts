@@ -33,6 +33,15 @@ const goalSchema = z.object({
 })
 export type GoalDef = z.infer<typeof goalSchema>
 
+/** Bronze, silver and gold, each a share (0 to 1) of the game's top score, rising. */
+const medalShares = z.tuple([z.number().min(0).max(1), z.number().min(0).max(1), z.number().min(0).max(1)])
+
+type Shares = [number, number, number]
+const DEFAULT_MASTERY: { shares: Record<'kick' | 'keepy' | 'pens' | 'keeper' | 'dribble', Shares>, rewards: Record<'bronze' | 'silver' | 'gold', Reward> } = {
+  shares: { kick: [0.4, 0.65, 0.85], keepy: [0.3, 0.55, 0.8], pens: [0.4, 0.6, 0.8], keeper: [0.5, 0.7, 0.9], dribble: [0.3, 0.55, 0.8] },
+  rewards: { bronze: { kind: 'coins', amount: 500 }, silver: { kind: 'tokens', amount: 80 }, gold: { kind: 'gems', amount: 15 } },
+}
+
 export const gameConfigSchema = z.object({
   /** Bumped on every change. Stamped on results so a result can be traced to the rules that produced it. */
   version: z.number().int().positive(),
@@ -124,6 +133,16 @@ export const gameConfigSchema = z.object({
     /** Friendlies a day that pay coins. More can be played for fun. */
     paidPerDay: count,
   }).default({ winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 }),
+
+  /**
+   * Mastery: bronze, silver and gold in each arcade game in each league, as shares of the game's top score. The games
+   * are quicker each league, so the same share is harder higher up. The first time each medal is earned it pays once.
+   * PLACEHOLDERS.
+   */
+  mastery: z.object({
+    shares: z.object({ kick: medalShares, keepy: medalShares, pens: medalShares, keeper: medalShares, dribble: medalShares }),
+    rewards: z.object({ bronze: rewardSchema, silver: rewardSchema, gold: rewardSchema }),
+  }).default(DEFAULT_MASTERY),
 
   /**
    * Match moments: one penalty, free kick or save, played with an arcade game. A Big Chance is banked from a league
@@ -322,6 +341,7 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
   },
   friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 },
   moments: { bank: 5, liveWindowMinutes: 5, decideSeconds: 10, freeKickPoints: 2 },
+  mastery: DEFAULT_MASTERY,
   match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.
@@ -426,6 +446,10 @@ export function parseConfig(raw: unknown): GameConfig {
   const { kick, keepy, warmup, keeper, dribble } = config.minigames
   if (kick.minSpeed > kick.maxSpeed || warmup.green > warmup.gold || keepy.minPeak > keepy.maxPeak || keeper.minDelayMs > keeper.maxDelayMs || dribble.tackleFrom > dribble.tackleTo)
     throw new Error('A minigames range has its low end above its high end.')
+  for (const [cabinet, shares] of Object.entries(config.mastery.shares)) {
+    if (!(shares[0] <= shares[1] && shares[1] <= shares[2]))
+      throw new Error(`mastery.shares.${cabinet} must rise from bronze to gold.`)
+  }
   const pairs = new Set<string>()
   for (const edge of config.formations.edges) {
     if (edge.formation === edge.over)

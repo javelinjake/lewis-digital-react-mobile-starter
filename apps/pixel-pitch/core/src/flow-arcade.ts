@@ -1,6 +1,6 @@
 import type { AnyTaps, CabinetTaps } from './arcade-taps'
 import type { Cabinet, ClubState, Ticket } from './club-state'
-import type { GameConfig } from './config'
+import type { GameConfig, Reward } from './config'
 import type { FlowContext, FlowResult, LedgerEntry } from './flow'
 import type { WarmupZone } from './match'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
@@ -10,6 +10,7 @@ import { playConfig } from './play-config'
 import { CABINETS, isCabinet } from './club-state'
 import { spendEnergy } from './energy'
 import { GameRuleError } from './errors'
+import { type Medal, medalTargets, recordMastery } from './mastery'
 import { warmupBonus } from './match'
 import { shareOf } from './minigames'
 import { addXp, recordProgress } from './progress'
@@ -70,9 +71,16 @@ export interface PlayResult {
   max: number
   tokens: number
   coins: number
-  /** The best score in this game before this play. */
+  /** The league the play counted in. */
+  tier: number
+  /** The best score in this game in this league before this play. */
   previousBest: number
   newBest: boolean
+  /** Bronze, silver and gold in this game and league. */
+  targets: [number, number, number]
+  /** Medals earned for the first time by this play, and what they paid. */
+  medals: Medal[]
+  rewards: Reward[]
   /** This was the cabinet of the day, which pays extra tokens. */
   hot: boolean
 }
@@ -107,19 +115,13 @@ export function finishPlay<C extends Cabinet>(ctx: FlowContext, cabinet: C, taps
   if (coins > 0)
     ledger.push({ currency: 'coins', amount: coins, reason: 'arcade', ref: cabinet })
 
-  const previousBest = state.arcade.best[cabinet]
-  const newBest = score > previousBest
-  const paid: ClubState = {
-    ...state,
-    ticket: null,
-    tokens: state.tokens + tokens,
-    coins: state.coins + coins,
-    arcade: { best: { ...state.arcade.best, [cabinet]: Math.max(previousBest, score) } },
-  }
+  const tier = ticket.tier ?? 1
+  const paid: ClubState = { ...state, ticket: null, tokens: state.tokens + tokens, coins: state.coins + coins }
+  const mastery = recordMastery(paid, cabinet, tier, score, config, !ticket.paid)
   return {
-    state: addXp(recordProgress(paid, 'playCabinets'), config.pass.xp.cabinet, config),
-    ledger,
-    extra: { score, max, tokens, coins, previousBest, newBest, hot },
+    state: addXp(recordProgress(mastery.state, 'playCabinets'), config.pass.xp.cabinet, config),
+    ledger: [...ledger, ...mastery.ledger],
+    extra: { score, max, tokens, coins, tier, previousBest: mastery.previousBest, newBest: mastery.newBest, targets: medalTargets(cabinet, config), medals: mastery.medals, rewards: mastery.rewards, hot },
   }
 }
 

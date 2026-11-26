@@ -11,6 +11,7 @@ export { CALENDAR_DAYS, claimAlbumSet, claimCalendar, claimFreePack, claimGoal, 
 export { type ClaimAllResult, claimAll, type Waiting, waitingToClaim } from './flow-claim-all'
 export { CHANCE_CABINET, chanceFor, type ChanceResult, chanceScored, changeFixture, earnsBigChance, finishChance, type FixtureChange, skipChance, startChance, takeMoments } from './moments'
 export { playConfig } from './play-config'
+export { bestIn, masteryKey, type MasteryResult, type Medal, medalIn, medalLevel, MEDALS, medalTargets, recordMastery } from './mastery'
 export { difficultyAt, type Minigames, minigamesAt } from './config-minigames'
 export { collectTray, finishPlay, finishWarmup, hotCabinet, type PlayResult, startPlay, startWarmup, warmupCabinet, type WarmupResult, warmupZone } from './flow-arcade'
 export { energyAt, energyMax, nextEnergyAt, spendEnergy } from './energy'

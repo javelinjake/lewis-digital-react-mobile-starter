@@ -1,17 +1,20 @@
 import type { AnyTaps, Cabinet, GameResponse, PlayResult } from '@ld/pixel-pitch-core'
-import { energyAt, hotCabinet } from '@ld/pixel-pitch-core'
+import { bestIn, energyAt, hotCabinet, medalIn, medalTargets } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { CABINETS, topScore } from '../lib/cabinets'
+import { medalName } from '../lib/medals'
 import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
 import { cabinetGame } from './cabinet-games'
 import { EnergyBar } from './EnergyBar'
+import { MedalTargets } from './Medals'
 import { NextSteps } from './NextSteps'
 import { PlayTuning } from './PlayTuning'
+import { RewardText } from './RewardText'
 import { Icon } from './sprites'
 
 type Phase = 'intro' | 'playing' | 'result'
@@ -30,7 +33,9 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   const energy = energyAt(state, config, game.now)
   const paid = energy < 1
   const hot = hotCabinet(game.now, config) === cabinet
-  const best = state.arcade.best[cabinet]
+  const best = bestIn(state, cabinet, state.league.tier)
+  const targets = medalTargets(cabinet, config)
+  const medal = medalIn(state, cabinet, state.league.tier)
   const ticket = state.ticket?.kind === cabinet ? state.ticket : null
   const bonus = Math.round(config.cabinets.hotBonus * 100)
   /** Whether the play being finished (or just finished) was bought with gems: it pays coins, not tokens. */
@@ -94,6 +99,22 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
               )}
           {result.hot && !ticketPaid ? <span className="text-warning">{`Includes +${bonus}% for today's game.`}</span> : null}
           <span className={result.newBest ? 'text-xl text-success' : 'text-lg text-muted'} role="status">{verdict}</span>
+          {result.medals.length > 0
+            ? (
+                <div className="flex flex-col items-center gap-1" aria-label="Medals earned">
+                  <span className="font-display text-sm text-warning">{`${result.medals.map(medalName).join(', ')} medal${result.medals.length > 1 ? 's' : ''}!`}</span>
+                  <span className="text-sm">
+                    {result.rewards.map((reward, index) => (
+                      <span key={result.medals[index]}>
+                        {index > 0 ? ' · ' : ''}
+                        <RewardText reward={reward} />
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )
+            : null}
+          <MedalTargets targets={result.targets} level={medalIn(result.club.state, cabinet, result.tier)} />
           {result.tokens === 0 && result.coins === 0 ? <span className="text-muted">Nothing this time. Try again.</span> : null}
         </div>
         {energyLeft > 0
@@ -114,7 +135,9 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
     <div className="flex flex-col gap-3">
       <h2 className="text-primary">{info.name}</h2>
       <span className="text-lg">{info.how}</span>
-      <span className="text-lg tabular-nums">{best > 0 ? `Your best: ${best} / ${topScore(cabinet, config)}` : 'Not played yet'}</span>
+      <span className="text-lg tabular-nums">{best > 0 ? `Your best in this league: ${best} / ${topScore(cabinet, config)}` : 'Not played in this league yet'}</span>
+      <MedalTargets targets={targets} level={medal} />
+      <span className="text-sm text-muted">Each medal pays once the first time: bronze coins, silver tokens, gold gems. A play bought with gems keeps its score but wins no medal.</span>
       <span className="text-muted">{`Up to ${config.cabinets.playMaxTokens} tokens a play, in proportion to your score; +${bonus}% on today's game.`}</span>
       {hot ? <span className="text-warning">{`This is today's game: +${bonus}% tokens.`}</span> : null}
       <EnergyBar game={game} />

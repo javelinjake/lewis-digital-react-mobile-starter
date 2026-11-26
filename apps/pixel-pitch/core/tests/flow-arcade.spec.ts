@@ -152,10 +152,11 @@ describe('finishing a Kick Timer play', () => {
     const ctx = started()
     const taps = perfectKickTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + taps.reduce((sum, tap) => sum + tap, 0) + 5000), 'kick', taps)
-    expect(done.extra).toEqual({ score: 27, max: 27, tokens: config.cabinets.playMaxTokens, coins: 0, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
-    expect(done.state.tokens).toBe(config.cabinets.playMaxTokens)
+    expect(done.extra).toMatchObject({ score: 27, max: 27, tokens: config.cabinets.playMaxTokens, coins: 0, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
+    // A perfect first play also earns all three medals, silver paying tokens.
+    expect(done.state.tokens).toBe(config.cabinets.playMaxTokens + config.mastery.rewards.silver.amount)
     expect(done.state.ticket).toBeNull()
-    expect(done.ledger).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'kick' }])
+    expect(done.ledger!.filter(entry => entry.reason !== 'medal')).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'kick' }])
   })
 
   it('counts towards the arcade goal and Pass XP', () => {
@@ -274,7 +275,7 @@ describe('a play bought with gems', () => {
     const ctx = apply(base, startPlay(base, 'kick', true))
     const taps = perfectKickTaps(ctx.state.ticket!.seed)
     const done = finishPlay(withNow(ctx, T0 + 60_000), 'kick', taps)
-    expect(done.extra).toEqual({ score: 27, max: 27, tokens: 0, coins: config.cabinets.gemPlayCoins, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
+    expect(done.extra).toMatchObject({ score: 27, max: 27, tokens: 0, coins: config.cabinets.gemPlayCoins, previousBest: 0, newBest: true, hot: hotCabinet(T0, config) === 'kick' })
     expect(done.state.tokens).toBe(0)
     expect(done.state.coins).toBe(config.cabinets.gemPlayCoins)
     expect(done.ledger!.some(entry => entry.currency === 'tokens')).toBe(false)
@@ -415,7 +416,7 @@ describe('the penalty shootout in the arcade', () => {
     const done = finishPlay(withNow(started, T0 + taps.reduce((sum, tap) => sum + tap, 0) + 5000), 'pens', taps)
     expect(done.extra).toMatchObject({ score: 10, max: 10, tokens: config.cabinets.playMaxTokens, coins: 0, newBest: true })
     expect(done.state.arcade.best).toMatchObject({ pens: 10, kick: 0, keepy: 0 })
-    expect(done.ledger).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'pens' }])
+    expect(done.ledger!.filter(entry => entry.reason !== 'medal')).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: 'pens' }])
   })
 
   it('refuses taps a person could not make, the wrong number of them, and a result sent faster than the play', () => {
@@ -448,7 +449,7 @@ describe('the newer cabinets', () => {
       const max = cabinetMax(cabinet, config)
       expect(done.extra, cabinet).toMatchObject({ score: max, max, tokens: config.cabinets.playMaxTokens, coins: 0, newBest: true })
       expect(done.state.arcade.best[cabinet]).toBe(max)
-      expect(done.ledger).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: cabinet }])
+      expect(done.ledger!.filter(entry => entry.reason !== 'medal')).toEqual([{ currency: 'tokens', amount: config.cabinets.playMaxTokens, reason: 'arcade', ref: cabinet }])
     }
   })
 

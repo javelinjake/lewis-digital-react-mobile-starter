@@ -101,8 +101,11 @@ export interface ClubState {
 
   /** The arcade's stamina: the time at which it is full again (see `energyAt`). */
   energy: { fullAt: number }
-  /** Best score in each arcade game, for "new best" and "2 off your best". */
-  arcade: { best: Record<Cabinet, number> }
+  /**
+   * Arcade records: `best` is the best ever in each game; `bests` and `medals` are per game and league (keyed
+   * `cabinet:tier`, see `masteryKey`): the personal best there, and the medal held (1 bronze, 2 silver, 3 gold).
+   */
+  arcade: { best: Record<Cabinet, number>, bests: Record<string, number>, medals: Record<string, number> }
   /** Tickets handed out so far. Seeds each play. */
   ticketsIssued: number
   ticket: Ticket | null
@@ -137,7 +140,7 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     starPacks: 0,
     extraPacks: { day: -1, count: 0 },
     energy: { fullAt: 0 },
-    arcade: { best: Object.fromEntries(CABINETS.map(cabinet => [cabinet, 0])) as Record<Cabinet, number> },
+    arcade: { best: Object.fromEntries(CABINETS.map(cabinet => [cabinet, 0])) as Record<Cabinet, number>, bests: {}, medals: {} },
     ticketsIssued: 0,
     ticket: null,
     warmupTriedFor: -1,
@@ -172,7 +175,11 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
     idle: { ...saved.idle, trayCollectedAt: typeof tray === 'number' ? tray : Math.min(tray.kick, tray.keepy) },
     energy: { ...fresh.energy, ...saved.energy },
     // Only the games there are now: the best of one taken out is dropped.
-    arcade: { best: Object.fromEntries(CABINETS.map(cabinet => [cabinet, saved.arcade?.best?.[cabinet] ?? 0])) as Record<Cabinet, number> },
+    arcade: {
+      best: Object.fromEntries(CABINETS.map(cabinet => [cabinet, saved.arcade?.best?.[cabinet] ?? 0])) as Record<Cabinet, number>,
+      bests: saved.arcade?.bests ?? {},
+      medals: saved.arcade?.medals ?? {},
+    },
     ticket: stale ? null : ticket,
     warmupTriedFor: warmupBack ? fresh.warmupTriedFor : (saved.warmupTriedFor ?? fresh.warmupTriedFor),
     daily: { ...fresh.daily, ...saved.daily },
