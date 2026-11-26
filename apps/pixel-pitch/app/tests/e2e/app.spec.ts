@@ -316,7 +316,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
       await expect(page.getByText(`Penalty ${penalty} of 5`)).toBeVisible()
       await page.waitForTimeout(300)
       await page.getByRole('button', { name: 'SHOOT!' }).click()
-      await expect(page.getByText(/^(Wide!|Saved!|Goal!|Top corner! 2 points)$/)).toBeVisible()
+      await expect(page.getByText(/^(Wide!|Over the bar!|Saved!|Goal!|Corner! 2 points)$/)).toBeVisible()
     }
     const result = page.getByLabel('Result')
     await expect(result).toBeVisible({ timeout: 10_000 })

@@ -3,7 +3,7 @@ import type { CabinetTaps } from './arcade-taps'
 import type { Cabinet } from './club-state'
 import type { GameConfig } from './config'
 import type { KeepyTap } from './minigames'
-import { dribbleEndMs, dribbleRun, dribbleTackle, keeperShots, startLane } from './arcade-games'
+import { dribbleEndMs, dribbleRun, dribbleTackle, keeperBallAt, keeperShots, startLane } from './arcade-games'
 import { ballCentre, inReach, kickRounds, markerAt, newKeepy, penaltyRounds, penaltyShot, stepKeepy, targetAt } from './minigames'
 
 // A perfect player for every cabinet: what a play that scores the most sends. For the tests (core, api and app) and
@@ -24,11 +24,11 @@ function kick(seed: string, config: Config) {
 
 function pens(seed: string, config: Config) {
   return penaltyRounds(seed, config).map((round) => {
-    for (let ms = 150; ms < 12_000; ms++) {
+    for (let ms = 150; ms < 30_000; ms++) {
       if (penaltyShot(round, ms, config).outcome === 'corner')
         return ms
     }
-    throw new Error('No corner shot in 12 seconds: the keeper covers it.')
+    throw new Error('No corner shot in 30 seconds: the keeper covers it.')
   })
 }
 
@@ -58,9 +58,14 @@ function keepy(seed: string, config: Config): KeepyTap[] {
   return taps
 }
 
+/** Taps the middle of the ball halfway between the quickest reaction and the line. */
 function keeper(seed: string, config: Config) {
   const { minReactionMs } = config.minigames.keeper
-  return keeperShots(seed, config).map(shot => ({ side: shot.side, ms: shot.delayMs + minReactionMs + Math.floor((shot.windowMs - minReactionMs) / 2) }))
+  return keeperShots(seed, config).map((shot) => {
+    const ms = shot.delayMs + minReactionMs + Math.floor((shot.windowMs - minReactionMs) / 2)
+    const { x, y } = keeperBallAt(shot, ms, config)
+    return { ms, x, y }
+  })
 }
 
 /** Stands in a lane none of the next two defenders is coming down, moving one lane at a time. */
