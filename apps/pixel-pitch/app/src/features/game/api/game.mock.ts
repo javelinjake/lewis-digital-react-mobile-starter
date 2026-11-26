@@ -1,7 +1,7 @@
 import type { ClubState, FixtureChange, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
 import type { MockEntry } from './challenge.mock'
 import type { GameApi } from './game-api.types'
-import { addXp, arcadePack, buyPack, changeFixture, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, claimWeekly, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChallenge, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, skipChance, startChallenge, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState, weekOf } from '@ld/pixel-pitch-core'
+import { addXp, arcadePack, buyKit, buyPack, changeFixture, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, claimWeekly, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChallenge, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mayWearKit, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, skipChance, startChallenge, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState, weekOf } from '@ld/pixel-pitch-core'
 import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
 import { mockBoard, mockWeekStanding } from './challenge.mock'
@@ -251,6 +251,16 @@ export const gameApi: GameApi = {
     const week = weekOf(dayIndex(at, config)) - 1
     return wrap(() => claimWeekly(ctx, week, mockWeekStanding(challengeEntries(), week, config)))
   }),
+  buyKit: kitId => respond((_mock, _at, ctx) => wrap(() => buyKit(ctx, kitId))),
+  async wearKit(kitPrimary, kitSecondary) {
+    const mock = load()
+    if (!mock)
+      throw new MockRuleError('Create your club first.', 404)
+    if (!mayWearKit(mock.club.state, kitPrimary, kitSecondary, config))
+      throw new MockRuleError('That kit is not yours to wear. Buy it in the shop first.')
+    save({ ...mock, club: { ...mock.club, kitPrimary: kitPrimary.toLowerCase(), kitSecondary: kitSecondary.toLowerCase() } })
+    return respond(club => ({ state: club.club.state }))
+  },
   claimGoal: goalId => respond((_mock, _at, ctx) => wrap(() => claimGoal(ctx, goalId))),
   claimFreePack: () => respond((_mock, _at, ctx) => wrap(() => claimFreePack(ctx))),
   claimCalendar: () => respond((_mock, _at, ctx) => wrap(() => claimCalendar(ctx))),

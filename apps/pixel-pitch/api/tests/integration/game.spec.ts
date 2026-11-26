@@ -30,7 +30,7 @@ function act(session: Session, path: string, body: unknown = {}, options: { key?
   })
 }
 
-const newClub = { name: 'Harbour Town', crest: 3, kitPrimary: '#d03a2f', kitSecondary: '#f4f1e8' }
+const newClub = { name: 'Harbour Town', crest: 3, kitPrimary: '#e2483d', kitSecondary: '#f4f4f4' }
 
 beforeAll(async () => {
   payload = await boot()
@@ -263,13 +263,13 @@ describe('the app\'s api client', () => {
 })
 
 describe('friendlies', () => {
-  it('plays one now, saves it as a friendly with no league points, pays coins for the first few a day only', async () => {
+  it('plays one now, saves it as a friendly with no league points, pays coins, and stops at the day\'s limit', async () => {
     const carol = await guest()
     const at = Date.UTC(2026, 10, 20, 9)
     const club = (await act(carol, 'club', { ...newClub, name: 'Carol FC' }, { at })).json as GameResponse
     let coins = club.club.state.coins
     const paid: number[] = []
-    for (let match = 0; match < config.friendly.paidPerDay + 1; match++) {
+    for (let match = 0; match < config.friendly.maxPerDay; match++) {
       const response = await act(carol, 'friendly', {}, { at: at + 1000 + match })
       expect(response.status).toBe(200)
       const fixture = response.json.fixture
@@ -280,12 +280,12 @@ describe('friendlies', () => {
       coins = response.json.club.state.coins
       paid.push(fixture.coins)
     }
-    expect(paid.slice(0, -1).every(amount => amount > 0)).toBe(true)
-    expect(paid.at(-1)).toBe(0)
+    expect(paid.slice(0, config.friendly.paidPerDay).every(amount => amount > 0)).toBe(true)
+    expect((await act(carol, 'friendly', {}, { at: at + 5000 })).status).toBe(400)
 
     const saved = await carol.get('/api/fixtures?limit=100&depth=0&sort=-kickoffAt')
     const kinds = saved.json.docs.map((doc: { kind: string }) => doc.kind)
-    expect(kinds.filter((kind: string) => kind === 'friendly')).toHaveLength(config.friendly.paidPerDay + 1)
+    expect(kinds.filter((kind: string) => kind === 'friendly')).toHaveLength(config.friendly.maxPerDay)
     expect(kinds.at(-1)).toBe('debut')
   })
 

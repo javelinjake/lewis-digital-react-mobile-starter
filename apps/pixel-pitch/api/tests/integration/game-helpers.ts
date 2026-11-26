@@ -6,7 +6,7 @@ import { DEFAULT_CONFIG, perfectTaps, playConfig, runKeepy } from '@ld/pixel-pit
 
 export const HOUR = 60 * 60 * 1000
 export const DAY = 24 * HOUR
-export const newClub = { name: 'Harbour Town', crest: 3, kitPrimary: '#d03a2f', kitSecondary: '#f4f1e8' }
+export const newClub = { name: 'Harbour Town', crest: 3, kitPrimary: '#e2483d', kitSecondary: '#f4f4f4' }
 
 /** Calls a game action as `session`. `at` is the server's clock for the call (time travel is on in the tests). */
 export function act(session: Session, path: string, body: unknown = {}, options: { key?: string, at?: number } = {}) {

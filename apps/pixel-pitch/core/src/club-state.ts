@@ -133,6 +133,8 @@ export interface ClubState {
   badges: string[]
   /** The trophy cabinet: each league the club went up into, and when (0 for one won before the cabinet existed). */
   trophies: Array<{ tier: number, at: number }>
+  /** Shop items the club owns, by id (premium kits). Kept for good. */
+  cosmetics: string[]
 }
 
 export function newClubState(now: number, config: GameConfig): ClubState {
@@ -163,6 +165,7 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     challenge: { day: -1, score: 0, claimedWeek: -1, weeks: [] },
     badges: [],
     trophies: [],
+    cosmetics: [],
   }
 }
 

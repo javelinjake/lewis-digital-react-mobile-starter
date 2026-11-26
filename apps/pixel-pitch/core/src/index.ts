@@ -11,6 +11,7 @@ export { CALENDAR_DAYS, claimAlbumSet, claimCalendar, claimFreePack, claimGoal, 
 export { type ClaimAllResult, claimAll, type Waiting, waitingToClaim } from './flow-claim-all'
 export { CHANCE_CABINET, chanceFor, type ChanceResult, chanceScored, changeFixture, earnsBigChance, finishChance, type FixtureChange, skipChance, startChance, takeMoments } from './moments'
 export { endlessMinigames, playConfig } from './play-config'
+export { buyKit, FREE_KITS, isFreeKit, mayWearKit, premiumKit } from './shop'
 export { challengeCabinet, type ChallengeEntry, challengePlayed, type ChallengeResult, challengeSeed, claimWeekly, dayPoints, finishChallenge, judgeEntry, startChallenge, weekOf, type WeeklyClaim, weekToClaim, weeklyBand, weeklyTable, type WeeklyStanding } from './challenge'
 export { bestIn, masteryKey, type MasteryResult, type Medal, medalIn, medalLevel, MEDALS, medalTargets, recordMastery } from './mastery'
 export { difficultyAt, type Minigames, minigamesAt } from './config-minigames'

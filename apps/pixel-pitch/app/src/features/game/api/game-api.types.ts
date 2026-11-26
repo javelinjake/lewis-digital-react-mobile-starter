@@ -42,6 +42,10 @@ export interface GameApi {
   readBoard: () => Promise<ChallengeBoard>
   /** Takes last week's reward. */
   claimWeekly: () => Promise<GameResponse & WeeklyClaim>
+  /** Buys a premium kit with gems. */
+  buyKit: (kitId: string) => Promise<GameResponse & { kitId: string, gems: number }>
+  /** Puts on a free kit, or a premium one the club owns. */
+  wearKit: (kitPrimary: string, kitSecondary: string) => Promise<GameResponse>
   /** Takes everything that is waiting (stadium, tray, calendar, free pack, goals, Pass, album) in one call. */
   claimAll: () => Promise<GameResponse & ClaimAllResult>
   claimGoal: (goalId: string) => Promise<GameResponse & { reward: Reward }>

@@ -113,26 +113,26 @@ describe('the login calendar', () => {
     expect(second.json).toMatchObject({ day: 2, reward: config.calendar.rewards[1] })
   })
 
-  it('starts again at day 1 after a missed day', async () => {
+  it('pauses over a missed day rather than starting again', async () => {
     now += 2 * DAY
     const response = await act(alice, 'calendar/claim', {}, { at: now })
-    expect(response.json.day).toBe(1)
+    expect(response.json.day).toBe(3)
   })
 
-  it('ends in a Star pack on day 7, which opens with a Star or better', async () => {
+  it('ends in three Star packs on day 7, which open with a Star or better', async () => {
     let last: { day: number } = { day: 0 }
-    for (let n = 0; n < 6; n++) {
+    for (let n = 0; n < 4; n++) {
       now += DAY
       last = (await act(alice, 'calendar/claim', {}, { at: now })).json
     }
     expect(last.day).toBe(7)
     const state = await sync(alice)
-    expect(state.starPacks).toBe(1)
+    expect(state.starPacks).toBe(3)
     const opened = await act(alice, 'packs/open', { source: 'star' }, { at: now })
     expect(opened.status).toBe(200)
     const ids: string[] = opened.json.club.state.pendingPack.playerIds
     expect(ids.some(id => ['star', 'legend'].includes(catalogue.find(player => player.id === id)!.rarity))).toBe(true)
-    expect(opened.json.club.state.starPacks).toBe(0)
+    expect(opened.json.club.state.starPacks).toBe(2)
     await act(alice, 'packs/decide', { decisions: ['sell', 'sell', 'sell'] }, { at: now })
   })
 })

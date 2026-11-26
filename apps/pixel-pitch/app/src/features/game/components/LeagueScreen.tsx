@@ -81,6 +81,14 @@ export function LeagueScreen({ game }: { game: GameResponse }) {
 
       <section className="flex flex-col gap-2" aria-label="Trophy cabinet">
         <span className="pp-label">Trophy cabinet</span>
+        {game.club.state.badges.includes('challenge-podium')
+          ? (
+              <span className="flex min-h-11 items-center gap-2.5 bg-raised px-3 shadow-[inset_0_0_0_2px_var(--color-warning)]">
+                <span className="text-warning" aria-hidden="true">◆</span>
+                <span className="flex-1">Daily challenge podium: top 3 in a week</span>
+              </span>
+            )
+          : null}
         {game.club.state.trophies.length > 0
           ? (
               <ul className="flex flex-col gap-1.5">

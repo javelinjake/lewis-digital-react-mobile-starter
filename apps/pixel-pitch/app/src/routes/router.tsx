@@ -52,6 +52,7 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/match/:no', lazy: pages.match, handle: { title: 'Match' } },
                   { path: '/challenge', lazy: pages.challenge, handle: { title: 'Daily challenge' } },
+                  { path: '/shop', lazy: pages.shop, handle: { title: 'Shop' } },
                   { path: '/chances', lazy: pages.chances, handle: { title: 'Big Chances' } },
                   { path: '/goals', lazy: pages.goals, handle: { title: 'Goals' } },
                   { path: '/pass', lazy: pages.pass, handle: { title: 'League Pass' } },

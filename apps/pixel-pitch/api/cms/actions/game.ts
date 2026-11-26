@@ -1,6 +1,6 @@
 import type { ActionContext } from '@ld/backend'
 import { defineAction } from '@ld/backend'
-import { CREST_COUNT, foundClub, mergeInClub, newClubState, playFriendly, sellCard, setLineup, trainInClub } from '@ld/pixel-pitch-core'
+import { CREST_COUNT, foundClub, isFreeKit, mergeInClub, newClubState, playFriendly, sellCard, setLineup, trainInClub } from '@ld/pixel-pitch-core'
 import { APIError } from 'payload'
 import { serverNow } from '../game/clock'
 import { loadGame } from '../game/load'
@@ -41,6 +41,9 @@ export const createClubAction = defineAction({
       throw new APIError('Pick one of the crests.', 400, { code: 'crest' }, true)
     if (!HEX.test(kitPrimary) || !HEX.test(kitSecondary))
       throw new APIError('Kit colours are #rrggbb.', 400, { code: 'kit' }, true)
+    // A new club picks one of the free kits; the others are in the shop.
+    if (!isFreeKit(kitPrimary, kitSecondary))
+      throw new APIError('Pick one of the kits.', 400, { code: 'kit' }, true)
     if (await findClub(ctx))
       throw new APIError('You already have a club.', 409, { code: 'club-exists' }, true)
 

@@ -149,6 +149,14 @@ export function HubTiles({ game }: { game: GameResponse }) {
           )
         : null}
 
+      <Link to="/shop" className="relative flex min-h-11 items-center justify-between bg-base-100 px-3 shadow-[inset_0_0_0_2px_var(--color-slate)]">
+        <span>
+          <span className="font-bold text-primary">Shop</span>
+          <span className="text-sm text-muted"> · kits for gems</span>
+        </span>
+        <span className="text-muted" aria-hidden="true">›</span>
+      </Link>
+
       <Link to="/album" className="relative flex min-h-11 items-center justify-between bg-base-100 px-3 shadow-[inset_0_0_0_2px_var(--color-slate)]">
         <span>
           <span className="font-bold text-primary">Album</span>
