@@ -44,7 +44,7 @@
     "@capacitor/splash-screen": "catalog:",
     "@capacitor/status-bar": "catalog:",
     "@capgo/capacitor-social-login": "catalog:",
-    "@fontsource/pixelify-sans": "catalog:",
+    "@fontsource/jersey-10": "catalog:",
     "@ld/api-client": "workspace:*",
     "@ld/forms": "workspace:*",
     "@ld/game": "workspace:*",

@@ -2,9 +2,7 @@
 @import "@ld/ui/motion.css";
 @import "@ld/mobile-ui/native-feel.css";
 /* Bundled, never loaded from a CDN. Latin only: the game's text is English. SIL Open Font License. */
-@import "@fontsource/pixelify-sans/latin-400.css";
-@import "@fontsource/pixelify-sans/latin-600.css";
-@import "@fontsource/pixelify-sans/latin-700.css";
+@import "@fontsource/jersey-10/latin-400.css";
 
 @source "../../../../../packages/ui/src";
 @source "../../../../../packages/forms/src";
@@ -56,8 +54,21 @@
 }
 
 @theme {
-  --font-sans: "Pixelify Sans", ui-monospace, monospace;
-  --font-display: "Pixelify Sans", ui-monospace, monospace;
+  --font-sans: "Jersey 10", ui-monospace, monospace;
+  --font-display: "Jersey 10", ui-monospace, monospace;
+  /*
+   * Jersey 10 is tall and narrow and reads small for its size, so the text scale is a step up from Tailwind's. The
+   * root stays 16px, so spacing and 44px touch targets are unchanged.
+   */
+  --text-xs: 0.9375rem;
+  --text-sm: 1.0625rem;
+  --text-base: 1.25rem;
+  --text-lg: 1.375rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 2.75rem;
+  --text-5xl: 3.5rem;
   --color-pitch: #23702d;
   --color-pitch-dark: #287a32;
   --color-slate: #2a3680;
@@ -83,25 +94,29 @@
   html {
     font-family: var(--font-sans);
     font-size: 16px;
+    /* Jersey 10 has one weight. A browser's made-up bold smears a pixel font, so bold is size and colour instead. */
+    font-synthesis: none;
   }
 
-  /* Type scale: 22 screen titles, 18 card titles, 16 body, 14 meta, 12 caps labels. Nothing smaller. */
+  body {
+    font-size: var(--text-base);
+    line-height: 1.25;
+  }
+
+  /* Type scale: 28 screen titles, 22 card titles, 20 body, 17 meta, 15 caps labels. */
   h1, h2, h3 {
     font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: 0;
-    line-height: 1.15;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
   }
 
-  h1 { font-size: 1.375rem; }
-  h2 { font-size: 1.125rem; }
-  h3 { font-size: 1rem; }
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.375rem; }
+  h3 { font-size: 1.25rem; }
 
-  /* Buttons and labels that used the old display face: bold Pixelify, never below 16px on a button. */
   .font-display {
     font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: 0.01em;
   }
 
   img.pixel, canvas.pixel, .pixel {
@@ -179,8 +194,7 @@
 @layer components {
   .btn {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1rem;
+    letter-spacing: 0.02em;
     border-width: 0;
   }
   .btn-primary {
@@ -224,9 +238,8 @@
 
   /* A small caps label above a value: "WHILE YOU WERE AWAY". */
   .pp-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-muted);
   }
@@ -234,6 +247,11 @@
 
 /*
  * Outside any layer on purpose, so it wins over Tailwind's size utility: the old display face was tiny at text-xs, so
- * those labels (mostly buttons) are 16px bold now.
+ * those labels (mostly buttons) are button-sized now.
  */
-.font-display.text-xs { font-size: 1rem; line-height: 1.2; }
+.font-display.text-xs { font-size: var(--text-lg); line-height: 1.1; }
+
+/* Button text sizes, through daisyUI's own variable (its button rules outrank a theme layer). A size class still wins. */
+.btn { --fontsize: var(--text-lg); font-weight: 400; }
+.btn-sm { --fontsize: var(--text-base); }
+.btn-xs { --fontsize: var(--text-sm); }
