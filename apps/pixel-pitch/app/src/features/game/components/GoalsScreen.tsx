@@ -1,5 +1,5 @@
 import type { GameResponse, GoalKind } from '@ld/pixel-pitch-core'
-import { CALENDAR_DAYS, dayIndex, nextCalendarDay } from '@ld/pixel-pitch-core'
+import { CALENDAR_DAYS, dayIndex, maxXp, nextCalendarDay, tierReached } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { Link, useNavigate } from 'react-router'
 import { formatError } from '@/utils/format-error'
@@ -34,8 +34,21 @@ export function GoalsScreen({ game }: { game: GameResponse }) {
   const next = nextCalendarDay(state.calendar, today)
   const claimedUpTo = next === null ? state.calendar.streak : next === 1 ? 0 : next - 1
 
+  const reached = tierReached(state, config)
+  const tierXp = state.pass.xp - reached * config.pass.xpPerTier
+  const atTop = state.pass.xp >= maxXp(config)
+
   return (
     <div className="flex flex-col gap-4">
+      <Link to="/pass" className="flex flex-col gap-1.5 border-2 border-slate bg-base-100 p-3" aria-label="League Pass">
+        <span className="flex items-baseline justify-between">
+          <span className="text-lg font-bold text-primary">{`League Pass · Tier ${reached}`}</span>
+          <span className="text-accent">View ›</span>
+        </span>
+        <span className="h-2 bg-base-200" aria-hidden="true"><span className="block h-2 bg-accent" style={{ width: `${atTop ? 100 : (tierXp / config.pass.xpPerTier) * 100}%` }} /></span>
+        <span className="text-muted">{atTop ? 'Every tier reached this season.' : `${tierXp} of ${config.pass.xpPerTier} XP to the next tier · each goal adds ${config.pass.xp.goal} XP`}</span>
+      </Link>
+
       <section className="flex flex-col gap-2 border-2 border-slate bg-base-100 p-3" aria-label="Daily free pack">
         <h2>Daily Free Pack</h2>
         <button

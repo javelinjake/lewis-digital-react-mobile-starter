@@ -53,7 +53,7 @@ export function NativeRuntime() {
   }), [onResume, client])
 
   useEffect(() => {
-    void setStatusBarAppearance({ light: true, backgroundColor: '#1b1f3b' })
+    void setStatusBarAppearance({ light: true, backgroundColor: '#121a44' })
   }, [])
 
   return null

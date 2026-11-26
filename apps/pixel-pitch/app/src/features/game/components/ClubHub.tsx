@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { claimable } from '../lib/claimable'
-import { kitOf, leagueName, nextRival, serverOffset } from '../lib/club'
+import { nextRival, serverOffset } from '../lib/club'
 import { claimCount, readyItems } from '../lib/ready-now'
 import { wasWatched } from '../lib/watched'
 import { useClaimAll } from '../mutations/use-claim-all'
@@ -13,7 +13,7 @@ import { useCatalogue, useFixtures, useGameConfig } from '../queries/use-game'
 import { Countdown } from './Countdown'
 import { FriendlyCard } from './FriendlyCard'
 import { ReadyNow } from './ReadyNow'
-import { Crest, Icon } from './sprites'
+import { Icon } from './sprites'
 import { StadiumCard } from './StadiumCard'
 import { WarmupCard } from './WarmupCard'
 import { WelcomeBack } from './WelcomeBack'
@@ -30,7 +30,6 @@ export function ClubHub({ game }: { game: GameResponse }) {
   const config = useGameConfig()
   const fixtures = useFixtures(1)
   const { state } = game.club
-  const kit = kitOf(game)
   const rival = nextRival(game, config)
   // Captured when this answer arrived, so the countdown follows the server's clock.
   const offset = useMemo(() => serverOffset(game, Date.now()), [game])
@@ -55,29 +54,6 @@ export function ClubHub({ game }: { game: GameResponse }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="flex items-center gap-3">
-        <Crest crest={game.club.crest} kit={kit} scale={3} label={`${game.club.name} crest`} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <h2 className="truncate text-primary">{game.club.name}</h2>
-          <span className="text-muted">{`${leagueName(state.league.tier)} · ${state.league.points}/${config.league.pointsToPromote} pts`}</span>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-3 gap-2 text-lg" aria-label="Wallet">
-        <span className="flex items-center gap-1 bg-base-100 px-2 py-1">
-          <Icon path="icons/currency_coin.png" label="Coins" />
-          <span className="tabular-nums">{state.coins.toLocaleString('en-GB')}</span>
-        </span>
-        <span className="flex items-center gap-1 bg-base-100 px-2 py-1">
-          <Icon path="icons/currency_gem.png" label="Gems" />
-          <span className="tabular-nums">{state.idle.gems}</span>
-        </span>
-        <span className="flex items-center gap-1 bg-base-100 px-2 py-1">
-          <Icon path="icons/currency_pack.png" label="Packs" />
-          <span className="tabular-nums">{state.idle.shelfPacks}</span>
-        </span>
-      </section>
-
       <ReadyNow game={game} claim={() => claim()} pending={pending} />
 
       <section className="flex flex-col items-center gap-2 border-2 border-slate bg-base-100 p-4" aria-label="Next match">

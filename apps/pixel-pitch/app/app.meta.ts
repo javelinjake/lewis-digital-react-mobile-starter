@@ -20,7 +20,7 @@ export const appMeta = {
     prod: { apiUrl: '' },
   },
   themeColor: '#ffd23f',
-  backgroundColor: '#1b1f3b',
+  backgroundColor: '#0b1028',
   /** Sign-in methods this app offers. Google needs Apple as well: the App Store requires it. */
   auth: {
     emailPassword: true,
