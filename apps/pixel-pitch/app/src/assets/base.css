@@ -149,3 +149,9 @@
 @media (prefers-reduced-motion: reduce) {
   .pp-flip-inner { transition: none; }
 }
+
+/* A new step of the pack opening fades in instead of snapping. */
+@keyframes pp-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}

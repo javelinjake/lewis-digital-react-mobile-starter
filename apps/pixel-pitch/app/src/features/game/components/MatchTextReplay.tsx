@@ -29,9 +29,10 @@ function tone(moment: MatchMoment) {
 /**
  * The match as a short written report: a few big moments, one at a time. A chance shows what is happening, then
  * what came of it. It plays itself at a readable pace; tap the card to go on sooner, or Skip to the result. When the
- * phone asks for reduced motion it never moves on its own: Next steps through it.
+ * phone asks for reduced motion it never moves on its own: Next steps through it. Once `ended` (played through, skipped,
+ * or a match already seen) it shows the result and the whole report, kick-off first, in a box of its own that scrolls.
  */
-export function MatchTextReplay({ fixture, clubName, onDone }: { fixture: FixtureResult, clubName: string, onDone: () => void }) {
+export function MatchTextReplay({ fixture, clubName, ended, onEnd }: { fixture: FixtureResult, clubName: string, ended: boolean, onEnd: () => void }) {
   const config = useGameConfig()
   const manual = useOsReducedMotion()
   const moments = useMemo(
@@ -49,8 +50,13 @@ export function MatchTextReplay({ fixture, clubName, onDone }: { fixture: Fixtur
     return () => clearTimeout(timer)
   }, [manual, shown, beats])
 
-  const finished = shown >= beats.length
-  const beat = beats[shown - 1]
+  const finished = ended || shown >= beats.length
+  useEffect(() => {
+    if (shown >= beats.length && !ended)
+      onEnd()
+  }, [shown, beats.length, ended, onEnd])
+
+  const beat = beats[(finished ? beats.length : shown) - 1]
   const index = beat.moment
   const moment = moments[index]
   const outcomeShown = beat.part === 'outcome' || moment.outcome === null
@@ -80,42 +86,50 @@ export function MatchTextReplay({ fixture, clubName, onDone }: { fixture: Fixtur
     </>
   )
 
+  const scoreLine = (
+    <div className="flex items-center gap-2 font-display text-xs" aria-live="polite">
+      <span className="min-w-0 flex-1 break-words leading-tight">{clubName}</span>
+      <span className="shrink-0 whitespace-nowrap text-lg text-primary tabular-nums">{`${score[0]}–${score[1]}`}</span>
+      <span className="min-w-0 flex-1 break-words text-right leading-tight">{fixture.rival.name}</span>
+    </div>
+  )
+
+  if (finished) {
+    return (
+      <div className="flex flex-col gap-3">
+        {scoreLine}
+        <ResultPanel fixture={fixture} clubName={clubName} />
+        <h2>Match report</h2>
+        <ol className="flex max-h-[45vh] flex-col gap-2 overflow-y-auto border-2 border-slate bg-base-100 p-3 text-lg" aria-label="Match report" tabIndex={0}>
+          {moments.map(past => (
+            <li key={`${past.minute}-${past.kind}-${past.setup}`} className={`flex gap-2 leading-tight ${tone(past) || 'text-muted'} ${past.kind === 'goal' ? 'border-l-4 border-current pl-2' : ''}`}>
+              <span className="w-8 shrink-0 text-right tabular-nums text-muted">{past.kind === 'kickoff' ? 'KO' : `${past.minute}'`}</span>
+              <span>{past.outcome ?? past.setup}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 font-display text-xs" aria-live="polite">
-        <span className="min-w-0 flex-1 break-words leading-tight">{clubName}</span>
-        <span className="shrink-0 whitespace-nowrap text-lg text-primary tabular-nums">{`${score[0]}–${score[1]}`}</span>
-        <span className="min-w-0 flex-1 break-words text-right leading-tight">{fixture.rival.name}</span>
-      </div>
-
-      {finished
-        ? <div className="flex min-h-40 flex-col gap-3 border-2 border-primary bg-base-100 p-4" role="status">{card}</div>
-        : (
-            <button
-              type="button"
-              className="flex min-h-40 w-full flex-col gap-3 border-2 border-slate bg-base-100 p-4 text-left"
-              aria-label="Next moment"
-              onClick={next}
-            >
-              {card}
-            </button>
-          )}
-
-      {finished
-        ? null
-        : (
-            <div className="flex gap-2">
-              {manual ? <button type="button" className="btn btn-primary min-h-12 flex-1 font-display text-xs" onClick={next}>Next</button> : null}
-              <button type="button" className="btn btn-ghost min-h-12 flex-1" onClick={() => setShown(beats.length)}>Skip to result</button>
-            </div>
-          )}
-      {finished || manual ? null : <span className="text-center text-muted">Tap the match to go on</span>}
-
-      {finished ? <ResultPanel fixture={fixture} onDone={onDone} /> : null}
+      {scoreLine}
+      <button
+        type="button"
+        className="flex min-h-40 w-full flex-col gap-3 border-2 border-slate bg-base-100 p-4 text-left"
+        aria-label="Next moment"
+        onClick={next}
+      >
+        {card}
+      </button>
+      {manual
+        ? <button type="button" className="btn btn-primary min-h-12 font-display text-xs" onClick={next}>Next</button>
+        : <span className="text-center text-muted">Tap the match to go on</span>}
 
       {earlier.length > 0
         ? (
-            <ol className="flex flex-col gap-2 text-lg" aria-label="Match report">
+            <ol className="flex flex-col gap-2 text-lg" aria-label="Match so far">
               {earlier.map(past => (
                 <li key={`${past.minute}-${past.kind}-${past.setup}`} className={`flex gap-2 leading-tight ${tone(past) || 'text-muted'} ${past.kind === 'goal' ? 'border-l-4 border-current pl-2' : ''}`}>
                   <span className="w-8 shrink-0 text-right tabular-nums text-muted">{past.kind === 'kickoff' ? 'KO' : `${past.minute}'`}</span>
@@ -124,7 +138,7 @@ export function MatchTextReplay({ fixture, clubName, onDone }: { fixture: Fixtur
               ))}
             </ol>
           )
-        : <ol className="sr-only" aria-label="Match report" />}
+        : null}
     </div>
   )
 }

@@ -12,3 +12,18 @@ export function reportable(fixture: FixtureResult): FixtureResult {
     squads: fixture.squads ?? { ours: named(FORMATIONS[fixture.formation ?? '2-2'].roles, 'Our'), theirs: named(FORMATIONS[fixture.rival.formation].roles, 'Their') },
   }
 }
+
+const surname = (name: string) => name.split(' ').at(-1) ?? name
+
+/** Who scored, in order, from the match's goal events and the names of the two sides that day. */
+export function scorersOf(fixture: FixtureResult) {
+  const { squads } = reportable(fixture)
+  return fixture.events
+    .filter(event => event.kind === 'goal')
+    .sort((a, b) => a.minute - b.minute)
+    .map(event => ({
+      minute: event.minute,
+      side: event.side,
+      name: surname((event.side === 'for' ? squads.ours : squads.theirs)[event.slot] ?? ''),
+    }))
+}

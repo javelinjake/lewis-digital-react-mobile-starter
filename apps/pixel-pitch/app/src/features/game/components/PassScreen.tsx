@@ -35,11 +35,16 @@ export function PassScreen({ game }: { game: GameResponse }) {
         </div>
         <span className="text-muted">{`Earn XP from matches, packs, the arcade and goals. ${config.pass.xpPerTier} XP a tier.`}</span>
         <span className={hasPass ? 'text-success' : 'text-muted'}>
-          {hasPass ? 'League Pass active: both tracks, bigger shelf and trays.' : 'Free track. The League Pass (coming to the shop) adds the premium track, and unlocks every tier you have already passed.'}
+          {hasPass ? 'League Pass active: you get both columns, a bigger shelf and bigger trays.' : 'Everyone gets the Free column. The League Pass (coming to the shop) adds the League Pass column on top, including every tier you have already passed.'}
         </span>
       </section>
 
-      <ol className="flex flex-col gap-1" aria-label="Tiers">
+      <div className="sticky -top-4 z-10 -mx-4 grid grid-cols-[3rem_1fr_1fr] gap-2 border-b-2 border-slate bg-base-200 px-6 py-2 font-display text-xs" aria-hidden="true">
+        <span>#</span>
+        <span>Free</span>
+        <span className="text-accent">League Pass</span>
+      </div>
+      <ol className="-mt-3 flex flex-col gap-1" aria-label="Tiers">
         {Array.from({ length: tiers }, (_, index) => {
           const tier = index + 1
           const unlocked = tier <= reached
@@ -56,7 +61,7 @@ export function PassScreen({ game }: { game: GameResponse }) {
                   ? <span className="text-success">Claimed</span>
                   : canClaim
                     ? <button type="button" className="btn btn-xs btn-primary min-h-11 px-3" aria-label={`Claim ${track} tier ${tier}`} disabled={claim.isPending} onClick={() => claim.mutate({ track, tier }, { onError: error => toast.push(formatError(error), 'error') })}>Claim</button>
-                    : <span className="text-muted">{!unlocked ? 'Locked' : 'Needs the Pass'}</span>}
+                    : <span className="text-muted">{!unlocked ? 'Locked' : 'Needs the League Pass'}</span>}
               </div>
             )
           }
@@ -64,7 +69,7 @@ export function PassScreen({ game }: { game: GameResponse }) {
             <li key={tier} className={`grid grid-cols-[3rem_1fr_1fr] items-center gap-2 border-2 p-2 ${unlocked ? 'border-slate bg-base-100' : 'border-base-300 opacity-70'}`} aria-label={`Tier ${tier}${unlocked ? ', reached' : ''}`}>
               <span className="font-display text-xs">{tier}</span>
               <div aria-label={`Tier ${tier} free reward`}>{cell('free')}</div>
-              <div aria-label={`Tier ${tier} premium reward`}>{cell('premium')}</div>
+              <div className={`-my-2 -mr-2 self-stretch border-l-2 border-accent/60 p-2 ${hasPass ? '' : 'bg-accent/10'}`} aria-label={`Tier ${tier} League Pass reward`}>{cell('premium')}</div>
             </li>
           )
         })}

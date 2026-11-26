@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { albumPower, albumSets, DEFAULT_CONFIG, foundClub, generateCatalogue, lineupForMatch, newClubState, recordCollected, scoreLineup, setLineup, syncClub, upgradeState } from '../src'
 
-const config = DEFAULT_CONFIG
+// Matches the full interval apart from the start; the quick opening has its own tests.
+const config = { ...DEFAULT_CONFIG, league: { ...DEFAULT_CONFIG.league, openingGapsMinutes: [] } }
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 const T0 = Date.UTC(2026, 10, 9, 12)

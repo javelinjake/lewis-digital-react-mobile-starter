@@ -1,7 +1,8 @@
 import type { TabBarItem } from '@ld/mobile-ui'
-import { energyAt } from '@ld/pixel-pitch-core'
+import { albumSets, energyAt } from '@ld/pixel-pitch-core'
 import { Link } from 'react-router'
 import { TabsLayout } from '@/components/layout/TabsLayout'
+import { claimable } from '../lib/claimable'
 import { claimCount, readyItems } from '../lib/ready-now'
 import { useCatalogue, useClub, useGameConfig } from '../queries/use-game'
 import { Icon } from './sprites'
@@ -16,6 +17,7 @@ export function GameTabs() {
   const { data: catalogue } = useCatalogue()
 
   const items = game ? readyItems(game, config, catalogue ?? []) : []
+  const waiting = game ? claimable(game, config, albumSets(catalogue ?? [], config)) : { goals: 0, pass: 0, album: 0 }
   const { state } = game?.club ?? {}
   const tabs: TabBarItem[] = [
     { to: '/club', label: 'Club', badge: claimCount(items) },
@@ -29,10 +31,22 @@ export function GameTabs() {
     <TabsLayout
       items={tabs}
       end={(
-        <Link to="/settings" className="btn btn-ghost btn-circle min-h-11 min-w-11" aria-label="Settings">
-          <Icon path="icons/ui_settings.png" scale={2} />
-        </Link>
+        <>
+          <HeaderLink to="/goals" label="Goals" icon="icons/ui_check.png" count={waiting.goals} />
+          <HeaderLink to="/pass" label="League Pass" icon="icons/currency_trophy.png" count={waiting.pass} />
+          <HeaderLink to="/settings" label="Settings" icon="icons/ui_settings.png" count={0} />
+        </>
       )}
     />
+  )
+}
+
+/** A header button with a count of what is waiting behind it. */
+function HeaderLink({ to, label, icon, count }: { to: string, label: string, icon: string, count: number }) {
+  return (
+    <Link to={to} className="btn btn-ghost btn-circle relative min-h-11 min-w-11" aria-label={count > 0 ? `${label}, ${count} to claim` : label}>
+      <Icon path={icon} scale={2} />
+      {count > 0 ? <span className="absolute right-0 top-0 min-w-4 bg-secondary px-1 text-center text-[10px] leading-4 text-secondary-content" aria-hidden="true">{count > 9 ? '9+' : count}</span> : null}
+    </Link>
   )
 }

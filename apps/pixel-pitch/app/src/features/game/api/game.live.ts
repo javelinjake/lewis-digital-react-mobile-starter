@@ -43,6 +43,7 @@ export const gameApi: GameApi = {
   buyPack: () => act('/game/packs/buy'),
   arcadePack: position => act('/game/packs/arcade', { position }),
   decidePack: decisions => act('/game/packs/decide', { decisions }),
+  playFriendly: () => act('/game/friendly'),
   collectStadium: () => act('/game/stadium/collect'),
   upgradeStadium: () => act('/game/stadium/upgrade'),
   collectTray: () => act('/game/arcade/collect', {}),
@@ -74,7 +75,7 @@ export const gameApi: GameApi = {
     return global.config ? parseConfig(global.config) : DEFAULT_CONFIG
   },
   async readFixtures(limit) {
-    const result = await getApi().collection<FixtureDoc>('fixtures').find({ sort: '-no', limit, depth: 0 })
+    const result = await getApi().collection<FixtureDoc>('fixtures').find({ sort: '-kickoffAt', limit, depth: 0 })
     return result.docs
   },
 }

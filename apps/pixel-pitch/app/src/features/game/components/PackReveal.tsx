@@ -55,9 +55,32 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
     })
   }, [players, state, game.cards, lookup, config])
 
+  // Your best player now in each new player's position, to compare against.
+  const bestAt = useMemo(() => players.map((player) => {
+    let best: { name: string, rating: number } | null = null
+    for (const card of game.cards) {
+      const owned = lookup(card.playerId)
+      if (!owned || owned.position !== player.position)
+        continue
+      const rating = toFielded(card, owned, config).rating
+      if (!best || rating > best.rating)
+        best = { name: owned.name, rating }
+    }
+    return best
+  }), [players, game.cards, lookup, config])
+
   const room = config.cards.benchSize - benchCount(game.cards, state.lineup)
   const [choices, setChoices] = useState<Array<'sign' | 'sell'> | null>(null)
-  const decisions = choices ?? players.map((_, position) => (position < room ? 'sign' : 'sell'))
+  // Keep everyone there is room for. Duplicates are kept too: three copies merge into a better card. When the bench is
+  // too full for all of them, the ones that would help least (lowest rated, not an upgrade or new) are sold.
+  const defaults = useMemo(() => {
+    const priority = players
+      .map((player, position) => ({ position, keep: (tags[position] === 'upgrade' ? 2 : tags[position] ? 1 : 0) * 1000 + toFielded({ id: 'x', playerId: player.id, stars: 1, trained: 0 }, player, config).rating }))
+      .sort((a, b) => b.keep - a.keep)
+    const kept = new Set(priority.slice(0, Math.max(0, room)).map(entry => entry.position))
+    return players.map((_, position): 'sign' | 'sell' => (kept.has(position) ? 'sign' : 'sell'))
+  }, [players, tags, room, config])
+  const decisions = choices ?? defaults
   const signing = decisions.filter(choice => choice === 'sign').length
   const sellTotal = decisions.reduce((sum, choice, position) => sum + (choice === 'sell' ? config.cards.sellValue[players[position].rarity] : 0), 0)
   const overfull = signing > room
@@ -87,8 +110,8 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col items-center overflow-y-auto bg-base-300 p-4" role="dialog" aria-modal="true" aria-label="Open pack" style={{ paddingTop: 'calc(1rem + var(--safe-top))', paddingBottom: 'calc(1rem + var(--safe-bottom))' }}>
-      <div className="flex w-full max-w-sm flex-1 flex-col items-center justify-center gap-4">
+    <div className="fixed inset-0 z-40 flex flex-col items-center bg-base-300" role="dialog" aria-modal="true" aria-label="Open pack" style={{ paddingTop: 'var(--safe-top)', paddingBottom: 'var(--safe-bottom)' }}>
+      <div key={`${phase}-${index}`} className="flex min-h-0 w-full max-w-sm flex-1 flex-col items-center justify-center gap-4 overflow-y-auto p-4" style={{ animation: reduced ? undefined : 'pp-fade-in 200ms ease-out' }}>
         {phase === 'rip'
           ? (
               <>
@@ -135,11 +158,14 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
         {phase === 'decide'
           ? (
               <>
-                <h2>Sign or sell</h2>
+                <h2>Your new players</h2>
                 <ul className="flex w-full justify-center gap-2">
                   {players.map((entry, position) => (
                     <li key={entry.id} className="flex flex-col items-center gap-2">
                       <PlayerCard player={entry} rating={toFielded({ id: 'x', playerId: entry.id, stars: 1, trained: 0 }, entry, config).rating} kit={kit} scale={2} tag={tags[position]} />
+                      <span className="flex min-h-10 max-w-24 items-center text-center text-sm leading-tight text-muted">
+                        {bestAt[position] ? `Your best ${entry.position}: ${bestAt[position]!.rating}` : `Your first ${entry.position}`}
+                      </span>
                       <div className="join" role="radiogroup" aria-label={`${entry.name}: sign or sell`}>
                         {(['sign', 'sell'] as const).map(choice => (
                           <button
@@ -157,6 +183,7 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
                     </li>
                   ))}
                 </ul>
+                <span className="text-center text-muted">Everyone is kept unless the bench is full. Three copies of a player merge into a better card, in Squad › Players.</span>
                 <div className="flex flex-col items-center gap-1 text-lg">
                   <span>{`Bench after signing: ${benchCount(game.cards, state.lineup) + signing}/${config.cards.benchSize}`}</span>
                   <span>
@@ -165,6 +192,14 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
                   </span>
                   {overfull ? <span className="text-error" role="alert">{`Your bench has room for ${Math.max(0, room)} more. Sell the rest.`}</span> : null}
                 </div>
+              </>
+            )
+          : null}
+      </div>
+      <div className="flex w-full max-w-sm flex-col gap-2 border-t border-base-content/10 p-4">
+        {phase === 'decide'
+          ? (
+              <>
                 <button
                   type="button"
                   className="btn btn-primary min-h-12 w-full font-display text-xs"
@@ -190,9 +225,8 @@ export function PackReveal({ game, onClose, onNext }: { game: GameResponse, onCl
                   : null}
               </>
             )
-          : null}
+          : <button type="button" className="btn btn-ghost min-h-11" onClick={onClose}>Later</button>}
       </div>
-      {phase !== 'decide' ? <button type="button" className="btn btn-ghost min-h-11" onClick={onClose}>Later</button> : null}
     </div>
   )
 }

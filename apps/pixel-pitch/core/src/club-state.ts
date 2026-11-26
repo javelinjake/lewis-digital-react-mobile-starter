@@ -84,6 +84,8 @@ export interface ClubState {
   pass: { season: number, xp: number, claimedFree: number[], claimedPremium: number[] }
   /** The album: every player ever pulled, how many sets are finished, which finished sets paid out. */
   album: { collected: string[], completed: number, claimed: string[] }
+  /** Friendlies played: `played` in all (seeds each one), and how many paid coins today. */
+  friendlies: { played: number, paid: DayCounter }
 }
 
 export function newClubState(now: number, config: GameConfig): ClubState {
@@ -108,6 +110,7 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     calendar: { streak: 0, lastClaimDay: -1 },
     pass: { season: -1, xp: 0, claimedFree: [], claimedPremium: [] },
     album: { collected: [], completed: 0, claimed: [] },
+    friendlies: { played: 0, paid: { day: -1, count: 0 } },
   }
 }
 
@@ -132,5 +135,6 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
     pass: { ...fresh.pass, ...saved.pass },
     album: { ...fresh.album, ...saved.album },
     extraPacks: { ...fresh.extraPacks, ...saved.extraPacks },
+    friendlies: { ...fresh.friendlies, ...saved.friendlies },
   }
 }

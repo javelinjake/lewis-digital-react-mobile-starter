@@ -30,7 +30,7 @@ export function ClaimedPop({ result, onClose }: { result: Claimed, onClose: () =
         {toOpen > 0
           ? (
               <>
-                <Link to="/packs" className="btn btn-primary min-h-12 w-full font-display text-xs" onClick={onClose}>{`Open packs (${toOpen})`}</Link>
+                <Link to="/packs?open=1" className="btn btn-primary min-h-12 w-full font-display text-xs" onClick={onClose}>{`Open packs (${toOpen})`}</Link>
                 <button type="button" className="btn btn-ghost min-h-11 w-full" onClick={onClose}>Not now</button>
               </>
             )

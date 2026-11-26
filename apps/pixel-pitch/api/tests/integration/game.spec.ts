@@ -5,7 +5,7 @@ import type { Session } from './harness'
 import { randomUUID } from 'node:crypto'
 import process from 'node:process'
 import { ApiError, createApiClient } from '@ld/api-client'
-import { DEFAULT_CONFIG, generateCatalogue, sellValue, syncClub } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, gapBefore, generateCatalogue, sellValue, syncClub } from '@ld/pixel-pitch-core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { clearGameCache } from '../../cms/game/load'
 import { boot, call, guest, inProcessFetch } from './harness'
@@ -53,7 +53,9 @@ describe('creating a club', () => {
     expect(aliceClub.fixtures[0]).toMatchObject({ no: -1, result: 'win', coins: config.league.winCoins })
     expect(aliceClub.club.state.coins).toBe(config.league.winCoins)
     expect(aliceClub.club.state.idle.gems).toBe(config.daily.gems)
-    expect(aliceClub.club.state.league.nextKickoffAt).toBe(T0 + 3 * HOUR)
+    // The quick opening: the first league match is minutes away, not hours.
+    expect(aliceClub.club.state.league.nextKickoffAt).toBe(T0 + gapBefore(0, config))
+    expect(gapBefore(0, config)).toBeLessThan(HOUR)
   })
 
   it('only once per player', async () => {
@@ -111,11 +113,13 @@ describe('syncing', () => {
     const expected = syncClub({ state: aliceClub.club.state, cards: aliceClub.cards, players, clubId: aliceClub.club.id, config, now: at })
     expect(synced.fixtures).toEqual(expected.fixtures)
     expect(synced.club.state).toEqual(expected.state)
-    expect(synced.fixtures).toHaveLength(3)
-    expect(synced.events.find(event => event.type === 'matches')).toMatchObject({ played: 3 })
+    // The quick opening's matches minutes apart, then one every three hours.
+    const played = expected.fixtures.length
+    expect(played).toBe(config.league.openingGapsMinutes.length + 3)
+    expect(synced.events.find(event => event.type === 'matches')).toMatchObject({ played })
 
     const stored = await alice.get('/api/fixtures?limit=100&sort=no')
-    expect(stored.json.docs.map((fixture: { no: number }) => fixture.no)).toEqual([-1, 0, 1, 2])
+    expect(stored.json.docs.map((fixture: { no: number }) => fixture.no)).toEqual([-1, ...Array.from({ length: played }, (_, no) => no)])
     // Each match keeps both squads' names, so its written report reads the same whenever it is opened.
     for (const [index, fixture] of stored.json.docs.entries()) {
       expect(fixture.squads.ours).toHaveLength(5)
@@ -255,5 +259,43 @@ describe('the app\'s api client', () => {
     expect(refused).toBeInstanceOf(ApiError)
     expect((refused as ApiError).status).toBe(409)
     expect((refused as ApiError).message).toContain('already have a club')
+  })
+})
+
+describe('friendlies', () => {
+  it('plays one now, saves it as a friendly with no league points, pays coins for the first few a day only', async () => {
+    const carol = await guest()
+    const at = Date.UTC(2026, 10, 20, 9)
+    const club = (await act(carol, 'club', { ...newClub, name: 'Carol FC' }, { at })).json as GameResponse
+    let coins = club.club.state.coins
+    const paid: number[] = []
+    for (let match = 0; match < config.friendly.paidPerDay + 1; match++) {
+      const response = await act(carol, 'friendly', {}, { at: at + 1000 + match })
+      expect(response.status).toBe(200)
+      const fixture = response.json.fixture
+      expect(fixture).toMatchObject({ no: -2 - match, points: 0, kickoffAt: at + 1000 + match })
+      expect(response.json.fixtures.at(-1)).toEqual(fixture)
+      expect(response.json.club.state.coins - coins).toBe(fixture.coins)
+      expect(response.json.club.state.league.points).toBe(0)
+      coins = response.json.club.state.coins
+      paid.push(fixture.coins)
+    }
+    expect(paid.slice(0, -1).every(amount => amount > 0)).toBe(true)
+    expect(paid.at(-1)).toBe(0)
+
+    const saved = await carol.get('/api/fixtures?limit=100&depth=0&sort=-kickoffAt')
+    const kinds = saved.json.docs.map((doc: { kind: string }) => doc.kind)
+    expect(kinds.filter((kind: string) => kind === 'friendly')).toHaveLength(config.friendly.paidPerDay + 1)
+    expect(kinds.at(-1)).toBe('debut')
+  })
+
+  it('replays the first answer for a repeated key instead of playing twice', async () => {
+    const dave = await guest()
+    const at = Date.UTC(2026, 10, 21, 9)
+    await act(dave, 'club', { ...newClub, name: 'Dave FC' }, { at })
+    const first = await act(dave, 'friendly', {}, { key: 'friendly-once', at: at + 1000 })
+    const again = await act(dave, 'friendly', {}, { key: 'friendly-once', at: at + 2000 })
+    expect(again.json.fixture).toEqual(first.json.fixture)
+    expect(again.json.club.state.friendlies.played).toBe(1)
   })
 })

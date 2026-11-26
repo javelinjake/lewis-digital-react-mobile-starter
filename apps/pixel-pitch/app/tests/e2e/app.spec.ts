@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { advanceClock, expect, foundClub, guest, HOUR, openSettings, tab, test, weakDevice } from './helpers'
+import { advanceClock, expect, foundClub, guest, HOUR, kickOff, tab, test, weakDevice } from './helpers'
 
 test.describe('App smoke @smoke', () => {
   test('login screen renders', async ({ page }) => {
@@ -27,19 +27,28 @@ test.describe('First session @game', () => {
     await page.getByRole('button', { name: 'Found the club' }).click()
 
     await expect(page).toHaveURL(/\/match\/-1\?debut=1/)
-    // The written report is the default view.
+    // Before the first match: what it is, and a clear button to start it.
+    await expect(page.getByText(/five-a-side/)).toBeVisible()
+    await kickOff(page)
+    await expect(page.getByText('Friendly · no league points')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Next moment' })).toBeVisible()
-    await page.getByRole('button', { name: 'Skip' }).click()
+    await page.getByRole('button', { name: 'Skip to result' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
-    await page.getByRole('button', { name: 'Continue' }).click()
+    // Who scored, and the way on pinned to the bottom of the screen.
+    await expect(page.getByLabel('Scorers')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Meet your squad' })).toBeInViewport()
+    await page.getByRole('button', { name: 'Meet your squad' }).click()
 
     await expect(page).toHaveURL(/\/squad/)
+    await expect(page.getByRole('heading', { name: 'Your squad' })).toBeVisible()
+    await page.getByRole('button', { name: 'Got it' }).click()
     await expect(page.getByRole('button', { name: /^(GK|DEF|MID|FWD): .+rated \d+/ })).toHaveCount(5)
-    await expect(page.getByText(/Win \d+% · Draw \d+% · Loss \d+%/)).toBeVisible()
-    // The squad is longer than the screen: the tab bar stays on screen while it scrolls.
+    await expect(page.getByText(/win \d+% · draw \d+% · loss \d+%/)).toBeVisible()
+    // The squad is longer than the screen: the tab bar and Auto-pick stay on screen while it scrolls.
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
-    await page.getByRole('heading', { name: /^Squad \(/ }).scrollIntoViewIfNeeded()
+    await page.getByText('Team score').scrollIntoViewIfNeeded()
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeInViewport()
+    await expect(page.getByRole('button', { name: 'Auto-pick my best five' })).toBeInViewport()
   })
 
   test('a weak phone gets the same paced report, not an instant one', async ({ page }) => {
@@ -47,59 +56,42 @@ test.describe('First session @game', () => {
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
     await expect(page).toHaveURL(/\/match\/-1/)
-    await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible()
-    await page.getByRole('button', { name: 'Skip' }).click()
+    await kickOff(page)
+    await expect(page.getByRole('button', { name: 'Next moment' })).toBeVisible()
+    await page.getByRole('button', { name: 'Skip to result' }).click()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
-    await page.getByRole('button', { name: 'Continue' }).click()
+    await page.getByRole('button', { name: 'Meet your squad' }).click()
     await expect(page).toHaveURL(/\/squad/)
-  })
-
-  test('the pitch view plays the match on a canvas and counts the minutes', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('pp-replay-mode', 'pitch'))
-    await guest(page)
-    await page.getByRole('button', { name: 'Found the club' }).click()
-    const minute = page.locator('main span.text-center')
-    await expect(minute).toHaveText(/^\d+'$/)
-    await expect.poll(async () => Number.parseInt(await minute.textContent() ?? '0'), { timeout: 10_000 }).toBeGreaterThan(10)
-    const drawn = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
-      const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data
-      return pixels.some((value, index) => index % 4 === 3 && value > 0)
-    })
-    expect(drawn).toBe(true)
   })
 
   test('the written report plays a moment at a time on its own, and a few taps take it to the final score', async ({ page }) => {
     test.setTimeout(60_000)
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
+    await kickOff(page)
     const card = page.getByRole('button', { name: 'Next moment' })
-    const earlier = page.getByRole('list', { name: 'Match report' }).getByRole('listitem')
+    const earlier = page.getByRole('list', { name: 'Match so far' }).getByRole('listitem')
 
     // It starts with the kick-off, big, and moves on by itself to the first chance.
     await expect(card).toContainText(/underway|whistle|kick-off|five a side|Here we go|no room to hide|tempo/i)
     await expect(earlier.first()).toBeVisible({ timeout: 12_000 })
+    // There is no pitch view: the written report is the match.
+    await expect(page.getByRole('tab', { name: 'Pitch' })).toHaveCount(0)
 
-    // The same match on the pitch, and back again.
-    await page.getByRole('tab', { name: 'Pitch' }).click()
-    await expect(page.getByLabel('Match replay')).toBeVisible()
-    await page.getByRole('tab', { name: 'Match report' }).click()
-    await expect(card).toBeVisible()
-
-    // Tapping goes on sooner: a whole match in a few taps, ending on the full-time whistle and the result.
+    // Tapping goes on sooner: a whole match in a few taps, ending on the result and the whole report.
     for (let taps = 0; taps < 40 && await card.isVisible(); taps++)
       await card.click()
-    await expect(page.getByText('Full time', { exact: true })).toBeVisible()
-    const header = await page.locator('main [aria-live="polite"]').textContent() ?? ''
-    const score = /(\d+)–(\d+)/.exec(header)!
-    await expect(page.getByRole('status')).toContainText(`${score[1]}–${score[2]}`)
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
+    const report = page.getByRole('list', { name: 'Match report' }).getByRole('listitem')
     // A short read: the kick-off, a handful of chances, a little colour, half-time and full-time.
-    expect(await earlier.count()).toBeLessThanOrEqual(12)
+    expect(await report.count()).toBeGreaterThan(2)
+    expect(await report.count()).toBeLessThanOrEqual(12)
   })
 
   test('a goal is shown as a setup and then its outcome, with the score changing at the outcome', async ({ page }) => {
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
+    await kickOff(page)
     const card = page.getByRole('button', { name: 'Next moment' })
     const scoreline = page.locator('main [aria-live="polite"]')
     // The debut is a win, so there is a goal: tap until the label says so, and the score must not have moved yet.
@@ -120,36 +112,24 @@ test.describe('First session @game', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await guest(page)
     await page.getByRole('button', { name: 'Found the club' }).click()
+    await kickOff(page)
     const next = page.getByRole('button', { name: 'Next', exact: true })
     await expect(next).toBeVisible()
     await page.waitForTimeout(3500)
-    await expect(page.getByRole('list', { name: 'Match report' }).getByRole('listitem')).toHaveCount(0)
+    await expect(page.getByRole('list', { name: 'Match so far' }).getByRole('listitem')).toHaveCount(0)
     for (let taps = 0; taps < 40 && await next.isVisible(); taps++)
       await next.click()
-    await expect(page.getByText('Full time', { exact: true })).toBeVisible()
     await expect(page.getByRole('img', { name: 'win' })).toBeVisible()
-  })
-
-  test('the match view is a setting that is remembered', async ({ page }) => {
-    await foundClub(page)
-    await openSettings(page)
-    await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Written report')
-    await page.getByRole('button', { name: /Match view/ }).click()
-    await expect(page.getByRole('button', { name: /Match view/ })).toContainText('Pixel pitch')
-
-    await page.goto('/match/-1')
-    await expect(page.getByRole('tab', { name: 'Pitch' })).toHaveAttribute('aria-selected', 'true')
-    await expect(page.getByLabel('Match replay')).toBeVisible()
   })
 
   test('the formation changes the lineup, the odds and the hint', async ({ page }) => {
     await foundClub(page)
-    const odds = page.getByText(/Win \d+% · Draw \d+% · Loss \d+%/)
+    const odds = page.getByText(/win \d+% · draw \d+% · loss \d+%/)
     const before = await odds.textContent()
     await page.getByRole('radio', { name: /Wall/ }).click()
     await expect(page.getByRole('radio', { name: /Wall/ })).toHaveAttribute('aria-checked', 'true')
     await expect(odds).not.toHaveText(before!)
-    await expect(page.getByRole('button', { name: /^Try .+ against their/ }).or(page.getByText('This is your best formation against them.'))).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Switch to .+ with your best five/ }).or(page.getByText(/is your best formation against them\.$/))).toBeVisible()
   })
 
   test('a slot can be refilled from the squad sheet', async ({ page }) => {
@@ -188,7 +168,7 @@ test.describe('Packs @game', () => {
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeVisible()
     await flipAll(page)
 
-    await expect(page.getByRole('heading', { name: 'Sign or sell' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Your new players' })).toBeVisible()
     const groups = page.getByRole('radiogroup', { name: /: sign or sell$/ })
     await expect(groups).toHaveCount(3)
     await groups.first().getByRole('radio', { name: /^Sell/ }).click()
@@ -198,7 +178,7 @@ test.describe('Packs @game', () => {
     await expect(page.getByRole('dialog', { name: 'Open pack' })).toBeHidden()
     await expect(page.getByLabel('3 of 10 packs')).toBeVisible()
     await tab(page, 'Squad').click()
-    await expect(page.getByRole('heading', { name: 'Squad (7)' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Players (7)' })).toBeVisible()
   })
 
   test('a pack left half-opened is still waiting afterwards', async ({ page }) => {
@@ -240,7 +220,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await foundClub(page)
     await advanceClock(page, 3 * HOUR + 60_000)
     await page.goto('/club')
-    await page.getByRole('button', { name: 'Let\'s go' }).click()
+    await page.getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
     const stadium = page.getByRole('region', { name: 'Stadium' })
     await expect(stadium.getByText(/Level 1/)).toBeVisible()
     const collect = stadium.getByRole('button', { name: /^Collect 1[89]\d$/ })
@@ -253,7 +233,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await foundClub(page)
     await advanceClock(page, 4 * 24 * HOUR)
     await page.goto('/club')
-    await page.getByRole('button', { name: 'Let\'s go' }).click()
+    await page.getByRole('button', { name: /^(Let's go|Not now)$/ }).click()
     const stadium = page.getByRole('region', { name: 'Stadium' })
     const upgrade = stadium.getByRole('button', { name: /^Upgrade/ })
     await expect(upgrade).toBeEnabled()
@@ -269,7 +249,7 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await page.waitForTimeout(400)
     await warmup.getByRole('button', { name: 'KICK!' }).click()
     await expect(warmup.getByText(/^(Perfect!|Good|Missed)$/)).toBeVisible()
-    await expect(warmup.getByText(/attack in your next match|warmed up for this match/)).toBeVisible()
+    await expect(warmup.getByText(/attack in your next (league )?match|warmed up for this match/)).toBeVisible()
     await expect(warmup.getByRole('button', { name: 'Warm up' })).toHaveCount(0)
   })
 
@@ -403,21 +383,29 @@ test.describe('Goals, Pass and album @game', () => {
     await page.goto('/goals')
     const goals = page.getByRole('region', { name: 'Daily goals' })
     await expect(goals.getByRole('listitem')).toHaveCount(3)
-    await expect(goals.getByRole('button', { name: 'Claim' }).first()).toBeDisabled()
+    // A goal not yet done goes to where it is done, instead of a Claim button that does nothing.
+    await expect(goals.getByRole('button', { name: 'Claim' })).toHaveCount(0)
+    await expect(goals.getByRole('link', { name: /›$/ })).toHaveCount(3)
 
-    await page.getByRole('button', { name: /^Take 1 free pack/ }).click()
+    // The free pack opens straight away.
+    await page.getByRole('button', { name: 'Open your free pack' }).click()
+    await expect(page).toHaveURL(/\/packs/)
+    await expect(page.getByRole('button', { name: 'Tear open the pack' })).toBeVisible()
+    await page.getByRole('button', { name: 'Later' }).click()
+    await page.goto('/goals')
     await expect(page.getByRole('button', { name: /Taken today/ })).toBeDisabled()
     await page.getByRole('button', { name: 'Claim day 1' }).click()
     await expect(page.getByRole('button', { name: /Claimed today/ })).toBeDisabled()
     await expect(page.getByLabel('Day 1, claimed')).toBeVisible()
 
+    // The free pack was opened and left for later, so it is the one waiting.
     await page.goto('/packs')
-    await expect(page.getByLabel('1 of 10 packs')).toBeVisible()
+    await expect(page.getByText('A pack is waiting for you')).toBeVisible()
 
     await advanceClock(page, 24 * HOUR + 60_000)
     await page.goto('/goals')
     await expect(page.getByRole('button', { name: 'Claim day 2' })).toBeEnabled()
-    await expect(page.getByRole('button', { name: /^Take 1 free pack/ })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Open your free pack' })).toBeEnabled()
     await page.getByRole('button', { name: 'Claim day 2' }).click()
     await expect(page.getByLabel('Day 2, claimed')).toBeVisible()
   })
@@ -438,12 +426,14 @@ test.describe('Goals, Pass and album @game', () => {
     await page.goto('/pass')
     await expect(page.getByText(/^Tier [1-9]\d? \/ 30$/)).toBeVisible()
     await expect(page.getByRole('list', { name: 'Tiers' }).getByRole('listitem')).toHaveCount(30)
-    await expect(page.getByLabel('Tier 1 premium reward').getByText('Needs the Pass')).toBeVisible()
+    await expect(page.getByLabel('Tier 1 League Pass reward').getByText('Needs the League Pass')).toBeVisible()
+    // Every free tier pays something.
+    await expect(page.getByLabel(/^Tier \d+ free reward$/).getByText('None')).toHaveCount(0)
 
     await page.evaluate(() => window.__pixelPitchClock!.setPass(true))
     await page.reload()
     await page.getByRole('button', { name: 'Claim premium tier 1' }).click()
-    await expect(page.getByLabel('Tier 1 premium reward').getByText('Claimed')).toBeVisible()
+    await expect(page.getByLabel('Tier 1 League Pass reward').getByText('Claimed')).toBeVisible()
     await expect(page.getByText(/League Pass active/)).toBeVisible()
   })
 
@@ -457,29 +447,5 @@ test.describe('Goals, Pass and album @game', () => {
     await expect(page.locator('[aria-label="Not collected yet"]').first()).toBeVisible()
     const collected = await page.locator('li[aria-label]:not([aria-label="Not collected yet"])').evaluateAll(items => items.filter(item => item.closest('ul')?.className.includes('grid-cols-6')).length)
     expect(collected).toBeLessThanOrEqual(5)
-  })
-})
-
-test.describe('Time away @game', () => {
-  test('a day away plays eight matches and shows them in the table and the summary', async ({ page }) => {
-    await foundClub(page)
-    await advanceClock(page, 24 * HOUR + 5 * 60_000)
-    await page.goto('/club')
-    const welcome = page.getByRole('dialog', { name: 'Welcome back' })
-    await expect(welcome).toBeVisible()
-    await expect(welcome.getByText(/8 matches played/)).toBeVisible()
-    await welcome.getByRole('button', { name: 'Let\'s go' }).click()
-
-    await tab(page, 'League').click()
-    const ours = page.getByRole('row', { name: /Harbour Town/ })
-    await expect(ours.getByRole('cell').nth(2)).toHaveText('8')
-    await expect(page.getByRole('link', { name: /^Match 8 v / })).toBeVisible()
-  })
-
-  test('a week away climbs out of League 5', async ({ page }) => {
-    await foundClub(page)
-    await advanceClock(page, 7 * 24 * HOUR)
-    await page.goto('/club')
-    await expect(page.getByRole('dialog', { name: 'Welcome back' }).getByText(/Promoted to League [1-4]!/)).toBeVisible()
   })
 })

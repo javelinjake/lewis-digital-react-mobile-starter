@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { useGameAction } from '../mutations/use-game-action'
+import { useGameConfig } from '../queries/use-game'
 import { WarmupGame } from './WarmupGame'
 
 const ZONE_TEXT: Record<WarmupZone, string> = { gold: 'Perfect', green: 'Good', miss: 'A miss' }
@@ -12,6 +13,8 @@ const ZONE_TEXT: Record<WarmupZone, string> = { gold: 'Perfect', green: 'Good', 
 /** One try at the warm-up kick before each match: up to +10% attack for it. */
 export function WarmupCard({ game }: { game: GameResponse }) {
   const toast = useToast()
+  const { match } = useGameConfig()
+  const pct = (value: number) => `+${Math.round(value * 100)}%`
   const [open, setOpen] = useState(false)
   const [last, setLast] = useState<{ zone: WarmupZone, bonus: number } | null>(null)
   const start = useGameAction(() => gameApi.startWarmup())
@@ -46,7 +49,7 @@ export function WarmupCard({ game }: { game: GameResponse }) {
               <>
                 <span className="text-lg">
                   {state.league.warmupBonus > 0
-                    ? `${last ? `${ZONE_TEXT[last.zone]}. ` : ''}+${Math.round(state.league.warmupBonus * 100)}% attack in your next match.`
+                    ? `${last ? `${ZONE_TEXT[last.zone]}. ` : ''}${pct(state.league.warmupBonus)} attack in your next league match only.`
                     : 'You have warmed up for this match.'}
                 </span>
                 <Link to="/squad" className="btn btn-outline min-h-11">Set the lineup ›</Link>
@@ -54,7 +57,7 @@ export function WarmupCard({ game }: { game: GameResponse }) {
             )
           : (
               <>
-                <span className="text-muted">Stop the marker in the zone for up to +10% attack in your next match. One try.</span>
+                <span className="text-muted">{`One try before each league match. Stop the marker in the gold zone for ${pct(match.warmupGold)} attack, the green for ${pct(match.warmupGreen)}, anywhere else ${pct(match.warmupMiss)}. It counts for the next match only, and shows in your win chance on the Squad screen.`}</span>
                 <button type="button" className="btn btn-accent min-h-11 font-display text-xs" disabled={start.isPending} onClick={() => start.mutate(undefined, { onSuccess: () => setOpen(true), onError })}>
                   Warm up
                 </button>

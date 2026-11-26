@@ -163,7 +163,22 @@ export const gameConfigSchema = z.object({
     rivalSpread: count,
     /** Fixtures simulated per catch-up at most. A player gone for longer misses the oldest ones. */
     maxCatchUpMatches: z.number().int().positive(),
+    /**
+     * A quick start: minutes before each of the first league matches (the first number is from founding the club to
+     * match 1, the next from match 1 to match 2, and so on). After these, matches are `matchIntervalHours` apart.
+     * PLACEHOLDER. Empty keeps every gap at the full interval. Defaults keep an older saved config valid.
+     */
+    openingGapsMinutes: z.array(positive).default([]),
   }),
+
+  /** Friendlies the player starts whenever they like: coins for the first few each day, no league points, no Pass XP. */
+  friendly: z.object({
+    winCoins: count,
+    drawCoins: count,
+    lossCoins: count,
+    /** Friendlies a day that pay coins. More can be played for fun. */
+    paidPerDay: count,
+  }).default({ winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 }),
 
   match: z.object({
     /**
@@ -271,7 +286,11 @@ export const gameConfigSchema = z.object({
 
 export type GameConfig = z.infer<typeof gameConfigSchema>
 
-/** 30 tiers. The free track pays every second tier (15 rewards) and ends in a Star pack; the premium track pays every tier, with Star packs at 15 and 30. PLACEHOLDER values. */
+/**
+ * 30 tiers. Both tracks pay at every tier. On the free track the even tiers pay more (coins, tokens or a pack) and the
+ * odd tiers a little (coins or tokens), ending in a Star pack; the premium track adds gems, more packs and Star packs at
+ * 15 and 30. PLACEHOLDER values.
+ */
 function passTiers() {
   const tiers = 30
   const free = Array.from({ length: tiers }, (_, index) => {
@@ -279,7 +298,7 @@ function passTiers() {
     if (tier === tiers)
       return { kind: 'starPacks', amount: 1 }
     if (tier % 2 === 1)
-      return null
+      return tier % 4 === 1 ? { kind: 'coins', amount: 150 + tier * 10 } : { kind: 'tokens', amount: 25 }
     const cycle = (tier / 2) % 3
     return cycle === 1 ? { kind: 'coins', amount: 400 + tier * 20 } : cycle === 2 ? { kind: 'tokens', amount: 60 } : { kind: 'packs', amount: 1 }
   })
@@ -337,7 +356,9 @@ export const DEFAULT_CONFIG: GameConfig = gameConfigSchema.parse({
     rivalStep: 7,
     rivalSpread: 4,
     maxCatchUpMatches: 56,
+    openingGapsMinutes: [5, 8, 10, 12, 15],
   },
+  friendly: { winCoins: 150, drawCoins: 100, lossCoins: 60, paidPerDay: 5 },
   match: { baseXg: 2.4, doublingGap: 20, maxXg: 8, minutes: 40, report: { maxMoments: 6, minChances: 4, incidents: 2 }, warmupGold: 0.1, warmupGreen: 0.05, warmupMiss: 0.02 },
   formations: {
     // A three-way cycle with the big edges, a second cycle with small ones, and the smallest to settle the rest.

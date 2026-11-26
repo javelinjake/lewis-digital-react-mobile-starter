@@ -3,7 +3,8 @@ import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_CONFIG, FORMATIONS, generateRivals, leagueLabel, leagueTable, newLeagueState, playDueFixtures, tierRating } from '../src'
 
-const config = DEFAULT_CONFIG
+// Matches the full interval apart from the start; the quick opening has its own tests.
+const config = { ...DEFAULT_CONFIG, league: { ...DEFAULT_CONFIG.league, openingGapsMinutes: [] } }
 const HOUR = 60 * 60 * 1000
 const T0 = Date.UTC(2026, 10, 8, 12)
 
@@ -188,5 +189,41 @@ describe('the table', () => {
     const table = leagueTable({ league: long, clubName: 'Us', clubId: 'c', config })
     const pointsOf = (index: number) => table.find(row => row.name === rivals[index].name)!.points
     expect(pointsOf(4)).toBeGreaterThan(pointsOf(0))
+  })
+})
+
+describe('the quick opening', () => {
+  const quick = { ...config, league: { ...config.league, openingGapsMinutes: [5, 8, 10] } }
+  const MIN = 60_000
+  const opening = newLeagueState(T0, quick)
+  const playQuick = (league: LeagueState, now: number) => playDueFixtures({ league, lineup: average, clubId: 'club-1', config: quick, now })
+
+  it('plays the first matches minutes apart, then every three hours', () => {
+    expect(opening.nextKickoffAt).toBe(T0 + 5 * MIN)
+    const result = playQuick(opening, T0 + 23 * MIN + 3 * HOUR)
+    expect(result.results.map(match => match.kickoffAt)).toEqual([T0 + 5 * MIN, T0 + 13 * MIN, T0 + 23 * MIN, T0 + 23 * MIN + 3 * HOUR])
+    expect(result.league.nextKickoffAt).toBe(T0 + 23 * MIN + 6 * HOUR)
+  })
+
+  it('gives the same schedule whether it catches up in pieces or all at once', () => {
+    const times = [T0 + 6 * MIN, T0 + 14 * MIN, T0 + 30 * MIN, T0 + 9 * HOUR]
+    let league = opening
+    const pieces: number[] = []
+    for (const now of times) {
+      const step = playQuick(league, now)
+      league = step.league
+      pieces.push(...step.results.map(match => match.kickoffAt))
+    }
+    const once = playQuick(opening, times.at(-1)!)
+    expect(pieces).toEqual(once.results.map(match => match.kickoffAt))
+    expect(league).toEqual(once.league)
+  })
+
+  it('skips the oldest matches past the limit, opening ones included, and keeps the schedule', () => {
+    const limited = { ...quick, league: { ...quick.league, maxCatchUpMatches: 2 } }
+    const result = playDueFixtures({ league: opening, lineup: average, clubId: 'club-1', config: limited, now: T0 + 23 * MIN + 3 * HOUR })
+    expect(result.skipped).toBe(2)
+    expect(result.results.map(match => match.no)).toEqual([2, 3])
+    expect(result.results.map(match => match.kickoffAt)).toEqual([T0 + 23 * MIN, T0 + 23 * MIN + 3 * HOUR])
   })
 })

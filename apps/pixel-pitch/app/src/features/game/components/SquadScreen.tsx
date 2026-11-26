@@ -1,13 +1,15 @@
 import type { FormationId, GameResponse, Position } from '@ld/pixel-pitch-core'
 import type { SquadCard } from '../lib/club'
-import { BottomSheet } from '@ld/mobile-ui'
+import { BottomActions, BottomSheet, SegmentedControl } from '@ld/mobile-ui'
 import { albumPower, autoPick, bestFormation, FORMATION_IDS, FORMATIONS, matchOdds, mergeable, positionFit, scoreLineup, sellValue, trainingCost } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { art } from '../lib/art'
 import { currentScore, kitOf, nextRival, rivalSide, squadCards, squadPool } from '../lib/club'
+import { markCardsSeen, unseenCards } from '../lib/seen-cards'
 import { useGameAction } from '../mutations/use-game-action'
 import { useCatalogue, useGameConfig } from '../queries/use-game'
 import { PlayerSprite } from './sprites'
@@ -40,12 +42,36 @@ function Bar({ label, value, max, colour }: { label: string, value: number, max:
 }
 
 type Sheet = { kind: 'slot', slot: number } | { kind: 'card', cardId: string } | null
+type View = 'lineup' | 'players'
+type Sort = 'newest' | 'rating' | 'position'
+type Filter = 'all' | Position | 'merge' | 'train'
+
+const POSITION_ORDER: Record<Position, number> = { GK: 0, DEF: 1, MID: 2, FWD: 3 }
+const FILTERS: Array<{ value: Filter, label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'GK', label: 'GK' },
+  { value: 'DEF', label: 'DEF' },
+  { value: 'MID', label: 'MID' },
+  { value: 'FWD', label: 'FWD' },
+  { value: 'train', label: 'Can train' },
+  { value: 'merge', label: 'Can merge' },
+]
+
+/** The colour of a rating badge on the pitch: how well the player suits the slot. */
+function fitTone(fit: number) {
+  return fit < 0.75 ? 'bg-error text-error-content' : fit < 1 ? 'bg-warning text-warning-content' : 'bg-success text-success-content'
+}
 
 export function SquadScreen({ game }: { game: GameResponse }) {
   const toast = useToast()
   const config = useGameConfig()
   const { lookup } = useCatalogue()
+  const [search, setSearch] = useSearchParams()
   const [sheet, setSheet] = useState<Sheet>(null)
+  const [view, setView] = useState<View>(() => (search.get('view') === 'train' ? 'players' : 'lineup'))
+  const [sort, setSort] = useState<Sort>('newest')
+  const [filter, setFilter] = useState<Filter>(() => (search.get('view') === 'train' ? 'train' : 'all'))
+  const first = search.get('first') === '1'
   const { state } = game.club
   const kit = kitOf(game)
 
@@ -54,12 +80,20 @@ export function SquadScreen({ game }: { game: GameResponse }) {
   const pool = useMemo(() => squadPool(game.cards, lookup, config), [game.cards, lookup, config])
   const score = currentScore(game, lookup, config)
   const rival = nextRival(game, config)
-  const odds = matchOdds({ formation: state.formation, att: score.att, def: score.def }, rivalSide(rival), config)
+  const warmup = state.league.warmupBonus
+  const odds = matchOdds({ formation: state.formation, att: score.att, def: score.def }, rivalSide(rival), config, warmup)
   const bonus = albumPower(state, config)
   const options = useMemo(() => bestFormation(pool, rivalSide(rival), config, bonus), [pool, rival, config, bonus])
   const best = options[0]
   const currentOption = options.find(option => option.formation === state.formation)
   const positions = slotPositions(state.formation)
+
+  // New signings since the squad was last looked at on this phone. Worked out once on arrival, then all marked seen.
+  const [unseen] = useState(() => unseenCards(game.cards.map(card => card.id)))
+  const cardIds = game.cards.map(card => card.id).join(',')
+  useEffect(() => {
+    markCardsSeen(cardIds ? cardIds.split(',') : [])
+  }, [cardIds])
 
   const onError = (error: unknown) => toast.push(formatError(error), 'error')
   const lineup = useGameAction(
@@ -99,111 +133,231 @@ export function SquadScreen({ game }: { game: GameResponse }) {
   }
 
   const groups = mergeable(game.cards, config)
+  const inGroup = new Set(groups.flat().map(card => card.id))
+  const canTrain = (entry: SquadCard) => {
+    const cost = trainingCost(entry.card, entry.player, config)
+    return 'cost' in cost && state.coins >= cost.cost
+  }
   const selected = sheet?.kind === 'card' ? byId.get(sheet.cardId) : undefined
+
+  const order = (list: SquadCard[]) => {
+    const index = new Map(game.cards.map((card, at) => [card.id, at]))
+    const newest = (a: SquadCard, b: SquadCard) => (index.get(b.card.id) ?? 0) - (index.get(a.card.id) ?? 0)
+    return [...list].sort((a, b) => {
+      // New signings first whatever the order, so they are easy to find.
+      const fresh = Number(unseen.has(b.card.id)) - Number(unseen.has(a.card.id))
+      if (fresh !== 0)
+        return fresh
+      if (sort === 'rating')
+        return b.fielded.rating - a.fielded.rating || newest(a, b)
+      if (sort === 'position')
+        return POSITION_ORDER[a.player.position] - POSITION_ORDER[b.player.position] || b.fielded.rating - a.fielded.rating
+      return newest(a, b)
+    })
+  }
+  const shown = order(squad.filter((entry) => {
+    if (filter === 'all')
+      return true
+    if (filter === 'merge')
+      return inGroup.has(entry.card.id)
+    if (filter === 'train')
+      return canTrain(entry)
+    return entry.player.position === filter || entry.player.altPosition === filter
+  }))
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="radiogroup" aria-label="Formation" className="grid grid-cols-5 gap-1">
-        {FORMATION_IDS.map(formation => (
-          <button
-            key={formation}
-            type="button"
-            role="radio"
-            aria-checked={formation === state.formation}
-            className={`flex min-h-11 flex-col items-center justify-center border-2 text-sm leading-tight ${formation === state.formation ? 'border-primary bg-base-100' : 'border-base-300'}`}
-            onClick={() => {
-              const picked = autoPick(formation, pool).ids
-              save(formation, picked.length === 5 ? picked : state.lineup)
-            }}
-          >
-            <span>{FORMATIONS[formation].name}</span>
-            <span className="text-muted">{formation}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="relative w-full" style={{ aspectRatio: '176 / 130' }}>
-        <img src={art('pitch/pitch_squad_176x130.png')} alt="" className="pixel absolute inset-0 h-full w-full" />
-        {positions.map(({ role, x, y }, slot) => {
-          const cardId = state.lineup[slot]
-          const entry = cardId ? byId.get(cardId) : undefined
-          const fit = entry ? positionFit(entry.player, role) : 0
-          return (
-            <button
-              key={`${state.formation}-${role}-${x}`}
-              type="button"
-              aria-label={entry ? `${role}: ${entry.player.name}, rated ${entry.fielded.rating}, fit ${percent(fit)}` : `${role}: empty`}
-              className="absolute flex min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-              style={{ left: `${x}%`, top: `${y}%` }}
-              onClick={() => setSheet({ kind: 'slot', slot })}
-            >
-              {entry
-                ? (
-                    <>
-                      <PlayerSprite player={entry.player} kit={kit} role={role} scale={2} />
-                      <span className="bg-base-300/80 px-1 text-sm leading-none">{surname(entry.player.name)}</span>
-                      <span className={`px-1 text-sm leading-none ${fit < 0.75 ? 'bg-error text-error-content' : fit < 1 ? 'bg-warning text-warning-content' : 'bg-success text-success-content'}`}>
-                        {`${Math.round(entry.fielded.rating * fit)}`}
-                      </span>
-                    </>
-                  )
-                : <span className="flex h-11 w-11 items-center justify-center border-2 border-dashed border-base-content/60 bg-base-300/50">{role}</span>}
-            </button>
+      {first
+        ? (
+            <section className="flex flex-col gap-2 border-2 border-primary bg-base-100 p-3" aria-label="Your squad">
+              <h2 className="text-primary">Your squad</h2>
+              <span className="text-lg">These five play your league matches. Each one kicks off on its own every few hours, so the lineup you leave here is the one that plays.</span>
+              <span className="text-muted">Pick a formation to suit your players, or tap a shirt to swap someone in. Get new players from packs, and train them with coins.</span>
+              <button type="button" className="btn btn-primary min-h-11 font-display text-xs" onClick={() => setSearch({}, { replace: true })}>Got it</button>
+            </section>
           )
-        })}
-      </div>
+        : null}
 
-      <section className="flex flex-col gap-2 border-2 border-slate bg-base-100 p-3" aria-label="Lineup strength">
-        <div className="flex items-baseline justify-between">
-          <span className="font-display text-xs">Score</span>
-          <span className="font-display text-lg text-primary tabular-nums">{score.overall}</span>
-        </div>
-        {score.chemistry > 0 ? <span className="text-success">{`Chemistry +${Math.round(score.chemistry * 100)}%`}</span> : null}
-        {bonus > 0 ? <span className="text-success">{`Album +${Math.round(bonus * 100)}% team power`}</span> : null}
-        <Bar label="ATT" value={score.att} max={120} colour="#ff4f79" />
-        <Bar label="DEF" value={score.def} max={120} colour="#5ec8ff" />
-        <div className="flex flex-col gap-1 pt-1">
-          <span className="text-muted">{`Next: ${rival.name} (${FORMATIONS[rival.formation].name}, rated ${rival.rating})`}</span>
-          <div className="flex h-4 w-full text-xs" aria-label={`Win ${percent(odds.win)}, draw ${percent(odds.draw)}, loss ${percent(odds.loss)}`}>
-            <span className="bg-success" style={{ width: percent(odds.win) }} />
-            <span className="bg-warning" style={{ width: percent(odds.draw) }} />
-            <span className="bg-error" style={{ width: percent(odds.loss) }} />
-          </div>
-          <span className="tabular-nums">{`Win ${percent(odds.win)} · Draw ${percent(odds.draw)} · Loss ${percent(odds.loss)}`}</span>
-        </div>
-        {best && currentOption && best.formation !== state.formation && best.points - currentOption.points > 0.02
-          ? (
-              <button type="button" className="btn btn-accent min-h-11 text-lg" onClick={() => save(best.formation, best.ids)}>
-                {`Try ${FORMATIONS[best.formation].name} against their ${FORMATIONS[rival.formation].name}: win ${percent(best.odds.win)}`}
-              </button>
-            )
-          : <span className="text-muted">This is your best formation against them.</span>}
-      </section>
+      <SegmentedControl
+        options={[{ value: 'lineup', label: 'Lineup' }, { value: 'players', label: `Players (${squad.length})` }]}
+        value={view}
+        onChange={value => setView(value === 'players' ? 'players' : 'lineup')}
+      />
 
-      <div className="flex gap-2">
-        <button type="button" className="btn btn-primary min-h-11 flex-1 font-display text-xs" onClick={() => save(state.formation, autoPick(state.formation, pool).ids)} disabled={pool.length === 0}>
-          Auto-pick
-        </button>
-      </div>
+      {view === 'lineup'
+        ? (
+            <>
+              <section className="flex flex-col gap-1 border-2 border-slate bg-base-100 p-3" aria-label="Next match">
+                <span className="text-muted">Next match</span>
+                <span className="text-lg">{`v ${rival.name} · ${FORMATIONS[rival.formation].name}, rated ${rival.rating}`}</span>
+                <div className="flex h-4 w-full text-xs" aria-label={`Win ${percent(odds.win)}, draw ${percent(odds.draw)}, loss ${percent(odds.loss)}`}>
+                  <span className="bg-success" style={{ width: percent(odds.win) }} />
+                  <span className="bg-warning" style={{ width: percent(odds.draw) }} />
+                  <span className="bg-error" style={{ width: percent(odds.loss) }} />
+                </div>
+                <span className="tabular-nums">{`Your chances with this lineup: win ${percent(odds.win)} · draw ${percent(odds.draw)} · loss ${percent(odds.loss)}`}</span>
+                {warmup > 0 ? <span className="text-success">{`Includes your warm-up: +${Math.round(warmup * 100)}% attack.`}</span> : null}
+              </section>
 
-      <section className="flex flex-col gap-1" aria-label="Squad">
-        <h2>{`Squad (${squad.length})`}</h2>
-        <ul className="flex flex-col">
-          {squad.map(entry => (
-            <li key={entry.card.id}>
-              <button type="button" className="flex min-h-11 w-full items-center gap-2 border-b border-base-300 py-1 text-left" onClick={() => setSheet({ kind: 'card', cardId: entry.card.id })}>
-                <PlayerSprite player={entry.player} kit={kit} scale={2} />
-                <span className="flex flex-1 flex-col leading-tight">
-                  <span>{entry.player.name}</span>
-                  <span className="text-muted">{`${entry.player.position}${entry.player.altPosition ? `/${entry.player.altPosition}` : ''} · ${'★'.repeat(entry.card.stars)}`}</span>
+              <div className="flex flex-col gap-1">
+                <h2>Formation</h2>
+                <div role="radiogroup" aria-label="Formation" className="grid grid-cols-5 gap-1">
+                  {FORMATION_IDS.map(formation => (
+                    <button
+                      key={formation}
+                      type="button"
+                      role="radio"
+                      aria-checked={formation === state.formation}
+                      className={`flex min-h-11 flex-col items-center justify-center border-2 text-sm leading-tight ${formation === state.formation ? 'border-primary bg-base-100' : 'border-base-300'}`}
+                      onClick={() => {
+                        const picked = autoPick(formation, pool).ids
+                        save(formation, picked.length === 5 ? picked : state.lineup)
+                      }}
+                    >
+                      <span>{FORMATIONS[formation].name}</span>
+                      <span className="text-muted">{formation}</span>
+                    </button>
+                  ))}
+                </div>
+                <span className="text-muted">Choosing a formation picks your best five for it.</span>
+              </div>
+
+              <div className="relative w-full" style={{ aspectRatio: '176 / 130' }}>
+                <img src={art('pitch/pitch_squad_176x130.png')} alt="" className="pixel absolute inset-0 h-full w-full" />
+                {positions.map(({ role, x, y }, slot) => {
+                  const cardId = state.lineup[slot]
+                  const entry = cardId ? byId.get(cardId) : undefined
+                  const fit = entry ? positionFit(entry.player, role) : 0
+                  return (
+                    <button
+                      key={`${state.formation}-${role}-${x}`}
+                      type="button"
+                      aria-label={entry ? `${role}: ${entry.player.name}, a ${entry.player.position}, rated ${entry.fielded.rating}, plays at ${Math.round(entry.fielded.rating * fit)} here` : `${role}: empty`}
+                      className="absolute flex min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+                      style={{ left: `${x}%`, top: `${y}%` }}
+                      onClick={() => setSheet({ kind: 'slot', slot })}
+                    >
+                      {entry
+                        ? (
+                            <>
+                              <PlayerSprite player={entry.player} kit={kit} role={role} scale={2} />
+                              <span className="bg-base-300/80 px-1 text-sm leading-none">{surname(entry.player.name)}</span>
+                              <span className={`px-1 text-sm leading-none ${fitTone(fit)}`}>
+                                {fit < 1 ? `${Math.round(entry.fielded.rating * fit)} (${entry.player.position})` : `${entry.fielded.rating}`}
+                              </span>
+                            </>
+                          )
+                        : <span className="flex h-11 w-11 items-center justify-center border-2 border-dashed border-base-content/60 bg-base-300/50">{role}</span>}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex flex-col gap-1 text-sm" aria-label="What the colours mean">
+                <span>
+                  <span className="bg-success px-1 text-success-content">70</span>
+                  {' In their own position: full rating.'}
                 </span>
-                <span className="text-xl tabular-nums">{entry.fielded.rating}</span>
-                {state.lineup.includes(entry.card.id) ? <span className="badge badge-primary">XI</span> : null}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+                <span>
+                  <span className="bg-warning px-1 text-warning-content">63 (MID)</span>
+                  {' Close: their second position plays at 90%, one line away at 75%.'}
+                </span>
+                <span>
+                  <span className="bg-error px-1 text-error-content">39 (DEF)</span>
+                  {' Out of position: 55%, or 30% for a keeper out of goal.'}
+                </span>
+              </div>
+
+              <section className="flex flex-col gap-2 border-2 border-slate bg-base-100 p-3" aria-label="Lineup strength">
+                <div className="flex items-baseline justify-between">
+                  <span className="font-display text-xs">Team score</span>
+                  <span className="font-display text-lg text-primary tabular-nums">{score.overall}</span>
+                </div>
+                <span className="text-muted">The average of your five as they play in these positions, plus bonuses.</span>
+                {score.chemistry > 0 ? <span className="text-success">{`Chemistry +${Math.round(score.chemistry * 100)}% (players from one nation)`}</span> : null}
+                {bonus > 0 ? <span className="text-success">{`Album +${Math.round(bonus * 100)}% team power`}</span> : null}
+                <Bar label="ATT" value={score.att} max={120} colour="#ff4f79" />
+                <Bar label="DEF" value={score.def} max={120} colour="#5ec8ff" />
+                {best && currentOption && best.formation !== state.formation && best.points - currentOption.points > 0.02
+                  ? (
+                      <button type="button" className="btn btn-accent min-h-11 text-lg" onClick={() => save(best.formation, best.ids)}>
+                        {`Switch to ${FORMATIONS[best.formation].name} with your best five: win ${percent(best.odds.win)}`}
+                      </button>
+                    )
+                  : <span className="text-muted">{`${FORMATIONS[state.formation].name} is your best formation against them.`}</span>}
+              </section>
+
+              <BottomActions>
+                <button type="button" className="btn btn-primary min-h-12 w-full font-display text-xs" onClick={() => save(state.formation, autoPick(state.formation, pool).ids)} disabled={pool.length === 0}>
+                  Auto-pick my best five
+                </button>
+              </BottomActions>
+            </>
+          )
+        : (
+            <>
+              {groups.length > 0
+                ? (
+                    <section className="flex flex-col gap-2 border-2 border-accent bg-base-100 p-3" aria-label="Ready to merge">
+                      <h2>Ready to merge</h2>
+                      <span className="text-muted">{`${config.cards.mergeCopies} copies of a player make one card a star higher (+${config.cards.mergeBonus} rating).`}</span>
+                      {groups.map((group) => {
+                        const player = lookup(group[0].playerId)
+                        return (
+                          <button key={group[0].id} type="button" className="btn btn-accent min-h-11 justify-between" disabled={merge.isPending} onClick={() => merge.mutate(group.slice(0, config.cards.mergeCopies).map(card => card.id), { onError })}>
+                            <span>{`${player?.name ?? 'Player'} ×${group.length}`}</span>
+                            <span>{`Merge into ${'★'.repeat(group[0].stars + 1)}`}</span>
+                          </button>
+                        )
+                      })}
+                    </section>
+                  )
+                : null}
+
+              <div className="flex flex-col gap-2">
+                <div role="radiogroup" aria-label="Show" className="flex flex-wrap gap-1">
+                  {FILTERS.map(entry => (
+                    <button key={entry.value} type="button" role="radio" aria-checked={filter === entry.value} className={`min-h-11 border-2 px-2 text-sm ${filter === entry.value ? 'border-primary bg-base-100' : 'border-base-300'}`} onClick={() => setFilter(entry.value)}>
+                      {entry.label}
+                    </button>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2">
+                  <span className="text-muted">Sort</span>
+                  <select className="select select-sm min-h-11 flex-1" value={sort} onChange={event => setSort(event.target.value as Sort)}>
+                    <option value="newest">Newest first</option>
+                    <option value="rating">Highest rated</option>
+                    <option value="position">By position</option>
+                  </select>
+                </label>
+              </div>
+
+              <section className="flex flex-col gap-1" aria-label="Squad">
+                <span className="text-muted">{`${squad.length} players, room for ${config.cards.benchSize} on the bench as well as your five. Tap a player to train, merge or sell.`}</span>
+                {shown.length === 0
+                  ? <span className="py-4 text-center text-muted">{filter === 'train' ? 'Nobody you can afford to train right now.' : filter === 'merge' ? `No player with ${config.cards.mergeCopies} copies yet.` : 'Nobody here.'}</span>
+                  : null}
+                <ul className="flex flex-col">
+                  {shown.map(entry => (
+                    <li key={entry.card.id}>
+                      <button type="button" className="flex min-h-11 w-full items-center gap-2 border-b border-base-300 py-1 text-left" onClick={() => setSheet({ kind: 'card', cardId: entry.card.id })}>
+                        <PlayerSprite player={entry.player} kit={kit} scale={2} />
+                        <span className="flex flex-1 flex-col leading-tight">
+                          <span>
+                            {entry.player.name}
+                            {unseen.has(entry.card.id) ? <span className="badge badge-secondary badge-sm ml-1">NEW</span> : null}
+                          </span>
+                          <span className="text-muted">{`${entry.player.position}${entry.player.altPosition ? `/${entry.player.altPosition}` : ''} · ${'★'.repeat(entry.card.stars)}${inGroup.has(entry.card.id) ? ' · can merge' : ''}`}</span>
+                        </span>
+                        {canTrain(entry) ? <span className="text-success" aria-label="Can train">▲</span> : null}
+                        <span className="text-xl tabular-nums">{entry.fielded.rating}</span>
+                        {state.lineup.includes(entry.card.id) ? <span className="badge badge-primary">XI</span> : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
 
       <BottomSheet open={sheet?.kind === 'slot'} title={sheet?.kind === 'slot' ? `Pick a ${FORMATIONS[state.formation].roles[sheet.slot]}` : ''} onClose={() => setSheet(null)}>
         {sheet?.kind === 'slot'
@@ -215,9 +369,9 @@ export function SquadScreen({ game }: { game: GameResponse }) {
                       <PlayerSprite player={entry.player} kit={kit} scale={2} />
                       <span className="flex flex-1 flex-col leading-tight">
                         <span>{entry.player.name}</span>
-                        <span className="text-muted">{`${entry.player.position} · fit ${percent(fit)}`}</span>
+                        <span className="text-muted">{`${entry.player.position} · rated ${entry.fielded.rating}, ${percent(fit)} here`}</span>
                       </span>
-                      <span className="tabular-nums">{Math.round(entry.fielded.rating * fit)}</span>
+                      <span className={`px-1 tabular-nums ${fitTone(fit)}`}>{Math.round(entry.fielded.rating * fit)}</span>
                       {delta > 0.05 ? <span className="badge badge-success">{`+${delta.toFixed(1)}`}</span> : null}
                     </button>
                   </li>
@@ -229,7 +383,7 @@ export function SquadScreen({ game }: { game: GameResponse }) {
       </BottomSheet>
 
       <BottomSheet open={Boolean(selected)} title={selected?.player.name ?? ''} onClose={() => setSheet(null)}>
-        {selected ? <CardActions entry={selected} game={game} groups={groups} onTrain={() => train.mutate(selected.card.id, { onError })} onSell={() => sell.mutate(selected.card.id, { onError, onSuccess: () => setSheet(null) })} onMerge={ids => merge.mutate(ids, { onError, onSuccess: () => setSheet(null) })} busy={train.isPending || sell.isPending || merge.isPending} /> : null}
+        {selected ? <CardActions entry={selected} game={game} groups={groups} onTrain={() => train.mutate(selected.card.id, { onError, onSuccess: () => toast.push(`${selected.player.name} trained: +1 rating`, 'success') })} onSell={() => sell.mutate(selected.card.id, { onError, onSuccess: () => setSheet(null) })} onMerge={ids => merge.mutate(ids, { onError, onSuccess: () => setSheet(null) })} busy={train.isPending || sell.isPending || merge.isPending} /> : null}
       </BottomSheet>
     </div>
   )
@@ -247,12 +401,13 @@ function CardActions({ entry, game, groups, onTrain, onSell, onMerge, busy }: { 
         <PlayerSprite player={entry.player} kit={kitOf(game)} scale={4} />
         <div className="flex flex-col text-lg">
           <span>{`${entry.player.position} · ${entry.player.rarity} · ${'★'.repeat(entry.card.stars)}`}</span>
-          <span>{`Rating ${entry.fielded.rating} (trained +${entry.card.trained})`}</span>
+          <span>{`Rating ${entry.fielded.rating} (trained +${entry.card.trained} of ${config.cards.trainingCap[entry.player.rarity]})`}</span>
         </div>
       </div>
       <button type="button" className="btn btn-primary min-h-11" disabled={busy || 'blocked' in cost || game.club.state.coins < ('cost' in cost ? cost.cost : 0)} onClick={onTrain}>
-        {'blocked' in cost ? 'Fully trained' : `Train +1 for ${cost.cost.toLocaleString('en-GB')} coins`}
+        {'blocked' in cost ? 'Fully trained' : `Train +1 rating for ${cost.cost.toLocaleString('en-GB')} coins`}
       </button>
+      <span className="text-muted">Training adds 1 to this card's rating for good, up to a limit set by rarity. Each session costs more than the last.</span>
       {group ? <button type="button" className="btn btn-accent min-h-11" disabled={busy} onClick={() => onMerge(group.slice(0, config.cards.mergeCopies).map(card => card.id))}>{`Merge ${config.cards.mergeCopies} copies into ${'★'.repeat(entry.card.stars + 1)}`}</button> : null}
       <button type="button" className="btn btn-outline btn-error min-h-11" disabled={busy || inLineup} onClick={onSell}>
         {inLineup ? 'In the lineup: take them out to sell' : `Sell for ${sellValue(entry.card, entry.player, config).toLocaleString('en-GB')} coins`}

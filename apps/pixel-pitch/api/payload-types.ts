@@ -411,7 +411,7 @@ export interface Fixture {
     | number
     | boolean
     | null;
-  kind: 'league' | 'debut';
+  kind: 'league' | 'debut' | 'friendly';
   tier: number;
   kickoffAt: number;
   rival:

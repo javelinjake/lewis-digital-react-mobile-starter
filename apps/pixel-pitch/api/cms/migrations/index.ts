@@ -1,6 +1,7 @@
 import * as migration_20261108_143250_initial from './20261108_143250_initial';
 import * as migration_20261108_204346_game from './20261108_204346_game';
 import * as migration_20261109_000910_commentary from './20261109_000910_commentary';
+import * as migration_20261126_110112_friendlies from './20261126_110112_friendlies';
 
 export const migrations = [
   {
@@ -16,6 +17,11 @@ export const migrations = [
   {
     up: migration_20261109_000910_commentary.up,
     down: migration_20261109_000910_commentary.down,
-    name: '20261109_000910_commentary'
+    name: '20261109_000910_commentary',
+  },
+  {
+    up: migration_20261126_110112_friendlies.up,
+    down: migration_20261126_110112_friendlies.down,
+    name: '20261126_110112_friendlies'
   },
 ];

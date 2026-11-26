@@ -14,6 +14,8 @@ export interface GameApi {
   buyPack: () => Promise<GameResponse>
   arcadePack: (position: Position) => Promise<GameResponse>
   decidePack: (decisions: Array<'sign' | 'sell'>) => Promise<GameResponse>
+  /** Plays a friendly now. The answer's `fixtures` holds it, last. */
+  playFriendly: () => Promise<GameResponse & { fixture: FixtureResult }>
   collectStadium: () => Promise<GameResponse & { coins: number }>
   upgradeStadium: () => Promise<GameResponse & { level: number, cost: number }>
   /** Empties the arcade's one token tray. */

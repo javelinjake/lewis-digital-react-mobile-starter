@@ -1,6 +1,6 @@
 import type { ClubState, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
 import type { GameApi } from './game-api.types'
-import { addXp, arcadePack, buyPack, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, sellCard, setLineup, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
+import { addXp, arcadePack, buyPack, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishPlay, finishWarmup, foundClub, generateCatalogue, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState } from '@ld/pixel-pitch-core'
 import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -195,6 +195,10 @@ export const gameApi: GameApi = {
   buyPack: () => respond((_mock, _at, ctx) => wrap(() => buyPack(ctx))),
   arcadePack: position => respond((_mock, _at, ctx) => wrap(() => arcadePack(ctx, position))),
   decidePack: decisions => respond((_mock, _at, ctx) => wrap(() => decidePack(ctx, decisions))),
+  playFriendly: () => respond((_mock, _at, ctx) => {
+    const result = wrap(() => playFriendly(ctx))
+    return { ...result, fixtures: [result.extra!.fixture] }
+  }),
   collectStadium: () => respond((_mock, _at, ctx) => wrap(() => collectStadium(ctx))),
   upgradeStadium: () => respond((_mock, _at, ctx) => wrap(() => upgradeStadium(ctx))),
   collectTray: () => respond((_mock, _at, ctx) => wrap(() => collectTray(ctx))),
@@ -211,6 +215,6 @@ export const gameApi: GameApi = {
   readCatalogue: async () => catalogue,
   readConfig: async () => config,
   async readFixtures(limit) {
-    return [...(load()?.fixtures ?? [])].sort((a, b) => b.no - a.no).slice(0, limit)
+    return [...(load()?.fixtures ?? [])].sort((a, b) => b.kickoffAt - a.kickoffAt || b.no - a.no).slice(0, limit)
   },
 }

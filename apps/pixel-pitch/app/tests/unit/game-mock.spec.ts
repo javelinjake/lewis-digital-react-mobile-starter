@@ -28,8 +28,19 @@ describe('the mock game api', () => {
     await gameApi.createClub(newClub)
     window.__pixelPitchClock!.advance(10 * HOUR)
     const synced = await gameApi.sync()
-    expect(synced!.fixtures.map(fixture => fixture.no)).toEqual([0, 1, 2])
-    expect((await gameApi.readFixtures(2)).map(fixture => fixture.no)).toEqual([2, 1])
+    // The quick opening's matches, then one every three hours.
+    const played = DEFAULT_CONFIG.league.openingGapsMinutes.length + 3
+    expect(synced!.fixtures.map(fixture => fixture.no)).toEqual(Array.from({ length: played }, (_, no) => no))
+    expect((await gameApi.readFixtures(2)).map(fixture => fixture.no)).toEqual([played - 1, played - 2])
+  })
+
+  it('plays a friendly now and lists it with the newest matches', async () => {
+    await gameApi.createClub(newClub)
+    window.__pixelPitchClock!.advance(60_000)
+    const played = await gameApi.playFriendly()
+    expect(played.fixture).toMatchObject({ no: -2, points: 0 })
+    expect(played.fixtures.at(-1)).toEqual(played.fixture)
+    expect((await gameApi.readFixtures(1))[0].no).toBe(-2)
   })
 
   it('refuses what the server would refuse', async () => {

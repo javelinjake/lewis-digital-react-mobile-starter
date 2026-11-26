@@ -6,10 +6,12 @@ import { Link } from 'react-router'
 import { claimable } from '../lib/claimable'
 import { kitOf, leagueName, nextRival, serverOffset } from '../lib/club'
 import { claimCount, readyItems } from '../lib/ready-now'
+import { wasWatched } from '../lib/watched'
 import { useClaimAll } from '../mutations/use-claim-all'
 import { gameKeys } from '../queries/game.keys'
 import { useCatalogue, useFixtures, useGameConfig } from '../queries/use-game'
 import { Countdown } from './Countdown'
+import { FriendlyCard } from './FriendlyCard'
 import { ReadyNow } from './ReadyNow'
 import { Crest, Icon } from './sprites'
 import { StadiumCard } from './StadiumCard'
@@ -33,6 +35,7 @@ export function ClubHub({ game }: { game: GameResponse }) {
   // Captured when this answer arrived, so the countdown follows the server's clock.
   const offset = useMemo(() => serverOffset(game, Date.now()), [game])
   const last = fixtures.data?.[0]
+  const unwatched = last ? !wasWatched(last) : false
   const { data: catalogue } = useCatalogue()
   const waiting = claimable(game, config, albumSets(catalogue ?? [], config))
   const { claim, pending, pop } = useClaimAll()
@@ -83,9 +86,11 @@ export function ClubHub({ game }: { game: GameResponse }) {
         <span className="font-display text-sm text-primary">
           <Countdown to={state.league.nextKickoffAt} offset={offset} onDone={sync} />
         </span>
+        <span className="text-center text-muted">It plays itself at kick-off with the lineup you leave. Meanwhile: play a friendly, warm up, open packs or play the arcade.</span>
         <Link to="/squad" className="btn btn-primary min-h-11 w-full font-display text-xs">Set the lineup</Link>
       </section>
 
+      <FriendlyCard game={game} />
       <WarmupCard game={game} />
       <StadiumCard game={game} />
 
@@ -106,9 +111,9 @@ export function ClubHub({ game }: { game: GameResponse }) {
 
       {last
         ? (
-            <Link to={`/match/${last.no}`} className="flex items-center justify-between border-2 border-slate bg-base-100 p-3">
+            <Link to={`/match/${last.no}`} className={`flex items-center justify-between border-2 bg-base-100 p-3 ${unwatched ? 'border-primary' : 'border-slate'}`}>
               <span className="flex flex-col">
-                <span className="text-muted">{last.no < 0 ? 'First match' : 'Last result'}</span>
+                <span className={unwatched ? 'text-primary' : 'text-muted'}>{unwatched ? 'New result · watch the match ›' : last.no === -1 ? 'First match' : last.no < 0 ? 'Last match: a friendly' : 'Last result · report ›'}</span>
                 <span className="text-xl">{`${game.club.name} ${last.goalsFor}–${last.goalsAgainst} ${last.rival.name}`}</span>
               </span>
               <span className={`font-display text-xs ${last.result === 'win' ? 'text-success' : last.result === 'loss' ? 'text-error' : 'text-warning'}`}>

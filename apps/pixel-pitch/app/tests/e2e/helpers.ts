@@ -40,6 +40,12 @@ export async function guest(page: Page) {
   await expect(page).toHaveURL(/\/onboarding/)
 }
 
+/** On the first match's intro (five-a-side, your squad is ready): starts the match. */
+export async function kickOff(page: Page) {
+  await expect(page.getByText('Your first match')).toBeVisible()
+  await page.getByRole('button', { name: 'Kick off' }).click()
+}
+
 /** Founds a club, watches nothing of the debut (skips it) and lands on the squad, as a new player would. */
 export async function foundClub(page: Page, name = 'Harbour Town') {
   await guest(page)
@@ -47,9 +53,11 @@ export async function foundClub(page: Page, name = 'Harbour Town') {
   await page.getByRole('button', { name: 'Blue and white' }).click()
   await page.getByRole('button', { name: 'Found the club' }).click()
   await expect(page).toHaveURL(/\/match\/-1/)
-  await page.getByRole('button', { name: 'Skip' }).click()
-  await page.getByRole('button', { name: 'Continue' }).click()
+  await kickOff(page)
+  await page.getByRole('button', { name: 'Skip to result' }).click()
+  await page.getByRole('button', { name: 'Meet your squad' }).click()
   await expect(page).toHaveURL(/\/squad/)
+  await page.getByRole('button', { name: 'Got it' }).click()
 }
 
 /** The mock game runs on a clock Playwright can move. */

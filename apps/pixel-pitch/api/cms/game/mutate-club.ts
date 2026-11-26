@@ -111,7 +111,7 @@ function fixtureData(ownerId: number | string, fixture: FixtureResult, configVer
     no: fixture.no,
     formation: fixture.formation,
     squads: { ...fixture.squads },
-    kind: fixture.no < 0 ? 'debut' : 'league',
+    kind: fixture.no === -1 ? 'debut' : fixture.no < 0 ? 'friendly' : 'league',
     tier: fixture.tier,
     kickoffAt: fixture.kickoffAt,
     rival: fixture.rival,

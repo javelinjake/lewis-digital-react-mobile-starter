@@ -20,6 +20,8 @@ export function StadiumCard({ game }: { game: GameResponse }) {
   const pile = pendingStadiumCoins(state.idle, config, now)
   const cap = Math.floor(config.stadium.coinsPerHour[level - 1] * (state.idle.hasPass ? config.stadium.capHoursWithPass : config.stadium.capHours))
   const cost = level < levels ? config.stadium.upgradeCost[level - 1] : null
+  const rate = config.stadium.coinsPerHour[level - 1]
+  const nextRate = level < levels ? config.stadium.coinsPerHour[level] : null
   const collect = useGameAction(() => gameApi.collectStadium())
   const upgrade = useGameAction(() => gameApi.upgradeStadium())
   const onError = (error: unknown) => toast.push(formatError(error), 'error')
@@ -29,7 +31,7 @@ export function StadiumCard({ game }: { game: GameResponse }) {
       <img src={art(`club/stadium_lv${stadiumStage(level)}.png`)} alt="" width={48 * 4} height={28 * 4} className="pixel" />
       <div className="flex w-full flex-col">
         <h2>Stadium</h2>
-        <span className="text-muted">{`Level ${level} · ${config.stadium.coinsPerHour[level - 1]} coins an hour`}</span>
+        <span className="text-muted">{`Level ${level} · ${rate} coins an hour`}</span>
       </div>
       <div className="h-3 w-full bg-base-300" role="progressbar" aria-label="Stadium pile" aria-valuenow={pile} aria-valuemin={0} aria-valuemax={cap}>
         <div className="h-full bg-primary" style={{ width: `${Math.min(100, (pile / cap) * 100)}%` }} />
@@ -43,7 +45,10 @@ export function StadiumCard({ game }: { game: GameResponse }) {
           {cost === null ? 'Top level' : `Upgrade · ${cost.toLocaleString('en-GB')}`}
         </button>
       </div>
-      <span className="text-muted">{`Holds ${cap.toLocaleString('en-GB')} coins. Upgrades at levels 4 and 8 build bigger stands.`}</span>
+      {nextRate !== null
+        ? <span className="text-lg">{`Upgrade to level ${level + 1}: ${nextRate} coins an hour (+${nextRate - rate}), about +${((nextRate - rate) * 24).toLocaleString('en-GB')} a day.`}</span>
+        : null}
+      <span className="text-muted">{`Holds ${cap.toLocaleString('en-GB')} coins. Upgrading collects what is waiting first. Levels 4 and 8 build bigger stands.`}</span>
     </section>
   )
 }

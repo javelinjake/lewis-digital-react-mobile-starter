@@ -114,10 +114,10 @@ describe('the login calendar', () => {
 describe('the League Pass', () => {
   const withXp = (xp: number, hasPass = false) => context(state => ({ ...state, pass: { ...state.pass, xp }, idle: { ...state.idle, hasPass } }))
 
-  it('has 30 tiers, 100 XP each, and the free track pays 15 of them, ending in a Star pack', () => {
+  it('has 30 tiers, 100 XP each, and the free track pays every one of them, ending in a Star pack', () => {
     expect(config.pass.premium).toHaveLength(30)
     expect(config.pass.free).toHaveLength(30)
-    expect(config.pass.free.filter(Boolean)).toHaveLength(15)
+    expect(config.pass.free.filter(Boolean)).toHaveLength(30)
     expect(config.pass.free[29]).toEqual({ kind: 'starPacks', amount: 1 })
     expect(config.pass.premium.filter(reward => reward.kind === 'starPacks')).toHaveLength(2)
     expect(maxXp(config)).toBe(3000)
@@ -135,8 +135,9 @@ describe('the League Pass', () => {
     const done = claimPassTier(ctx, 'free', tierWithReward)
     expect(done.extra!.reward).toEqual(config.pass.free[tierWithReward - 1])
     expect(code(() => claimPassTier({ ...ctx, state: done.state }, 'free', tierWithReward))).toBe('claimed')
-    const empty = config.pass.free.findIndex(reward => reward === null) + 1
-    expect(code(() => claimPassTier(withXp(3000), 'free', empty))).toBe('no-reward')
+    // A tier with nothing on it (an admin can set one to null) cannot be claimed.
+    const gap = { ...config, pass: { ...config.pass, free: config.pass.free.map((reward, index) => (index === 0 ? null : reward)) } }
+    expect(code(() => claimPassTier({ ...withXp(3000), config: gap }, 'free', 1))).toBe('no-reward')
   })
 
   it('keeps the premium track for the League Pass, which unlocks every tier already reached', () => {

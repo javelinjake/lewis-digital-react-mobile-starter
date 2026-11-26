@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router'
 import { clearUserData } from '@/app/session-data'
 import { getDataMode } from '@/config/env.config'
 import { NOTIFICATION_TYPES, useNotificationSettings } from '@/hooks/use-notification-settings'
-import { useReplayMode } from '@/hooks/use-replay-mode'
 import { authApi } from '@/lib/auth/auth-api'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
@@ -21,7 +20,6 @@ export function SettingsOverview() {
   const user = useAuthStore(state => state.user)
   const navigate = useNavigate()
   const toast = useToast()
-  const [replayMode, setReplayMode] = useReplayMode()
   const [alerts, setAlert] = useNotificationSettings()
   const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -29,11 +27,6 @@ export function SettingsOverview() {
   return (
     <div className="flex flex-col gap-4">
       <ListGroup label="Settings">
-        <ListItem
-          title="Match view"
-          subtitle={replayMode === 'text' ? 'Written report' : 'Pixel pitch'}
-          onClick={() => setReplayMode(replayMode === 'text' ? 'pitch' : 'text')}
-        />
         <ListItem title="Platform" subtitle={getPlatform()} />
         {NOTIFICATION_TYPES.map(entry => (
           <ListItem

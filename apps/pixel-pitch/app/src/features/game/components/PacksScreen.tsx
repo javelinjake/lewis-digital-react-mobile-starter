@@ -1,7 +1,8 @@
 import type { GameResponse, Position } from '@ld/pixel-pitch-core'
 import { dayIndex, oddsForTier, usedToday } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { art } from '../lib/art'
@@ -25,7 +26,6 @@ export function PacksScreen({ game }: { game: GameResponse }) {
   const config = useGameConfig()
   const toast = useToast()
   const { state } = game.club
-  const [revealing, setRevealing] = useState(false)
   const [position, setPosition] = useState<Position>('FWD')
   const offset = useMemo(() => serverOffset(game, Date.now()), [game])
 
@@ -44,7 +44,22 @@ export function PacksScreen({ game }: { game: GameResponse }) {
   const toGo = config.packs.pityPlayers - state.pity
   const odds = oddsRows(state.league.tier, config)
   const hasOdds = oddsForTier(state.league.tier, config).length > 0
+  // A pack already waiting opens at once when sent here to open one.
+  const [revealing, setRevealing] = useState(() => waiting && new URLSearchParams(window.location.search).has('open'))
   const reveal = { onSuccess: () => setRevealing(true), onError }
+
+  // Sent here to open one (the daily free pack, Open packs after a claim): start the opening straight away.
+  const [search, setSearch] = useSearchParams()
+  const autoOpened = useRef(false)
+  const { mutate: openPack } = open
+  useEffect(() => {
+    if (!search.get('open') || autoOpened.current)
+      return
+    autoOpened.current = true
+    setSearch({}, { replace: true })
+    if (!waiting && (state.starPacks > 0 || packs > 0))
+      openPack(state.starPacks > 0 ? 'star' : 'shelf', { onSuccess: () => setRevealing(true), onError: error => toast.push(formatError(error), 'error') })
+  }, [search, setSearch, waiting, state.starPacks, packs, openPack, toast])
 
   return (
     <div className="flex flex-col gap-4">

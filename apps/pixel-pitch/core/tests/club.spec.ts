@@ -3,7 +3,8 @@ import { createRng } from '@ld/utils/random/rng'
 import { describe, expect, it } from 'vitest'
 import { clubNotificationTimes, DEFAULT_CONFIG, generateCatalogue, isGameRuleError, lineupForMatch, mergeInClub, NEW_CARD_PREFIX, newClubState, playDebut, rollStarterSquad, sellCard, setLineup, syncClub, trainInClub } from '../src'
 
-const config = DEFAULT_CONFIG
+// Matches the full interval apart from the start; the quick opening has its own tests.
+const config = { ...DEFAULT_CONFIG, league: { ...DEFAULT_CONFIG.league, openingGapsMinutes: [] } }
 const HOUR = 60 * 60 * 1000
 const T0 = Date.UTC(2026, 10, 8, 12)
 
