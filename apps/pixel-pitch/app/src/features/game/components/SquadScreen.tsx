@@ -67,9 +67,9 @@ export function SquadScreen({ game }: { game: GameResponse }) {
   const { lookup } = useCatalogue()
   const [search, setSearch] = useSearchParams()
   const [sheet, setSheet] = useState<Sheet>(null)
-  const [view, setView] = useState<View>(() => (search.get('view') === 'train' ? 'players' : 'lineup'))
+  const [view, setView] = useState<View>(() => (search.get('view') === 'train' || search.get('view') === 'merge' ? 'players' : 'lineup'))
   const [sort, setSort] = useState<Sort>('newest')
-  const [filter, setFilter] = useState<Filter>(() => (search.get('view') === 'train' ? 'train' : 'all'))
+  const [filter, setFilter] = useState<Filter>(() => (search.get('view') === 'train' ? 'train' : search.get('view') === 'merge' ? 'merge' : 'all'))
   const first = search.get('first') === '1'
   const { state } = game.club
   const kit = kitOf(game)

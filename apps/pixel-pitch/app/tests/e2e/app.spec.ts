@@ -181,6 +181,16 @@ test.describe('Packs @game', () => {
     await expect(page.getByRole('button', { name: 'Players (7)' })).toBeVisible()
   })
 
+  test('the daily free pack is first on the screen and opens in one tap', async ({ page }) => {
+    await foundClub(page)
+    await page.goto('/packs')
+    const daily = page.getByRole('region', { name: 'Daily free pack' })
+    await daily.getByRole('button', { name: 'Open your free pack' }).click()
+    await expect(page.getByRole('button', { name: 'Tear open the pack' })).toBeVisible()
+    await page.getByRole('button', { name: 'Later' }).click()
+    await expect(daily).toHaveCount(0)
+  })
+
   test('a pack left half-opened is still waiting afterwards', async ({ page }) => {
     await withPacks(page)
     await page.getByRole('button', { name: 'Open a pack' }).click()
