@@ -1,5 +1,6 @@
 import type { FormationId, GameResponse, Position } from '@ld/pixel-pitch-core'
 import type { SquadCard } from '../lib/club'
+import type { MergeOutcome } from './MergedPop'
 import { BottomActions, BottomSheet } from '@ld/mobile-ui'
 import { albumPower, autoPick, bestFormation, FORMATION_IDS, FORMATIONS, matchOdds, mergeable, positionFit, scoreLineup, sellValue, trainingCost } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
@@ -11,6 +12,7 @@ import { currentScore, kitOf, nextRival, rivalSide, squadCards, squadPool } from
 import { markCardsSeen, unseenCards } from '../lib/seen-cards'
 import { useGameAction } from '../mutations/use-game-action'
 import { useCatalogue, useGameConfig } from '../queries/use-game'
+import { MergedPop } from './MergedPop'
 import { PlayerSprite } from './sprites'
 
 const LINE_Y: Record<Position, number> = { FWD: 16, MID: 41, DEF: 64, GK: 86 }
@@ -104,6 +106,25 @@ export function SquadScreen({ game }: { game: GameResponse }) {
   const sell = useGameAction((cardId: string) => gameApi.sell(cardId))
   const train = useGameAction((cardId: string) => gameApi.train(cardId))
   const merge = useGameAction((cardIds: string[]) => gameApi.merge(cardIds))
+  const [merged, setMerged] = useState<MergeOutcome | null>(null)
+
+  /** Merges the copies, then says what changed: the new card is the one the answer has that the squad did not. */
+  const doMerge = (ids: string[], after?: () => void) => {
+    const copies = game.cards.filter(card => ids.includes(card.id))
+    const player = copies[0] ? lookup(copies[0].playerId) : undefined
+    const known = new Set(game.cards.map(card => card.id))
+    merge.mutate(ids, {
+      onError,
+      onSuccess: (response) => {
+        after?.()
+        const card = response.cards.find(entry => !known.has(entry.id) && entry.playerId === copies[0]?.playerId)
+        if (!player || !card)
+          return
+        const best = copies.reduce((most, entry) => (entry.trained > most.trained ? entry : most), copies[0])
+        setMerged({ player, before: best, after: card, copies: copies.length, inLineup: response.club.state.lineup.includes(card.id) })
+      },
+    })
+  }
 
   const save = (formation: FormationId, ids: Array<string | null>) => lineup.mutate({ formation, lineup: ids }, { onError })
 
@@ -308,7 +329,7 @@ export function SquadScreen({ game }: { game: GameResponse }) {
                       {groups.map((group) => {
                         const player = lookup(group[0].playerId)
                         return (
-                          <button key={group[0].id} type="button" className="btn btn-accent min-h-11 justify-between" disabled={merge.isPending} onClick={() => merge.mutate(group.slice(0, config.cards.mergeCopies).map(card => card.id), { onError })}>
+                          <button key={group[0].id} type="button" className="btn btn-accent min-h-11 justify-between" disabled={merge.isPending} onClick={() => doMerge(group.slice(0, config.cards.mergeCopies).map(card => card.id))}>
                             <span>{`${player?.name ?? 'Player'} ×${group.length}`}</span>
                             <span>{`Merge into ${'★'.repeat(group[0].stars + 1)}`}</span>
                           </button>
@@ -388,8 +409,9 @@ export function SquadScreen({ game }: { game: GameResponse }) {
       </BottomSheet>
 
       <BottomSheet open={Boolean(selected)} title={selected?.player.name ?? ''} onClose={() => setSheet(null)}>
-        {selected ? <CardActions entry={selected} game={game} groups={groups} onTrain={() => train.mutate(selected.card.id, { onError, onSuccess: () => toast.push(`${selected.player.name} trained: +1 rating`, 'success') })} onSell={() => sell.mutate(selected.card.id, { onError, onSuccess: () => setSheet(null) })} onMerge={ids => merge.mutate(ids, { onError, onSuccess: () => setSheet(null) })} busy={train.isPending || sell.isPending || merge.isPending} /> : null}
+        {selected ? <CardActions entry={selected} game={game} groups={groups} onTrain={() => train.mutate(selected.card.id, { onError, onSuccess: () => toast.push(`${selected.player.name} trained: +1 rating`, 'success') })} onSell={() => sell.mutate(selected.card.id, { onError, onSuccess: () => setSheet(null) })} onMerge={ids => doMerge(ids, () => setSheet(null))} busy={train.isPending || sell.isPending || merge.isPending} /> : null}
       </BottomSheet>
+      {merged ? <MergedPop outcome={merged} kit={kit} onClose={() => setMerged(null)} /> : null}
     </div>
   )
 }
