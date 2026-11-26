@@ -74,6 +74,7 @@ export interface Config {
     'purchase-events': PurchaseEvent;
     'idempotency-keys': IdempotencyKey;
     'action-throttles': ActionThrottle;
+    'app-bundles': AppBundle;
     players: Player;
     clubs: Club;
     cards: Card;
@@ -99,6 +100,7 @@ export interface Config {
     'purchase-events': PurchaseEventsSelect<false> | PurchaseEventsSelect<true>;
     'idempotency-keys': IdempotencyKeysSelect<false> | IdempotencyKeysSelect<true>;
     'action-throttles': ActionThrottlesSelect<false> | ActionThrottlesSelect<true>;
+    'app-bundles': AppBundlesSelect<false> | AppBundlesSelect<true>;
     players: PlayersSelect<false> | PlayersSelect<true>;
     clubs: ClubsSelect<false> | ClubsSelect<true>;
     cards: CardsSelect<false> | CardsSelect<true>;
@@ -308,6 +310,33 @@ export interface IdempotencyKey {
 export interface ActionThrottle {
   id: number;
   key: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "app-bundles".
+ */
+export interface AppBundle {
+  id: number;
+  /**
+   * Bundle id of the app it is for, e.g. uk.co.example.app.staging.
+   */
+  appId: string;
+  /**
+   * Only shells with this store version receive it.
+   */
+  nativeVersion: string;
+  version: string;
+  url: string;
+  /**
+   * SHA-256 of the zip, hex.
+   */
+  checksum: string;
+  /**
+   * Off: devices on this bundle go back to the store version.
+   */
+  active?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -631,6 +660,10 @@ export interface PayloadLockedDocument {
         value: number | ActionThrottle;
       } | null)
     | ({
+        relationTo: 'app-bundles';
+        value: number | AppBundle;
+      } | null)
+    | ({
         relationTo: 'players';
         value: number | Player;
       } | null)
@@ -846,6 +879,20 @@ export interface IdempotencyKeysSelect<T extends boolean = true> {
  */
 export interface ActionThrottlesSelect<T extends boolean = true> {
   key?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "app-bundles_select".
+ */
+export interface AppBundlesSelect<T extends boolean = true> {
+  appId?: T;
+  nativeVersion?: T;
+  version?: T;
+  url?: T;
+  checksum?: T;
+  active?: T;
   updatedAt?: T;
   createdAt?: T;
 }

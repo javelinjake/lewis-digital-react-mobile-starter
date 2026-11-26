@@ -10,7 +10,7 @@ import { gameActions } from './cms/actions/game'
 import { momentActions } from './cms/actions/moments'
 import { packActions } from './cms/actions/packs'
 import { rewardActions } from './cms/actions/rewards'
-import { shopActions } from './cms/actions/shop'
+import { grantPurchase, shopActions } from './cms/actions/shop'
 import { cardsCollection } from './cms/collections/cards'
 import { challengeEntriesCollection } from './cms/collections/challenge-entries'
 import { clubsCollection } from './cms/collections/clubs'
@@ -34,5 +34,7 @@ export default buildConfig(createAppBackend({
   collections: [playersCollection, clubsCollection, cardsCollection, fixturesCollection, ledgerCollection, challengeEntriesCollection, notesCollection],
   globals: [gameConfigGlobal],
   endpoints: [...gameActions, ...packActions, ...arcadeActions, ...rewardActions, ...momentActions, ...challengeActions, ...shopActions, duplicateNoteAction],
+  // A store purchase is paid into the club when RevenueCat reports it (see `grantPurchase`).
+  purchases: { onEvent: grantPurchase },
   adminMeta: { titleSuffix: `· ${appMeta.name} admin` },
 }))

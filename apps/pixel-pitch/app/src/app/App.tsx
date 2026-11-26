@@ -9,22 +9,39 @@ import { RouterProvider, useNavigate } from 'react-router'
 import { SessionScope } from '@/app/session-scope'
 import { gameKeys } from '@/features/game/queries/game.keys'
 import { installTapSound } from '@/lib/sound/sound'
+import { telemetry } from '@/lib/telemetry/telemetry'
+import { reportAppReady } from '@/lib/updates/live-updates'
 import { router } from '@/routes/router'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function App() {
   const status = useAuthStore(state => state.status)
 
-  useEffect(() => {
-    void useAuthStore.getState().bootstrap()
-  }, [])
+  const userId = useAuthStore(state => state.userId)
 
   // A quiet tap on every button.
   useEffect(() => installTapSound(), [])
 
   useEffect(() => {
-    if (status !== 'bootstrapping')
+    void useAuthStore.getState().bootstrap()
+    // The saved consent is applied in main.tsx; this is dropped unless analytics are on by then.
+    telemetry.track('session_started')
+  }, [])
+
+  // Analytics are linked to the account id, never an email, and unlinked on sign-out.
+  useEffect(() => {
+    if (userId)
+      telemetry.identify(userId)
+    else
+      telemetry.reset()
+  }, [userId])
+
+  useEffect(() => {
+    if (status !== 'bootstrapping') {
       void hideSplashScreen()
+      // The first screen is up: a live update that got this far is kept.
+      reportAppReady()
+    }
   }, [status])
 
   return (

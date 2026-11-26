@@ -1,4 +1,4 @@
-import type { AnyTaps, Cabinet, CabinetTaps, ChallengeBoard, ChallengeResult, ChanceResult, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupResult, WeeklyClaim } from '@ld/pixel-pitch-core'
+import type { AnyTaps, Cabinet, CabinetTaps, ChallengeBoard, ChallengeResult, ChanceResult, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, IdentityChange, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupResult, WeeklyClaim } from '@ld/pixel-pitch-core'
 
 /** Everything the game screens ask the server for. `game.live.ts` calls the api; `game.mock.ts` runs the rules here. */
 export interface GameApi {
@@ -42,10 +42,6 @@ export interface GameApi {
   readBoard: () => Promise<ChallengeBoard>
   /** Takes last week's reward. */
   claimWeekly: () => Promise<GameResponse & WeeklyClaim>
-  /** Buys a premium kit with gems. */
-  buyKit: (kitId: string) => Promise<GameResponse & { kitId: string, gems: number }>
-  /** Puts on a free kit, or a premium one the club owns. */
-  wearKit: (kitPrimary: string, kitSecondary: string) => Promise<GameResponse>
   /** Takes everything that is waiting (stadium, tray, calendar, free pack, goals, Pass, album) in one call. */
   claimAll: () => Promise<GameResponse & ClaimAllResult>
   claimGoal: (goalId: string) => Promise<GameResponse & { reward: Reward }>
@@ -53,6 +49,19 @@ export interface GameApi {
   claimCalendar: () => Promise<GameResponse & { day: number, reward: Reward }>
   claimPassTier: (track: PassTrack, tier: number) => Promise<GameResponse & { reward: Reward }>
   claimAlbumSet: (setId: string) => Promise<GameResponse & { reward: Reward }>
+  /** What gems buy. Gems never buy a random pack. */
+  refillEnergy: () => Promise<GameResponse>
+  buyBenchSlots: () => Promise<GameResponse & { bench: number }>
+  retryWarmup: () => Promise<GameResponse>
+  buyKit: (kitId: string) => Promise<GameResponse>
+  changeIdentity: (change: IdentityChange) => Promise<GameResponse>
+  /** Uses a Star Signing on one of the three offered players. */
+  chooseSigning: (playerId: string) => Promise<GameResponse & { player: Player }>
+  /**
+   * Mock data only: pays a store product at once, as the RevenueCat webhook would after a real purchase. The live
+   * api has no such call: money only ever arrives through the store.
+   */
+  pretendPurchase?: (productId: string) => Promise<GameResponse>
   readCatalogue: () => Promise<Player[]>
   readConfig: () => Promise<GameConfig>
   /** The club's most recent matches, newest first. */

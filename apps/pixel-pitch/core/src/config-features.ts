@@ -1,17 +1,13 @@
+import type { Reward } from './config-rewards'
 import { z } from 'zod'
+import { rewardSchema } from './config-rewards'
 
-// The schemas of the newer systems (match moments, mastery, the daily challenge, Prestige, the shop) and their
+// The schemas of the newer systems (match moments, mastery, the daily challenge, Prestige) and their
 // defaults, kept apart from `config.ts` so neither file grows too long. `gameConfigSchema` uses them.
 
 const positive = z.number().positive()
 const count = z.number().int().nonnegative()
 
-/** Something a goal, the calendar, the pass or an album set can pay out. `packs` go on the shelf, `starPacks` are guaranteed a Star or better. */
-export const rewardSchema = z.object({
-  kind: z.enum(['coins', 'gems', 'tokens', 'packs', 'starPacks']),
-  amount: z.number().int().positive(),
-})
-export type Reward = z.infer<typeof rewardSchema>
 
 
 /** Bronze, silver and gold, each a share (0 to 1) of the game's top score, rising. */
@@ -19,18 +15,6 @@ const medalShares = z.tuple([z.number().min(0).max(1), z.number().min(0).max(1),
 
 type Shares = [number, number, number]
 
-export const DEFAULT_SHOP = {
-  kits: [
-    { id: 'kit-claret', name: 'Claret and sky', primary: '#7a1f3d', secondary: '#9fd4ff', gems: 120 },
-    { id: 'kit-gold', name: 'Gold and black', primary: '#f2c230', secondary: '#10122a', gems: 120 },
-    { id: 'kit-violet', name: 'Violet and white', primary: '#6b3fd6', secondary: '#f4f4f4', gems: 120 },
-    { id: 'kit-mint', name: 'Mint and navy', primary: '#5fe0b0', secondary: '#1b1f3b', gems: 120 },
-    { id: 'kit-ember', name: 'Ember and charcoal', primary: '#ff6a2b', secondary: '#2b2d3a', gems: 150 },
-    { id: 'kit-ice', name: 'Ice and red', primary: '#e8f4ff', secondary: '#e2483d', gems: 150 },
-    { id: 'kit-forest', name: 'Forest and gold', primary: '#1f6b3a', secondary: '#ffd23f', gems: 150 },
-    { id: 'kit-midnight', name: 'Midnight and pink', primary: '#1b1f3b', secondary: '#ff4f79', gems: 200 },
-  ],
-}
 /** Bronze, silver and gold scores, rising. */
 const medalScores = z.tuple([count, count, count])
 
@@ -138,13 +122,3 @@ export const prestigeSchema = z.object({
   coinBonusPerTier: z.number().min(0).max(0.5),
 }).default({ coinBonusPerTier: 0.02 })
 
-/** The shop: looks only, bought with gems. PLACEHOLDER prices. */
-export const shopSchema = z.object({
-  kits: z.array(z.object({
-    id: z.string().min(1),
-    name: z.string().min(1),
-    primary: z.string().regex(/^#[0-9a-f]{6}$/i),
-    secondary: z.string().regex(/^#[0-9a-f]{6}$/i),
-    gems: z.number().int().positive(),
-  })),
-}).default(DEFAULT_SHOP)

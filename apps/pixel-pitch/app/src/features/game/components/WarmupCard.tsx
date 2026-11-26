@@ -28,6 +28,7 @@ export function WarmupPanel({ game, onDone }: { game: GameResponse, onDone: () =
   const [result, setResult] = useState<WarmupResult | null>(null)
   const start = useGameAction(() => gameApi.startWarmup())
   const finish = useGameAction((taps: AnyTaps) => gameApi.finishWarmup(taps))
+  const retry = useGameAction(() => gameApi.retryWarmup())
   const { state } = game.club
   const tried = state.warmupTriedFor === state.league.fixtureNo
   const bonus = state.league.warmupBonus
@@ -84,6 +85,13 @@ export function WarmupPanel({ game, onDone }: { game: GameResponse, onDone: () =
         <span className="text-lg">
           {bonus > 0 ? `You have warmed up: +${pct(bonus)} attack in your next league match only.` : 'You have warmed up for this match.'}
         </span>
+        {bonus < match.warmupGold
+          ? (
+              <button type="button" className="btn btn-ghost min-h-11" disabled={retry.isPending || state.idle.gems < config.shop.gems.warmupRetry} onClick={() => retry.mutate(undefined, { onSuccess: () => setPlaying(true), onError })}>
+                {`Another try · ${config.shop.gems.warmupRetry} gems`}
+              </button>
+            )
+          : null}
         <button type="button" className="btn btn-primary min-h-12" onClick={onDone}>Done</button>
       </div>
     )

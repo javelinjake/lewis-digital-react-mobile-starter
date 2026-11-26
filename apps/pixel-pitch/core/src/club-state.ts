@@ -133,8 +133,15 @@ export interface ClubState {
   badges: string[]
   /** The trophy cabinet: each league the club went up into, and when (0 for one won before the cabinet existed). */
   trophies: Array<{ tier: number, at: number }>
-  /** Shop items the club owns, by id (premium kits). Kept for good. */
-  cosmetics: string[]
+
+  /** What has been bought: the Chairman's Licence and extra bench room (bought with gems). */
+  perks: { licence: boolean, benchBuys: number }
+  /** Star Signings waiting to be chosen (`pending`), and how many have been chosen so far (seeds the next offer). */
+  signings: { pending: number, taken: number }
+  /** Premium kits the club owns (ids in `config.cosmetics.kits`). */
+  kits: string[]
+  /** The one-off starter offer: on sale until `until`, once. */
+  starterOffer: { until: number, bought: boolean }
 }
 
 export function newClubState(now: number, config: GameConfig): ClubState {
@@ -165,7 +172,10 @@ export function newClubState(now: number, config: GameConfig): ClubState {
     challenge: { day: -1, score: 0, claimedWeek: -1, weeks: [] },
     badges: [],
     trophies: [],
-    cosmetics: [],
+    perks: { licence: false, benchBuys: 0 },
+    signings: { pending: 0, taken: 0 },
+    kits: [],
+    starterOffer: { until: 0, bought: false },
   }
 }
 
@@ -187,7 +197,13 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
   return {
     ...fresh,
     ...rest,
-    idle: { ...saved.idle, trayCollectedAt: typeof tray === 'number' ? tray : Math.min(tray.kick, tray.keepy) },
+    idle: {
+      ...fresh.idle,
+      ...saved.idle,
+      trayCollectedAt: typeof tray === 'number' ? tray : Math.min(tray.kick, tray.keepy),
+      // A Pass from before it was tied to a season stays active for the season the club was in.
+      passSeason: saved.idle.passSeason ?? (saved.idle.hasPass ? saved.pass?.season ?? -1 : -1),
+    },
     energy: { ...fresh.energy, ...saved.energy },
     // Only the games there are now: the best of one taken out is dropped.
     arcade: {
@@ -206,5 +222,8 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
     challenge: { ...fresh.challenge, ...saved.challenge },
     // A club from before the cabinet gets its promotions so far, undated.
     trophies: saved.trophies ?? Array.from({ length: Math.max(0, saved.league.tier - 1) }, (_, index) => ({ tier: index + 2, at: 0 })),
+    perks: { ...fresh.perks, ...saved.perks },
+    signings: { ...fresh.signings, ...saved.signings },
+    starterOffer: { ...fresh.starterOffer, ...saved.starterOffer },
   }
 }

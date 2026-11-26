@@ -2,8 +2,9 @@ import type { Chance, FixtureResult, GameResponse } from '@ld/pixel-pitch-core'
 import type { ReactNode } from 'react'
 import { BottomActions } from '@ld/mobile-ui'
 import { EmptyState, LoadingState } from '@ld/ui'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { isCabinet } from '../lib/cabinets'
 import { kitOf, leagueName } from '../lib/club'
 import { markWatched, wasWatched } from '../lib/watched'
@@ -18,6 +19,8 @@ import { LiveMoment } from './LiveMoment'
 import { MatchTextReplay } from './MatchTextReplay'
 import { PacksScreen } from './PacksScreen'
 import { PassScreen } from './PassScreen'
+import { ShopScreen } from './ShopScreen'
+import { SigningScreen } from './SigningScreen'
 import { Crest } from './sprites'
 import { SquadScreen } from './SquadScreen'
 
@@ -37,6 +40,15 @@ export function GoalsTab() {
 
 export function PassTab() {
   return <WithClub>{game => <PassScreen game={game} />}</WithClub>
+}
+
+export function ShopView() {
+  const [search] = useSearchParams()
+  return <WithClub>{game => <ShopScreen game={game} from={search.get('from') ?? 'direct'} />}</WithClub>
+}
+
+export function SigningView() {
+  return <WithClub>{game => <SigningScreen game={game} />}</WithClub>
 }
 
 export function AlbumTab() {
@@ -129,6 +141,10 @@ export function MatchView() {
     setHolding(true)
     setMoment(current => current ?? offered)
   }, [offered])
+  useEffect(() => {
+    if (no !== undefined)
+      telemetry.track('match_viewed', { no: Number(no) })
+  }, [no])
 
   if (!fixture)
     return fixtures.isPending ? <LoadingState message="Finding the match…" /> : <EmptyState title="Match not found" />

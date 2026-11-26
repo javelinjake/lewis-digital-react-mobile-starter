@@ -1,12 +1,13 @@
 import type { OwnedCard } from './cards'
 import type { Player } from './catalogue'
 import type { GameConfig } from './config'
+import type { LedgerEntry } from './flow'
 import type { FixtureResult, LineupForMatch } from './league'
 import type { WelcomeBackEvent } from './state'
 import { hashSeed } from '@ld/utils/random/rng'
 import { advance, dayIndex, notificationTimes } from './advance'
 import { albumPower, albumSets, recordCollected } from './album'
-import { addXp, recordProgress, rollDaily, rollSeason } from './progress'
+import { addXp, closeSeason, grantReward, recordProgress, rollDaily, seasonOf } from './progress'
 import { mergeCards, sellValue, toFielded, train, trainingCost } from './cards'
 import { GameRuleError } from './errors'
 import { NEW_CARD_PREFIX } from './flow-packs'
@@ -46,6 +47,8 @@ export interface SyncResult {
   state: ClubState
   /** For the welcome-back summary. Empty when nothing happened. */
   events: WelcomeBackEvent[]
+  /** Gems, coins and tokens paid by the catch-up itself (season end, promotions), for the api's ledger. */
+  ledger: LedgerEntry[]
   /** Matches played in this catch-up, oldest first. The api stores them; the app replays the last. */
   fixtures: FixtureResult[]
 }
@@ -57,9 +60,14 @@ export interface SyncResult {
  */
 export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[], players: PlayerLookup, clubId: string | number, config: GameConfig, now: number }): SyncResult {
   const { cards, players, clubId, config, now } = input
-  const idle = advance(input.state.idle, config, now)
-  // A new day brings new goals; a new season clears the Pass. Both before matches, so a match counts for today.
-  let state = rollSeason(rollDaily({ ...input.state, idle: idle.state }, now, clubId, config), now, config)
+  // The Pass lasts for the season it was bought for, on the server's clock.
+  const hasPass = input.state.idle.passSeason === seasonOf(now, config)
+  const idle = advance({ ...input.state.idle, hasPass }, config, now)
+  // A new day brings new goals; a new season pays what was left on the Pass and clears it. Both before matches, so a
+  // match counts for today.
+  const season = closeSeason(rollDaily({ ...input.state, idle: idle.state }, now, clubId, config), now, config)
+  let state = season.state
+  const ledger: LedgerEntry[] = [...season.ledger]
   const league = playDueFixtures({ league: state.league, lineup: lineupForMatch(state, cards, players, config), clubId, config, now })
 
   const today = dayIndex(now, config)
@@ -78,6 +86,18 @@ export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[],
   }
 
   const events = [...idle.events]
+  if (season.rewards.length > 0)
+    events.push({ type: 'season-end', rewards: season.rewards })
+  for (const match of league.results) {
+    if (match.promotedTo === null)
+      continue
+    for (const reward of config.league.promotionRewards) {
+      const paid = grantReward(state, reward, 'promotion', String(match.promotedTo))
+      state = paid.state
+      ledger.push(...paid.ledger)
+    }
+    events.push({ type: 'promotion', tier: match.promotedTo, rewards: config.league.promotionRewards })
+  }
   if (league.results.length > 0 || league.skipped > 0) {
     const count = (result: FixtureResult['result']) => league.results.filter(match => match.result === result).length
     const promotions = league.results.map(match => match.promotedTo).filter((tier): tier is number => tier !== null)
@@ -98,6 +118,7 @@ export function syncClub(input: { state: ClubState, cards: readonly OwnedCard[],
   return {
     state: { ...state, league: league.league, coins: state.coins + league.coins },
     events,
+    ledger,
     fixtures: league.results,
   }
 }
@@ -259,7 +280,15 @@ export function foundClub(input: { clubId: string | number, now: number, config:
   const fielded = setLineup(state, state.formation, autoPick(state.formation, pool).ids, cards)
   const debut = playDebut({ state: fielded, cards, players, clubId, config, now })
   const collected = recordCollected(debut.state, starters.map(player => player.id), albumSets(catalogue, config))
+  // The first session has packs to open, a league match that kicks off within minutes, and the starter offer on sale
+  // for its first few days (the app shows it after the first league win).
+  const started: ClubState = {
+    ...collected,
+    idle: { ...collected.idle, shelfPacks: config.onboarding.starterShelfPacks },
+    league: { ...collected.league, nextKickoffAt: now + config.league.firstMatchMinutes * 60_000 },
+    starterOffer: { until: now + config.shop.starterHours * 3_600_000, bought: false },
+  }
   // Catch up at once, which grants today's gems and sets today's goals. No league match is due yet.
-  const synced = syncClub({ state: collected, cards, players, clubId, config, now })
+  const synced = syncClub({ state: started, cards, players, clubId, config, now })
   return { state: synced.state, cards, debut: debut.fixture, events: synced.events }
 }

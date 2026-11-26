@@ -4,6 +4,7 @@ import { useToast } from '@ld/ui'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { play } from '@/lib/sound/sound'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { CABINETS, topScore } from '../lib/cabinets'
@@ -45,6 +46,7 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   const begin = () => start.mutate(paid, {
     onSuccess: () => {
       setTicketPaid(paid)
+      telemetry.track('arcade_played', { cabinet, paid })
       setPhase('playing')
     },
     onError: error => toast.push(formatError(error), 'error'),

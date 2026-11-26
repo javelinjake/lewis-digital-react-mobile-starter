@@ -1,7 +1,7 @@
-import type { ClubState, FixtureChange, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
+import type { ClubIdentity, ClubState, FixtureChange, FixtureResult, FlowContext, GameConfig, GameResponse, OwnedCard, Player } from '@ld/pixel-pitch-core'
 import type { MockEntry } from './challenge.mock'
 import type { GameApi } from './game-api.types'
-import { addXp, arcadePack, buyKit, buyPack, changeFixture, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, claimWeekly, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChallenge, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mayWearKit, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, sellCard, setLineup, skipChance, startChallenge, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState, weekOf } from '@ld/pixel-pitch-core'
+import { addXp, applyPurchase, arcadePack, buyBenchSlots, buyKit, buyPack, changeFixture, changeIdentity, chooseSigning, claimAlbumSet, claimAll, claimCalendar, claimFreePack, claimGoal, claimPassTier, claimWeekly, collectStadium, collectTray, dayIndex, decidePack, DEFAULT_CONFIG, finishChallenge, finishChance, finishPlay, finishWarmup, FOOTBALLERS, foundClub, mergeInClub, NEW_CARD_PREFIX, openPack, playFriendly, refillEnergy, retryWarmup, seasonOf, sellCard, setLineup, skipChance, startChallenge, startChance, startPlay, startWarmup, syncClub, trainInClub, upgradeStadium, upgradeState, weekOf } from '@ld/pixel-pitch-core'
 import { mockStorage } from '@/lib/platform/mock-storage'
 import { useAuthStore } from '@/stores/auth.store'
 import { mockBoard, mockWeekStanding } from './challenge.mock'
@@ -41,11 +41,11 @@ if (typeof window !== 'undefined') {
   window.__pixelPitchClock = {
     advance: (ms: number) => mockStorage().setItem(CLOCK_KEY, String(clockOffset() + ms)),
     offset: clockOffset,
-    // Tests only: the League Pass is bought in the shop (a later milestone), so this switches its premium track on.
+    // Tests and playtests: switches the League Pass on (for this season) or off without going through the shop.
     setPass: (on: boolean) => {
       const club = load()
       if (club)
-        save({ ...club, club: { ...club.club, state: { ...club.club.state, idle: { ...club.club.state.idle, hasPass: on } } } })
+        save({ ...club, club: { ...club.club, state: { ...club.club.state, idle: { ...club.club.state.idle, hasPass: on, passSeason: on ? seasonOf(now(), config) : -1 } } } })
     },
   }
 }
@@ -140,7 +140,7 @@ function assignIds(mock: MockClub, state: ClubState, cards: OwnedCard[]) {
   return { cards: next, state: { ...state, lineup: state.lineup.map(id => (id ? ids.get(id) ?? id : null)) } }
 }
 
-async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowContext) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[], fixtureChanges?: FixtureChange[], extra?: T }): Promise<GameResponse & T> {
+async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowContext) => { state: ClubState, cards?: OwnedCard[], fixtures?: FixtureResult[], fixtureChanges?: FixtureChange[], identity?: ClubIdentity, extra?: T }): Promise<GameResponse & T> {
   const mock = load()
   if (!mock)
     throw new MockRuleError('Create your club first.', 404)
@@ -162,7 +162,7 @@ async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowCo
     return next
   })
   const next: MockClub = {
-    club: { ...mock.club, state: assigned.state, version: mock.club.version + 1 },
+    club: { ...mock.club, ...result.identity, state: assigned.state, version: mock.club.version + 1 },
     cards: assigned.cards,
     fixtures: stored,
     nextCardId: mock.nextCardId,
@@ -172,6 +172,8 @@ async function respond<T = object>(run: (mock: MockClub, at: number, ctx: FlowCo
   await new Promise(resolve => setTimeout(resolve, 120))
   return { club: next.club, cards: next.cards, fixtures, ...(changedFixtures.length > 0 ? { changedFixtures } : {}), events: synced.events, now: at, configVersion: config.version, ...(result.extra ?? {} as T) }
 }
+
+const identityOf = (mock: MockClub): ClubIdentity => ({ crest: mock.club.crest, kitPrimary: mock.club.kitPrimary, kitSecondary: mock.club.kitSecondary })
 
 function wrap<T>(run: () => T): T {
   try {
@@ -251,21 +253,24 @@ export const gameApi: GameApi = {
     const week = weekOf(dayIndex(at, config)) - 1
     return wrap(() => claimWeekly(ctx, week, mockWeekStanding(challengeEntries(), week, config)))
   }),
-  buyKit: kitId => respond((_mock, _at, ctx) => wrap(() => buyKit(ctx, kitId))),
-  async wearKit(kitPrimary, kitSecondary) {
-    const mock = load()
-    if (!mock)
-      throw new MockRuleError('Create your club first.', 404)
-    if (!mayWearKit(mock.club.state, kitPrimary, kitSecondary, config))
-      throw new MockRuleError('That kit is not yours to wear. Buy it in the shop first.')
-    save({ ...mock, club: { ...mock.club, kitPrimary: kitPrimary.toLowerCase(), kitSecondary: kitSecondary.toLowerCase() } })
-    return respond(club => ({ state: club.club.state }))
-  },
   claimGoal: goalId => respond((_mock, _at, ctx) => wrap(() => claimGoal(ctx, goalId))),
   claimFreePack: () => respond((_mock, _at, ctx) => wrap(() => claimFreePack(ctx))),
   claimCalendar: () => respond((_mock, _at, ctx) => wrap(() => claimCalendar(ctx))),
   claimPassTier: (track, tier) => respond((_mock, _at, ctx) => wrap(() => claimPassTier(ctx, track, tier))),
   claimAlbumSet: setId => respond((_mock, _at, ctx) => wrap(() => claimAlbumSet(ctx, setId))),
+  refillEnergy: () => respond((_mock, _at, ctx) => wrap(() => refillEnergy(ctx))),
+  buyBenchSlots: () => respond((_mock, _at, ctx) => wrap(() => buyBenchSlots(ctx))),
+  retryWarmup: () => respond((_mock, _at, ctx) => wrap(() => retryWarmup(ctx))),
+  buyKit: kitId => respond((mock, _at, ctx) => wrap(() => {
+    const result = buyKit(ctx, kitId, identityOf(mock))
+    return { ...result, identity: result.extra!.identity }
+  })),
+  changeIdentity: change => respond((mock, _at, ctx) => wrap(() => {
+    const result = changeIdentity(ctx, change, identityOf(mock))
+    return { ...result, identity: result.extra!.identity }
+  })),
+  chooseSigning: playerId => respond((_mock, _at, ctx) => wrap(() => chooseSigning(ctx, playerId))),
+  pretendPurchase: productId => respond((_mock, _at, ctx) => wrap(() => applyPurchase(ctx, productId) ?? { state: ctx.state })),
   readCatalogue: async () => catalogue,
   readConfig: async () => config,
   async readFixtures(limit) {

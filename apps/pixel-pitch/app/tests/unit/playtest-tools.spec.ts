@@ -70,7 +70,8 @@ describe('the playtest tools', () => {
     const claimed = await gameApi.claimAll()
     expect(claimed.club.state.daily.goals.every(goal => !goal.claimed)).toBe(true)
     await gameApi.claimGoal(claimed.club.state.daily.goals[0].id)
-    await gameApi.claimPassTier('free', 1)
+    // The free track pays every second tier.
+    await gameApi.claimPassTier('free', 2)
   })
 
   it('reset: the club is gone and the clock is back to real time', async () => {

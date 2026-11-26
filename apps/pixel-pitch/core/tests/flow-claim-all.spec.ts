@@ -90,7 +90,9 @@ describe('claim all', () => {
     const goal = all.state.daily.goals.find(entry => entry.progress >= entry.target)!
     expect(code(() => claimGoal({ ...ctx, state: all.state }, goal.id))).toBe('accepted')
     expect(tierReached(all.state, config)).toBeGreaterThan(0)
-    expect(code(() => claimPassTier({ ...ctx, state: all.state }, 'free', 1))).toBe('accepted')
+    // The free track pays every second tier.
+    expect(tierReached(all.state, config)).toBeGreaterThanOrEqual(2)
+    expect(code(() => claimPassTier({ ...ctx, state: all.state }, 'free', 2))).toBe('accepted')
   })
 
   it('reports what the wallet gained, so the pop-up can say so', () => {

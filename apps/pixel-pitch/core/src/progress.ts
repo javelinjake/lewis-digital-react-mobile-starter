@@ -39,12 +39,48 @@ export function seasonOf(now: number, config: GameConfig) {
   return Math.floor(dayIndex(now, config) / config.pass.seasonDays)
 }
 
-/** Starts a fresh season (XP and claims reset; what was unclaimed is lost) when the 4-week season has changed. */
-export function rollSeason(state: ClubState, now: number, config: GameConfig): ClubState {
+/**
+ * Starts a fresh season when the 4-week season has changed. Whatever the old season reached on the Pass but nobody
+ * claimed is paid first (the premium track too, if the Pass was bought for that season), so nothing earned is lost.
+ */
+export function closeSeason(state: ClubState, now: number, config: GameConfig): { state: ClubState, rewards: Reward[], ledger: LedgerEntry[] } {
   const season = seasonOf(now, config)
   if (state.pass.season >= season)
-    return state
-  return { ...state, pass: { season, xp: 0, claimedFree: [], claimedPremium: [] } }
+    return { state, rewards: [], ledger: [] }
+  let next = state
+  const rewards: Reward[] = []
+  const ledger: LedgerEntry[] = []
+  if (state.pass.season >= 0) {
+    const premium = state.idle.passSeason === state.pass.season
+    for (let tier = 1; tier <= tierReached(state, config); tier++) {
+      const free = config.pass.free[tier - 1]
+      const paid = config.pass.premium[tier - 1]
+      for (const [reward, owed] of [[free, !state.pass.claimedFree.includes(tier)], [paid, premium && !state.pass.claimedPremium.includes(tier)]] as const) {
+        if (!reward || !owed)
+          continue
+        const granted = grantReward(next, reward, 'season-end', `tier-${tier}`)
+        next = granted.state
+        ledger.push(...granted.ledger)
+        rewards.push(reward)
+      }
+    }
+  }
+  return { state: { ...next, pass: { season, xp: 0, claimedFree: [], claimedPremium: [] } }, rewards, ledger }
+}
+
+/** Starts a fresh season (see `closeSeason`, which also pays what was left unclaimed). */
+export function rollSeason(state: ClubState, now: number, config: GameConfig): ClubState {
+  return closeSeason(state, now, config).state
+}
+
+/** Whether the League Pass covers the season at `now`. */
+export function passActive(state: Pick<ClubState, 'idle'>, now: number, config: GameConfig) {
+  return state.idle.passSeason === seasonOf(now, config)
+}
+
+/** Days left in the season at `now`, counting today. */
+export function seasonDaysLeft(now: number, config: GameConfig) {
+  return config.pass.seasonDays - (dayIndex(now, config) % config.pass.seasonDays)
 }
 
 export function passTiers(config: GameConfig) {
@@ -80,10 +116,18 @@ export function grantReward(state: ClubState, reward: Reward, reason: string, re
       return { state: { ...state, idle: { ...state.idle, shelfPacks: state.idle.shelfPacks + reward.amount } }, ledger: [] }
     case 'starPacks':
       return { state: { ...state, starPacks: state.starPacks + reward.amount }, ledger: [] }
+    case 'signing':
+      return { state: { ...state, signings: { ...state.signings, pending: state.signings.pending + reward.amount } }, ledger: [] }
+    case 'kit':
+      return { state: reward.id && !state.kits.includes(reward.id) ? { ...state, kits: [...state.kits, reward.id] } : state, ledger: [] }
   }
 }
 
-export function describeReward(reward: Reward): string {
+export function describeReward(reward: Reward, config?: Pick<GameConfig, 'cosmetics'>): string {
+  if (reward.kind === 'kit')
+    return `${config?.cosmetics.kits.find(kit => kit.id === reward.id)?.name ?? 'Premium'} kit`
+  if (reward.kind === 'signing')
+    return reward.amount === 1 ? 'Star Signing' : `${reward.amount} Star Signings`
   const noun = { coins: 'coins', gems: 'gems', tokens: 'tokens', packs: 'pack', starPacks: 'Star pack' }[reward.kind]
   return reward.kind === 'packs' || reward.kind === 'starPacks' ? `${reward.amount} ${noun}${reward.amount === 1 ? '' : 's'}` : `${reward.amount.toLocaleString('en-GB')} ${noun}`
 }

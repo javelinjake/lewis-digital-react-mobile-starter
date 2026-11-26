@@ -1,5 +1,5 @@
 import type { ActionContext } from '@ld/backend'
-import type { ClubState, ClubView, FixtureChange, FixtureResult, FlowContext, FlowResult, GameConfig, GameResponse, LedgerEntry, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
+import type { ClubIdentity, ClubState, ClubView, FixtureChange, FixtureResult, FlowContext, FlowResult, GameConfig, GameResponse, LedgerEntry, OwnedCard, WelcomeBackEvent } from '@ld/pixel-pitch-core'
 import type { PayloadRequest } from 'payload'
 import type { Card, Club, Fixture } from '../../payload-types'
 import type { LoadedGame } from './load'
@@ -17,6 +17,8 @@ export interface Outcome<T> extends Omit<FlowResult<T>, 'extra'> {
   fixtures?: FixtureResult[]
   /** Matches already stored whose result a scored moment changed. */
   fixtureChanges?: FixtureChange[]
+  /** A new kit or crest, stored on the club beside the state. */
+  identity?: ClubIdentity
   /** Extra fields for the response. */
   extra?: T
 }
@@ -134,6 +136,9 @@ export const stateJson = (state: ClubState) => state as unknown as Record<string
 /** The club's state, with any field added since it was saved filled in. */
 export const readState = (club: Club, config: GameConfig) => upgradeState(club.state as unknown as ClubState, config)
 
+/** The club's kit and crest, as the shop rules take them. */
+export const identityOf = (club: Club): ClubIdentity => ({ crest: club.crest, kitPrimary: club.kitPrimary, kitSecondary: club.kitSecondary })
+
 /** What the rules need to run an action for this club, at the server's now. */
 export function flowContext(input: GameInput): FlowContext {
   return { state: input.state, cards: input.cards, catalogue: input.game.catalogue, players: input.game.players, config: input.game.config, clubId: input.club.id, now: input.now }
@@ -146,7 +151,7 @@ const balanceOf = (state: ClubState, currency: Currency) => (currency === 'coins
  * The club is written only if nobody else changed it since it was read (its `version`); otherwise the request fails
  * with 409 and the app retries with a fresh sync.
  */
-export async function saveClub<T>(ctx: ActionContext, input: GameInput, outcome: Outcome<T>, caughtUp: { fixtures: FixtureResult[], events: WelcomeBackEvent[] }): Promise<GameResponse & T> {
+export async function saveClub<T>(ctx: ActionContext, input: GameInput, outcome: Outcome<T>, caughtUp: { fixtures: FixtureResult[], events: WelcomeBackEvent[], ledger?: LedgerEntry[] }): Promise<GameResponse & T> {
   const { req, user } = ctx
   const { club, game, now } = input
   let state = outcome.state
@@ -188,7 +193,7 @@ export async function saveClub<T>(ctx: ActionContext, input: GameInput, outcome:
     if (event.type === 'gems')
       ledger.push({ currency: 'gems', amount: event.amount, reason: 'daily-gems' })
   }
-  ledger.push(...(outcome.ledger ?? []))
+  ledger.push(...(caughtUp.ledger ?? []), ...(outcome.ledger ?? []))
   for (const entry of ledger) {
     await req.payload.create({
       collection: 'ledger',
@@ -203,7 +208,7 @@ export async function saveClub<T>(ctx: ActionContext, input: GameInput, outcome:
   const written = await req.payload.update({
     collection: 'clubs',
     where: { and: [{ id: { equals: club.id } }, { version: { equals: club.version } }] },
-    data: { state: stateJson(state), version, tier: state.league.tier, points: state.league.points, coins: state.coins },
+    data: { state: stateJson(state), version, tier: state.league.tier, points: state.league.points, coins: state.coins, ...outcome.identity },
     depth: 0,
     overrideAccess: true,
     req,
@@ -213,7 +218,7 @@ export async function saveClub<T>(ctx: ActionContext, input: GameInput, outcome:
     throw new APIError('Your club changed on another device. Try again.', 409, { code: 'conflict' }, true)
 
   return {
-    club: toClubView(club, state, version),
+    club: toClubView({ ...club, ...outcome.identity }, state, version),
     cards,
     fixtures,
     ...(changed.length > 0 ? { changedFixtures: changed } : {}),

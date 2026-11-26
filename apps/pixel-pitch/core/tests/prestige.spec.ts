@@ -10,9 +10,9 @@ const strong: LineupForMatch = { formation: '2-2', players: FORMATIONS['2-2'].ro
 describe('prestige', () => {
   it('keeps rivals getting stronger past League 1, but never past what a squad can reach', () => {
     expect(tierRating(6, config)).toBeGreaterThan(tierRating(5, config))
-    expect(tierRating(7, config) - tierRating(6, config)).toBe(config.league.prestigeRivalStep)
-    expect(tierRating(60, config)).toBe(config.league.rivalCap)
-    expect(config.league.rivalCap).toBeLessThan(99)
+    expect(tierRating(7, config) - tierRating(6, config)).toBe(config.league.rivalPrestigeStep)
+    expect(tierRating(60, config)).toBe(config.league.rivalMaxRating)
+    expect(config.league.rivalMaxRating).toBeLessThan(99)
   })
 
   it('pays 2% more coins for each Prestige tier, from matches and the stadium', () => {

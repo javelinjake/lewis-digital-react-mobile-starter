@@ -77,3 +77,28 @@ export interface ChallengeBoard {
   weekPlayers: number
   yourWeek: { rank: number, score: number, days: number } | null
 }
+
+/** The eight kits every club can wear for free (chosen at onboarding). Premium kits are in `config.cosmetics.kits`. */
+export const BASE_KITS: ReadonlyArray<{ id: string, name: string, primary: string, secondary: string }> = [
+  { id: 'base-red', name: 'Red and white', primary: '#e2483d', secondary: '#f4f4f4' },
+  { id: 'base-blue', name: 'Blue and white', primary: '#3f7fd6', secondary: '#f4f4f4' },
+  { id: 'base-yellow', name: 'Yellow and navy', primary: '#ffd23f', secondary: '#1b1f3b' },
+  { id: 'base-green', name: 'Green and white', primary: '#3fa34d', secondary: '#f4f4f4' },
+  { id: 'base-black', name: 'Black and yellow', primary: '#10122a', secondary: '#ffd23f' },
+  { id: 'base-pink', name: 'Pink and navy', primary: '#ff4f79', secondary: '#1b1f3b' },
+  { id: 'base-orange', name: 'Orange and black', primary: '#ff9f43', secondary: '#10122a' },
+  { id: 'base-sky', name: 'Sky and navy', primary: '#5ec8ff', secondary: '#1b1f3b' },
+]
+
+/** A change to the club's look: a kit (base or owned premium) and/or a crest. */
+export interface IdentityChange {
+  kitId?: string
+  crest?: number
+}
+
+/** The club's look after a change, for the api to store beside the state. */
+export interface ClubIdentity {
+  crest: number
+  kitPrimary: string
+  kitSecondary: string
+}

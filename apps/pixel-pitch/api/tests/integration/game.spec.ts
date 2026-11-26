@@ -5,7 +5,7 @@ import type { Session } from './harness'
 import { randomUUID } from 'node:crypto'
 import process from 'node:process'
 import { ApiError, createApiClient } from '@ld/api-client'
-import { DEFAULT_CONFIG, gapBefore, generateCatalogue, sellValue, syncClub } from '@ld/pixel-pitch-core'
+import { DEFAULT_CONFIG, generateCatalogue, sellValue, syncClub } from '@ld/pixel-pitch-core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { clearGameCache } from '../../cms/game/load'
 import { boot, call, guest, inProcessFetch } from './harness'
@@ -53,9 +53,10 @@ describe('creating a club', () => {
     expect(aliceClub.fixtures[0]).toMatchObject({ no: -1, result: 'win', coins: config.league.winCoins })
     expect(aliceClub.club.state.coins).toBe(config.league.winCoins)
     expect(aliceClub.club.state.idle.gems).toBe(config.daily.gems)
-    // The quick opening: the first league match is minutes away, not hours.
-    expect(aliceClub.club.state.league.nextKickoffAt).toBe(T0 + gapBefore(0, config))
-    expect(gapBefore(0, config)).toBeLessThan(HOUR)
+    // The quick opening: the first league match is minutes away, not hours, and a new club starts with packs.
+    expect(aliceClub.club.state.league.nextKickoffAt).toBe(T0 + config.league.firstMatchMinutes * 60_000)
+    expect(config.league.firstMatchMinutes * 60_000).toBeLessThan(HOUR)
+    expect(aliceClub.club.state.idle.shelfPacks).toBe(config.onboarding.starterShelfPacks)
   })
 
   it('only once per player', async () => {

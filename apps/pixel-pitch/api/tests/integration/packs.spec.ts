@@ -36,7 +36,8 @@ describe('the pack shelf', () => {
   it('fills one pack every four hours and holds three', async () => {
     now = T0 + 9 * HOUR
     const synced = (await act(alice, 'sync', {}, { at: now })).json as GameResponse
-    expect(synced.club.state.idle.shelfPacks).toBe(Math.floor((9 * HOUR) / (config.shelf.intervalMinutes * 60_000)))
+    // A new club starts with a few packs, and the shelf adds one every four hours, up to what it holds.
+    expect(synced.club.state.idle.shelfPacks).toBe(Math.min(config.shelf.capacity, config.onboarding.starterShelfPacks + Math.floor((9 * HOUR) / (config.shelf.intervalMinutes * 60_000))))
 
     now = T0 + 3 * DAY
     const full = (await act(alice, 'sync', {}, { at: now })).json as GameResponse

@@ -59,11 +59,16 @@ export const appMeta = {
   hostname: ${quote(options.hostname)},
   orientation: ${quote(options.orientation)},
   tablet: ${options.tablet},
-  /** One entry per build environment (APP_ENV). Fill in each api address once it exists. */
+  /** Apple Developer team id (Membership details). Signs the iOS app and verifies Universal Links. */
+  appleTeamId: '',
+  /**
+   * One entry per build environment (APP_ENV). Fill in each api address once it exists. androidSha256 is the Play
+   * app signing key's SHA-256 for that bundle id (Play Console > App integrity), for Android App Links.
+   */
   environments: {
     dev: { apiUrl: 'http://localhost:3001' },
-    staging: { apiUrl: '' },
-    prod: { apiUrl: '' },
+    staging: { apiUrl: '', androidSha256: [] },
+    prod: { apiUrl: '', androidSha256: [] },
   },
   themeColor: ${quote(options.themeColor)},
   backgroundColor: ${quote(options.backgroundColor)},
@@ -73,6 +78,21 @@ export const appMeta = {
     anonymous: true,
     apple: false,
     google: false,
+  },
+  /**
+   * Native features that need a permission prompt, an entitlement or a config file, so each is off until the app
+   * needs it. To turn one on: set it here, add its plugin to package.json with "catalog:" (the list is in
+   * tooling/native/lib/native-features.ts), then \`pnpm native:configure\` writes the permissions. Push also needs the
+   * Firebase files in firebase/<env>/ (docs/native-release.md). Permission wording can be replaced with \`usage\`.
+   */
+  capabilities: {
+    push: false,
+    location: false,
+    biometrics: false,
+    barcode: false,
+    audio: false,
+    filePicker: false,
+    ota: false,
   },
 } as const
 `
@@ -141,8 +161,6 @@ export function scaffold(repoRoot: string, options: ScaffoldOptions, { dryRun = 
   writeFileSync(join(appDir, 'app.meta.ts'), appMetaSource(options))
   writeFileSync(join(appDir, 'src/config/app.config.ts'), `export const appConfig = {\n  name: ${quote(options.name)},\n  projectId: ${quote(options.slug)},\n  defaultRoute: '/home',\n  layout: 'tabs' as const,\n}\n`)
   replaceInFile(join(appDir, 'index.html'), '<title>Lewis Digital App</title>', `<title>${options.name.replace(/</g, '&lt;')}</title>`)
-  for (const file of ['public/.well-known/apple-app-site-association', 'public/.well-known/assetlinks.json'])
-    replaceInFile(join(appDir, file), /uk\.co\.lewisdigital\.template/g, options.appId)
 
   // The api gets its own database, and the playtest/web flags in the registry decide whether it deploys a client.
   replaceInFile(join(apiDir, 'payload.config.ts'), `CMS_LOCAL_DATABASE ??= 'template'`, `CMS_LOCAL_DATABASE ??= '${database}'`)

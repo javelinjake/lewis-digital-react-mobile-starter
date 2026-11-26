@@ -14,7 +14,13 @@
       ],
       "env": [
         "APP_ENV",
+        "BUILD_NUMBER",
         "VITE_*"
+      ],
+      "passThroughEnv": [
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT"
       ]
     },
     "build:native": {
@@ -26,7 +32,13 @@
       ],
       "env": [
         "APP_ENV",
+        "BUILD_NUMBER",
         "VITE_*"
+      ],
+      "passThroughEnv": [
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT"
       ]
     },
     "lint": {

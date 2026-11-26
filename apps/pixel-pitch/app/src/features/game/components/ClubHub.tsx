@@ -1,4 +1,5 @@
 import type { GameResponse } from '@ld/pixel-pitch-core'
+import { canBuy } from '@ld/pixel-pitch-core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
@@ -8,6 +9,8 @@ import { useClaimAll } from '../mutations/use-claim-all'
 import { gameKeys } from '../queries/game.keys'
 import { useCatalogue, useFixtures, useGameConfig } from '../queries/use-game'
 import { CloudSavePrompt } from './CloudSavePrompt'
+import { ConsentCard } from './ConsentCard'
+import { FirstSteps } from './FirstSteps'
 import { HubTiles } from './HubTiles'
 import { MatchHero } from './MatchHero'
 import { ReadyNow } from './ReadyNow'
@@ -17,7 +20,7 @@ import { WelcomeBack } from './WelcomeBack'
 const SEEN_KEY = 'pp-welcome-seen'
 
 function newsOf(game: GameResponse) {
-  return game.events.filter(event => event.type === 'matches' || (event.type === 'packs' && event.gained > 0))
+  return game.events.filter(event => event.type === 'matches' || event.type === 'promotion' || event.type === 'season-end' || (event.type === 'packs' && event.gained > 0))
 }
 
 /**
@@ -33,6 +36,8 @@ export function ClubHub({ game }: { game: GameResponse }) {
   const { data: catalogue } = useCatalogue()
   const { claim, pending, pop } = useClaimAll()
   const claims = claimCount(readyItems(game, config, catalogue ?? []))
+  const { state } = game.club
+  const starter = config.shop.products.find(product => product.kind === 'starter')
 
   const [seen, setSeen] = useState(() => Number(sessionStorage.getItem(SEEN_KEY) ?? 0))
   const news = newsOf(game)
@@ -48,8 +53,33 @@ export function ClubHub({ game }: { game: GameResponse }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {state.signings.pending > 0
+        ? (
+            <Link to="/signing" className="flex items-center justify-between border-2 border-accent bg-base-100 p-3">
+              <span className="text-lg">{state.signings.pending === 1 ? 'A Star Signing is waiting: pick your player' : `${state.signings.pending} Star Signings are waiting`}</span>
+              <span className="font-display text-xs text-accent">Choose ›</span>
+            </Link>
+          )
+        : null}
+
+      <FirstSteps game={game} />
+
       <ReadyNow game={game} claim={() => claim()} pending={pending} />
+
+      {starter && state.league.fixtureNo > 0 && canBuy(state, starter, config, game.now)
+        ? (
+            <Link to="/shop?from=starter-banner" className="flex items-center justify-between border-2 border-warning bg-base-100 p-3">
+              <span className="flex flex-col">
+                <span className="text-lg text-warning">Starter offer</span>
+                <span className="text-muted">A Star player of your choice, 300 gems and 5,000 coins. Once only.</span>
+              </span>
+              <span className="font-display text-xs">See offer ›</span>
+            </Link>
+          )
+        : null}
+
       <CloudSavePrompt game={game} />
+      <ConsentCard />
       <StadiumCard game={game} />
       <MatchHero game={game} onKickoff={sync} />
       <HubTiles game={game} />

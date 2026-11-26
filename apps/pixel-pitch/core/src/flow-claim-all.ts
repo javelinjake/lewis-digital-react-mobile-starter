@@ -20,6 +20,10 @@ export interface ClaimAllResult {
   packs: number
   /** Star packs added to the pack store. */
   starPacks: number
+  /** Star Signings to choose. */
+  signings: number
+  /** Premium kits unlocked. */
+  kits: number
 }
 
 /**
@@ -110,6 +114,8 @@ export function claimAll(ctx: FlowContext): FlowResult<ClaimAllResult> {
       tokens: after.tokens - before.tokens,
       packs: after.idle.shelfPacks - before.idle.shelfPacks,
       starPacks: after.starPacks - before.starPacks,
+      signings: after.signings.pending - before.signings.pending,
+      kits: after.kits.length - before.kits.length,
     },
   }
 }

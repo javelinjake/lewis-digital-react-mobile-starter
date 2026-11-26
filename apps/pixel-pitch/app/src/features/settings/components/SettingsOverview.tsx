@@ -1,6 +1,6 @@
 import { ActionSheet } from '@ld/mobile-ui'
 import { getPlatform, isNativePlatform } from '@ld/native'
-import { usePushNotifications } from '@ld/native/react'
+import { usePushNotifications } from '@ld/native/push'
 import { ConfirmDialog, useToast } from '@ld/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -9,6 +9,7 @@ import { NOTIFICATION_TYPES, useNotificationSettings } from '@/hooks/use-notific
 import { useSoundSetting } from '@/hooks/use-sound-setting'
 import { authApi } from '@/lib/auth/auth-api'
 import { isPlaytestBuild } from '@/lib/platform/mock-storage'
+import { analyticsAvailable, crashReportsAvailable, crashReportsOn, setAnalyticsConsent, setCrashReports, telemetry } from '@/lib/telemetry/telemetry'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatError } from '@/utils/format-error'
 import { saveJson } from '../lib/save-json'
@@ -26,10 +27,41 @@ export function SettingsOverview() {
   const push = usePushNotifications()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [sharing, setSharing] = useState(() => telemetry.consent.analytics)
+  const [crashReports, setCrashReportsState] = useState(crashReportsOn)
   return (
     <div className="flex flex-col gap-5">
       <SettingsGroup label="Sound">
         <SettingsSwitch title="Sound effects" subtitle="Packs, matches, the arcade and buttons" on={sound} onChange={setSound} />
+      </SettingsGroup>
+
+      <SettingsGroup label="Game">
+        <SettingsRow title="Shop" subtitle="League Pass, gems, kits and restore purchases" onClick={() => navigate('/shop?from=settings')} />
+        {crashReportsAvailable
+          ? (
+              <SettingsSwitch
+                title="Send crash reports"
+                on={crashReports}
+                onChange={(next) => {
+                  setCrashReportsState(next)
+                  void setCrashReports(next)
+                }}
+              />
+            )
+          : null}
+        {analyticsAvailable
+          ? (
+              <SettingsSwitch
+                title="Share usage data"
+                subtitle="Helps improve the game. Nothing that identifies you"
+                on={sharing}
+                onChange={(next) => {
+                  setSharing(next)
+                  void setAnalyticsConsent(next)
+                }}
+              />
+            )
+          : null}
       </SettingsGroup>
 
       <SettingsGroup label="Notifications">

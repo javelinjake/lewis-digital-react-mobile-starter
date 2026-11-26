@@ -14,6 +14,24 @@ interface ImportMetaEnv {
   readonly VITE_MOCK_PERSIST?: string
   readonly VITE_BUILD_TARGET?: 'web' | 'native'
   readonly VITE_PWA_DEV?: string
+  /** `package.json` version, set by config-vite. */
+  readonly VITE_APP_VERSION: string
+  /** Native build number when built by the release script (`BUILD_NUMBER`), otherwise empty. */
+  readonly VITE_APP_BUILD: string
+  /** `version+build`, the release name crash reports and source maps share. */
+  readonly VITE_APP_RELEASE: string
+  /** dev / staging / prod for native builds; the Vercel environment for the web. */
+  readonly VITE_APP_ENV: string
+  /** Sentry DSN (public). Crash reports are offered only when set. */
+  readonly VITE_SENTRY_DSN?: string
+  /** RevenueCat's public SDK keys (not secrets). Without one, the shop says purchases are not available. */
+  readonly VITE_REVENUECAT_IOS_KEY?: string
+  readonly VITE_REVENUECAT_ANDROID_KEY?: string
+  /** PostHog's public project key. Without it, nothing is recorded. */
+  readonly VITE_POSTHOG_KEY?: string
+  /** Links the shop shows. Both stores require them before an app with purchases is approved. */
+  readonly VITE_TERMS_URL?: string
+  readonly VITE_PRIVACY_URL?: string
 }
 
 interface ImportMeta {

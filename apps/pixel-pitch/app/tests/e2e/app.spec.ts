@@ -439,13 +439,14 @@ test.describe('Goals, Pass and album @game', () => {
     await expect(page.getByLabel('Day 2, claimed')).toBeVisible()
   })
 
-  test('a missed day starts the calendar again', async ({ page }) => {
+  test('a missed day keeps the calendar where it was', async ({ page }) => {
     await foundClub(page)
     await page.goto('/goals')
     await page.getByRole('button', { name: /^Claim day 1/ }).click()
+    await expect(page.getByLabel('Day 1, claimed')).toBeVisible()
     await advanceClock(page, 3 * 24 * HOUR)
     await page.goto('/goals')
-    await expect(page.getByRole('button', { name: /^Claim day 1/ })).toBeEnabled()
+    await expect(page.getByRole('button', { name: /^Claim day 2/ })).toBeEnabled()
   })
 
   test('the League Pass fills with XP from matches, and its premium track needs the Pass', async ({ page }) => {
@@ -456,8 +457,8 @@ test.describe('Goals, Pass and album @game', () => {
     await expect(page.getByText(/^Tier [1-9]\d? \/ 30$/)).toBeVisible()
     await expect(page.getByRole('list', { name: 'Tiers' }).getByRole('listitem')).toHaveCount(30)
     await expect(page.getByLabel('Tier 1 League Pass reward').getByText('Needs the League Pass')).toBeVisible()
-    // Every free tier pays something.
-    await expect(page.getByLabel(/^Tier \d+ free reward$/).getByText('None')).toHaveCount(0)
+    // The free track pays every second tier; the premium track pays every one.
+    await expect(page.getByLabel(/^Tier \d+ free reward$/).getByText('None')).toHaveCount(15)
 
     await page.evaluate(() => window.__pixelPitchClock!.setPass(true))
     await page.reload()

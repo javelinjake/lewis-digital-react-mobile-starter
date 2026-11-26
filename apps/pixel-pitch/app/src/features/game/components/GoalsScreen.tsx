@@ -135,7 +135,7 @@ export function GoalsScreen({ game }: { game: GameResponse }) {
         <button type="button" className="btn btn-primary h-12 text-base" disabled={next === null || calendar.isPending} onClick={() => calendar.mutate(undefined, { onError })}>
           {next === null || !nextReward ? 'Claimed today. Back tomorrow.' : `Claim day ${next} · ${rewardWords(nextReward)}`}
         </button>
-        <span className="text-sm text-muted">Come back every day. Miss one and it starts again. Day 7 is a Star pack.</span>
+        <span className="text-muted">One claim a day. Miss a day and you carry on where you left off. Day 7 is three Star packs.</span>
       </section>
     </div>
   )

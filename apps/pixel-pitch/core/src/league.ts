@@ -80,19 +80,23 @@ export function leagueLabel(tier: number): LeagueLabel {
   return tier <= 5 ? { kind: 'league', league: 6 - Math.max(1, tier) } : { kind: 'prestige', level: tier - 5 }
 }
 
+/** The last tier that is a league (League 1); higher tiers are Prestige. */
+const LAST_LEAGUE_TIER = 5
+
 /**
- * Average rating of the rivals in a tier. Each league up adds `rivalStep`; each Prestige tier `prestigeRivalStep`, so
- * they keep getting stronger without passing what a squad can reach (`rivalCap`).
+ * Average rating of the rivals in a tier. Each league up adds `rivalStep`; each Prestige tier adds the smaller
+ * `rivalPrestigeStep`, up to `rivalMaxRating`, so the ladder keeps getting harder without outgrowing the best cards.
  */
 export function tierRating(tier: number, config: GameConfig): number {
-  const { rivalBaseRating, rivalStep, prestigeRivalStep, rivalCap } = config.league
-  const leagues = Math.min(Math.max(1, tier), 5) - 1
-  const prestige = Math.max(0, tier - 5)
-  return Math.min(rivalCap, rivalBaseRating + leagues * rivalStep + prestige * prestigeRivalStep)
+  const { rivalBaseRating, rivalStep, rivalPrestigeStep, rivalMaxRating } = config.league
+  const at = Math.max(1, tier)
+  const leagues = Math.min(at, LAST_LEAGUE_TIER) - 1
+  const prestige = Math.max(0, at - LAST_LEAGUE_TIER)
+  return Math.min(rivalMaxRating, rivalBaseRating + leagues * rivalStep + prestige * rivalPrestigeStep)
 }
 
 /** Prestige tiers reached: 0 until the club goes up from League 1. */
-export const prestigeLevel = (tier: number) => Math.max(0, tier - 5)
+export const prestigeLevel = (tier: number) => Math.max(0, tier - LAST_LEAGUE_TIER)
 
 /** Coins with the club's Prestige bonus: +2% for each Prestige tier reached, by default. */
 export function withPrestige(coins: number, tier: number, config: GameConfig): number {

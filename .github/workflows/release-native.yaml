@@ -1,7 +1,13 @@
 # Builds a SIGNED app and uploads it: TestFlight for iOS, the Play internal track for Android. Run it by hand.
 #
-# This workflow has not been run yet: it needs the secrets below, which only you can create. The first run will fail
-# at the first missing one, and the error names it. See docs/native-release.md for how to make each.
+# The supported way to release is from a Mac: `pnpm release:android` / `pnpm release:ios` in the app folder
+# (docs/native-release.md). This workflow is for when you want CI to do it instead. It has never been run, so expect
+# to fix things on the first run:
+#   - it needs the secrets below, which only you can create; the first run fails at the first missing one.
+#   - the iOS archive passes only DEVELOPMENT_TEAM. The project uses automatic signing, which a CI runner cannot do
+#     without an Apple account, so the archive step will likely need CODE_SIGN_STYLE=Manual,
+#     PROVISIONING_PROFILE_SPECIFIER and a provisioningProfiles entry in export.plist.
+# The api address comes from app.meta.ts (environments.<app_env>.apiUrl); the build fails if it is empty.
 #
 # Repository secrets
 #   Both:     (none)
@@ -15,7 +21,7 @@
 #             PLAY_SERVICE_ACCOUNT_JSON    Google Play service account with release access
 #
 # Environment values (set per app under Settings > Environments, one environment per APP_ENV)
-#   VITE_API_URL, and the public SDK keys the app reads (RevenueCat, PostHog, Sentry DSN)
+#   The public SDK keys the app reads (RevenueCat, PostHog, Sentry DSN). VITE_API_URL only to override app.meta.ts.
 name: Release native
 
 on:

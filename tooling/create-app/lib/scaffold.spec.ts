@@ -66,7 +66,9 @@ describe('scaffold', () => {
     assert.match(meta, /themeColor: '#ffd23f'/)
     assert.match(read(root, 'apps/pixel-pitch/app/src/config/app.config.ts'), /projectId: 'pixel-pitch'/)
     assert.match(read(root, 'apps/pixel-pitch/app/index.html'), /<title>Pixel Pitch<\/title>/)
-    assert.match(read(root, 'apps/pixel-pitch/app/public/.well-known/apple-app-site-association'), /uk\.co\.lewisdigital\.pixelpitch/)
+    // Every native capability starts off; the app turns on what it needs.
+    assert.match(meta, /capabilities: \{\n    push: false,/)
+    assert.match(meta, /appleTeamId: ''/)
   })
 
   it('gives the api its own database, so apps never share data', () => {

@@ -225,7 +225,24 @@ export function createApiClient(options: ApiClientOptions) {
     return send<T>(`/api${path}`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, authenticated: true })
   }
 
-  return { auth, collection, action, request: send }
+  /** This device's push token. The server keeps one row per device and moves it to whoever registered it last. */
+  const push = {
+    register(input: { token: string, platform: 'ios' | 'android', appVersion?: string }) {
+      return send<{ registered: true }>('/api/actions/push/register', { method: 'POST', body: input, authenticated: true })
+    },
+
+    /** Call before `auth.signOut()`, while the session still exists, so this phone stops getting the account's pushes. */
+    unregister(token: string) {
+      return send<{ registered: false }>('/api/actions/push/unregister', { method: 'POST', body: { token }, authenticated: true })
+    },
+
+    /** Sends a test notification to the signed-in user's devices. `configured: false` when the api has no Firebase key. */
+    sendTest() {
+      return send<{ configured: boolean, sent: number, removed: number, failed: number }>('/api/actions/push/test', { method: 'POST', body: {}, authenticated: true })
+    },
+  }
+
+  return { auth, collection, action, push, request: send }
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>

@@ -3,6 +3,7 @@ import { dayIndex, mergeable, oddsForTier, usedToday } from '@ld/pixel-pitch-cor
 import { useToast } from '@ld/ui'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { telemetry } from '@/lib/telemetry/telemetry'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { art } from '../lib/art'
@@ -53,7 +54,10 @@ export function PacksScreen({ game }: { game: GameResponse }) {
   // Open all: each pack shows its three players face up at once, and Done opens the next.
   const [all, setAll] = useState(false)
   const reveal = {
-    onSuccess: () => setRevealing(true),
+    onSuccess: (response: GameResponse) => {
+      telemetry.track('pack_opened', { source: response.club.state.pendingPack?.source ?? 'unknown' })
+      setRevealing(true)
+    },
     onError: (error: unknown) => {
       setOpening(null)
       onError(error)

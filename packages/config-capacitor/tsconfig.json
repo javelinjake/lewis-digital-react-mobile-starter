@@ -1,4 +1,8 @@
 {
   "extends": "../config-typescript/backend.json",
+  "compilerOptions": {
+    // Vite loads app configs, and so this package, with Node's own ESM loader, which needs the extension.
+    "allowImportingTsExtensions": true
+  },
   "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
 }

@@ -1,6 +1,6 @@
 import { ScreenContent } from '@ld/mobile-ui'
-import { ShopScreen } from '@/features/game/components/ShopScreen'
+import { ShopView } from '@/features/game/components/screens'
 
 export function ShopPage() {
-  return <ScreenContent><ShopScreen /></ScreenContent>
+  return <ScreenContent><ShopView /></ScreenContent>
 }
