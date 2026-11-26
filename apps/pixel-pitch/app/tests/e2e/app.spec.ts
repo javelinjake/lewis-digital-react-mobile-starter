@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { advanceClock, expect, foundClub, guest, HOUR, kickOff, tab, test, weakDevice } from './helpers'
+import { advanceClock, expect, foundClub, guest, HOUR, kickOff, playWarmup, tab, test, weakDevice } from './helpers'
 
 test.describe('App smoke @smoke', () => {
   test('login screen renders', async ({ page }) => {
@@ -251,21 +251,30 @@ test.describe('Stadium, warm-up and arcade @game', () => {
     await expect(stadium.getByText(/Level 2/)).toBeVisible()
   })
 
-  test('the warm-up kick can be tried once for a match, and the result is kept', async ({ page }) => {
+  test('the warm-up is a free play of one arcade game, once a match, and the result is kept', async ({ page }) => {
+    test.setTimeout(90_000)
     await foundClub(page)
+    await page.goto('/arcade')
+    const tray = page.getByRole('region', { name: 'Token tray' })
+    const tokensBefore = await tray.getByText(/^You have \d+\./).textContent()
     await page.goto('/club')
     const match = page.getByRole('region', { name: 'Next match' })
     await match.getByRole('button', { name: 'Warm up' }).click()
-    const warmup = page.getByRole('dialog', { name: 'Warm-up kick' })
-    await warmup.getByRole('button', { name: 'Take the kick' }).click()
-    await page.waitForTimeout(400)
-    await warmup.getByRole('button', { name: 'KICK!' }).click()
-    await expect(warmup.getByText(/^(Perfect!|Good|Missed)$/)).toBeVisible()
-    await expect(warmup.getByText(/attack in your next league match only|warmed up for this match/)).toBeVisible()
+    const warmup = page.getByRole('dialog', { name: 'Warm-up' })
+    await expect(warmup.getByRole('heading', { name: /^Today's warm-up: (Kick Timer|Keepy-Uppy|Penalty Shootout|Keeper Reflex|Dribble Dash)$/ })).toBeVisible()
+    await expect(warmup.getByText('Score 80%+ for +10% attack, 45%+ for +5%, anything else +2%.')).toBeVisible()
+    await playWarmup(page)
+    await expect(warmup.getByText(/^(Kick Timer|Keepy-Uppy|Penalty Shootout|Keeper Reflex|Dribble Dash): \d+ of \d+ \(\d+%\)$/)).toBeVisible()
+    await expect(warmup.getByRole('status')).toHaveText(/^(Gold!|Good warm-up|Not your best)$/)
+    await expect(warmup.getByText(/^\+(10|5|2)% attack in your next league match only\.$/)).toBeVisible()
     await warmup.getByRole('button', { name: 'Done' }).click()
     // One try a match: the card now shows what it gave instead of offering another.
     await expect(match.getByRole('button', { name: 'Warm up' })).toHaveCount(0)
-    await expect(match.getByRole('button', { name: /^Warmed up: \+\d+% attack$/ })).toBeVisible()
+    await expect(match.getByRole('button', { name: /^Warmed up: \+(10|5|2)% attack$/ })).toBeVisible()
+    // It cost no energy and paid no tokens.
+    await page.goto('/arcade')
+    await expect(page.getByRole('region', { name: 'Energy' }).getByText('5 / 5')).toBeVisible()
+    await expect(tray.getByText(/^You have \d+\./)).toHaveText(tokensBefore!)
   })
 
   test('Kick Timer: five kicks, scored by the server, paying tokens, and costing one energy', async ({ page }) => {

@@ -12,7 +12,7 @@ const MIN_TAP_MS = 150
 const FEEDBACK_MS = 800
 
 /**
- * Kick Timer: five kicks. Stop the marker in the target. A round can be fast, have a small target or a moving one, and
+ * Kick Timer: five kicks. Stop the ball in the target. A round can be fast, have a small target or a moving one, and
  * a kick right after a perfect one counts double. Scored by the server from the milliseconds each tap came after its
  * round began, with the game's seed; what the player sees here is only the same maths, run early.
  */
@@ -76,7 +76,7 @@ export function KickTimerGame({ seed, onFinish }: { seed: string, onFinish: (tap
           : <span className="font-display text-sm text-primary">{`${VERDICT[verdict]}${doubled && verdict > 0 ? ' ×2' : ''}`}</span>}
       </div>
       <button type="button" className="btn btn-primary h-20 w-full font-display text-lg" onPointerDown={kick} disabled={verdict !== null}>KICK!</button>
-      <span className="text-muted">Tap when the marker is in the yellow.</span>
+      <span className="text-muted">Tap when the ball is in the yellow.</span>
     </div>
   )
 }

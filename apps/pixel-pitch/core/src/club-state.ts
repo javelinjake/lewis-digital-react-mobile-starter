@@ -26,13 +26,17 @@ export interface DayCounter {
 }
 
 /** Every arcade game. The hot cabinet of the day follows this order. */
-export const CABINETS = ['kick', 'keepy', 'pens', 'keeper', 'pass', 'dribble', 'targets', 'cones'] as const
+export const CABINETS = ['kick', 'keepy', 'pens', 'keeper', 'dribble'] as const
 export type Cabinet = typeof CABINETS[number]
 
-/** One play of an arcade game or the warm-up kick. The server hands it out and checks the result against it. */
+export const isCabinet = (value: unknown): value is Cabinet => CABINETS.includes(value as Cabinet)
+
+/** One play of an arcade game or the warm-up. The server hands it out and checks the result against it. */
 export interface Ticket {
   id: string
   kind: Cabinet | 'warmup'
+  /** For the warm-up: the arcade game it is a play of. */
+  cabinet?: Cabinet
   /** Fixes the game's layout (target positions, ball kicks), so the server can replay the player's taps. */
   seed: string
   issuedAt: number
@@ -75,7 +79,7 @@ export interface ClubState {
   /** Tickets handed out so far. Seeds each play. */
   ticketsIssued: number
   ticket: Ticket | null
-  /** The league match the warm-up kick was last tried for: one try a match. */
+  /** The league match the warm-up was last tried for: one try a match. */
   warmupTriedFor: number
 
   daily: { day: number, goals: DailyGoal[], freePackClaimed: boolean }
@@ -124,12 +128,20 @@ export function upgradeState(saved: Partial<ClubState> & Pick<ClubState, 'idle' 
   // earlier of the two times (nothing already earned is lost), and the plays become energy, starting full.
   const { cabinetPlays: _old, ...rest } = saved as typeof saved & { cabinetPlays?: unknown }
   const tray = saved.idle.trayCollectedAt as number | { kick: number, keepy: number }
+  // A play of a game since taken out of the arcade, or a warm-up from when it was a timing bar, cannot be finished: it
+  // goes. An unfinished warm-up gives its try back, since it never paid anything.
+  const ticket = saved.ticket ?? null
+  const stale = ticket !== null && (ticket.kind === 'warmup' ? !isCabinet(ticket.cabinet) : !isCabinet(ticket.kind))
+  const warmupBack = stale && ticket.kind === 'warmup' && saved.warmupTriedFor === saved.league.fixtureNo
   return {
     ...fresh,
     ...rest,
     idle: { ...saved.idle, trayCollectedAt: typeof tray === 'number' ? tray : Math.min(tray.kick, tray.keepy) },
     energy: { ...fresh.energy, ...saved.energy },
-    arcade: { best: { ...fresh.arcade.best, ...saved.arcade?.best } },
+    // Only the games there are now: the best of one taken out is dropped.
+    arcade: { best: Object.fromEntries(CABINETS.map(cabinet => [cabinet, saved.arcade?.best?.[cabinet] ?? 0])) as Record<Cabinet, number> },
+    ticket: stale ? null : ticket,
+    warmupTriedFor: warmupBack ? fresh.warmupTriedFor : (saved.warmupTriedFor ?? fresh.warmupTriedFor),
     daily: { ...fresh.daily, ...saved.daily },
     calendar: { ...fresh.calendar, ...saved.calendar },
     pass: { ...fresh.pass, ...saved.pass },

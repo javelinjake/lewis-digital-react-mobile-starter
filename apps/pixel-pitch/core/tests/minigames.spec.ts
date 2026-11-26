@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { KeepyTap } from '../src'
-import { DEFAULT_CONFIG, inReach, KEEPY_STEPS_PER_SECOND, keepyMax, keepyScore, kickRounds, markerAt, newKeepy, nextKickGolden, runKeepy, scoreKick, shareOf, stepKeepy, targetAt, warmupBar, warmupZone } from '../src'
+import { DEFAULT_CONFIG, inReach, KEEPY_STEPS_PER_SECOND, keepyMax, keepyScore, kickRounds, markerAt, newKeepy, nextKickGolden, runKeepy, scoreKick, shareOf, stepKeepy, targetAt } from '../src'
 
 const config = DEFAULT_CONFIG
 
@@ -163,28 +163,6 @@ describe('Kick Timer', () => {
 
   it('needs exactly one tap for each kick', () => {
     expect(() => scoreKick('club:kick:1', [500, 500], config)).toThrow()
-  })
-})
-
-describe('the warm-up kick', () => {
-  it('is gold in the middle, green near it and a miss far from it', () => {
-    const seed = 'club:warmup:3'
-    const bar = warmupBar(seed, config)
-    expect(warmupBar(seed, config)).toEqual(bar)
-    expect(warmupZone(seed, perfectTap(bar), config)).toBe('gold')
-    const zones = new Set(Array.from({ length: 4000 }, (_, ms) => warmupZone(seed, ms, config)))
-    expect(zones).toEqual(new Set(['gold', 'green', 'miss']))
-  })
-
-  it('has zones of the configured widths: a gold tap is within 5% of the bar, green within 15%', () => {
-    const seed = 'club:warmup:4'
-    const bar = warmupBar(seed, config)
-    for (let ms = 0; ms < 4000; ms += 7) {
-      const distance = Math.abs(markerAt(bar, ms) - bar.centre)
-      const zone = warmupZone(seed, ms, config)
-      expect(zone === 'gold').toBe(distance <= config.minigames.warmup.goldWidth / 2)
-      expect(zone === 'green').toBe(distance > config.minigames.warmup.goldWidth / 2 && distance <= config.minigames.warmup.greenWidth / 2)
-    }
   })
 })
 

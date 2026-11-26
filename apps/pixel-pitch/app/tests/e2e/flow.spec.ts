@@ -1,4 +1,4 @@
-import { advanceClock, expect, foundClub, HOUR, openSettings, tab, test } from './helpers'
+import { advanceClock, expect, foundClub, HOUR, openSettings, playWarmup, tab, test } from './helpers'
 
 const arcadeTab = (page: Parameters<typeof tab>[0]) => tab(page, 'Arcade')
 
@@ -105,15 +105,13 @@ test.describe('The next tap is always on screen @flow', () => {
   })
 
   test('the match card has everything before kick-off: the lineup, the warm-up and a friendly', async ({ page }) => {
+    test.setTimeout(90_000)
     await foundClub(page)
     await page.goto('/club')
     const match = page.getByRole('region', { name: 'Next match' })
     await expect(match.getByText(/^Win \d+%$/)).toBeVisible()
     await match.getByRole('button', { name: 'Warm up' }).click()
-    const warmup = page.getByRole('dialog', { name: 'Warm-up kick' })
-    await warmup.getByRole('button', { name: 'Take the kick' }).click()
-    await page.waitForTimeout(400)
-    await warmup.getByRole('button', { name: 'KICK!' }).click()
+    const warmup = await playWarmup(page)
     await warmup.getByRole('button', { name: 'Done' }).click()
     await match.getByRole('link', { name: 'Set lineup' }).click()
     await expect(page).toHaveURL(/\/squad/)

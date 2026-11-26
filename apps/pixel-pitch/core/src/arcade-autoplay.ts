@@ -3,7 +3,7 @@ import type { CabinetTaps } from './arcade-taps'
 import type { Cabinet } from './club-state'
 import type { GameConfig } from './config'
 import type { KeepyTap } from './minigames'
-import { ballSlot, coneRound, dribbleEndMs, dribbleRun, dribbleTackle, keeperShots, passLength, passSequence, startLane, targetSpots } from './arcade-games'
+import { dribbleEndMs, dribbleRun, dribbleTackle, keeperShots, startLane } from './arcade-games'
 import { ballCentre, inReach, kickRounds, markerAt, newKeepy, penaltyRounds, penaltyShot, stepKeepy, targetAt } from './minigames'
 
 // A perfect player for every cabinet: what a play that scores the most sends. For the tests (core, api and app) and
@@ -63,11 +63,6 @@ function keeper(seed: string, config: Config) {
   return keeperShots(seed, config).map(shot => ({ side: shot.side, ms: shot.delayMs + minReactionMs + Math.floor((shot.windowMs - minReactionMs) / 2) }))
 }
 
-function pass(seed: string, config: Config) {
-  const sequence = passSequence(seed, config)
-  return Array.from({ length: config.minigames.pass.rounds }, (_, round) => sequence.slice(0, passLength(round, config)))
-}
-
 /** Stands in a lane none of the next two defenders is coming down, moving one lane at a time. */
 function dribble(seed: string, config: Config): LaneMove[] {
   const defenders = dribbleRun(seed, config)
@@ -90,15 +85,7 @@ function dribble(seed: string, config: Config): LaneMove[] {
   return moves
 }
 
-function targets(seed: string, config: Config) {
-  return targetSpots(seed, config).map(target => ({ ms: Math.min(target.lifeMs, config.minigames.minTapGapMs * 2), x: target.x, y: target.y }))
-}
-
-function cones(seed: string, config: Config) {
-  return Array.from({ length: config.minigames.cones.rounds }, (_, round) => ballSlot(coneRound(seed, round, config)))
-}
-
-const PLAYERS: { [C in Cabinet]: (seed: string, config: Config) => CabinetTaps[C] } = { kick, pens, keepy, keeper, pass, dribble, targets, cones }
+const PLAYERS: { [C in Cabinet]: (seed: string, config: Config) => CabinetTaps[C] } = { kick, pens, keepy, keeper, dribble }
 
 /** What a perfect play of `cabinet` with `seed` sends: it scores the most the cabinet pays for. */
 export function perfectTaps<C extends Cabinet>(cabinet: C, seed: string, config: Config): CabinetTaps[C] {

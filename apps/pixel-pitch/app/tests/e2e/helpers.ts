@@ -72,3 +72,22 @@ export async function openSettings(page: Page) {
   await page.getByRole('link', { name: 'Settings' }).click()
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
 }
+
+/**
+ * In the warm-up sheet: plays whichever arcade game it picked for the match, to the end. It taps the big button of a
+ * timing game (Kick Timer, the penalties) when there is one, and otherwise lets the game run out (the ball drops, a
+ * defender tackles, the shots go in), so it works for every game. Returns the sheet, showing the result.
+ */
+export async function playWarmup(page: Page) {
+  const sheet = page.getByRole('dialog', { name: 'Warm-up' })
+  await sheet.getByRole('button', { name: /^Warm up: play / }).click()
+  const result = sheet.getByLabel('Warm-up result')
+  const tap = sheet.getByRole('button', { name: /^(KICK!|SHOOT!)$/ })
+  for (let tries = 0; tries < 160 && !(await result.isVisible()); tries++) {
+    if (await tap.count() > 0 && await tap.isEnabled())
+      await tap.click({ timeout: 1000 }).catch(() => {})
+    await page.waitForTimeout(400)
+  }
+  await expect(result).toBeVisible()
+  return sheet
+}

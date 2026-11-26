@@ -1,8 +1,7 @@
 import type { GameConfig } from './config'
-import type { WarmupZone } from './match'
 import { createRng, hashSeed } from '@ld/utils/random/rng'
 
-// The arcade games and the warm-up kick are played on the phone, but every one of them is a pure function of its
+// The arcade games are played on the phone, but every one of them is a pure function of its
 // seed and the player's taps. The server hands out a seed (a ticket), the phone plays, and the server replays the
 // taps to get the score. A phone cannot claim a score the taps do not make.
 
@@ -157,20 +156,6 @@ export function scorePenalties(seed: string, taps: readonly number[], config: Pi
     throw new Error(`A Penalty Shootout play has ${rounds.length} penalties.`)
   const shots = rounds.map((round, index) => penaltyShot(round, taps[index], config))
   return { points: shots.map(shot => shot.points), outcomes: shots.map(shot => shot.outcome), total: shots.reduce((sum, shot) => sum + shot.points, 0), max: rounds.length * 2 }
-}
-
-// ---- Warm-up kick: one try at a timing bar before the match. ----
-
-export function warmupBar(seed: string, config: Pick<GameConfig, 'minigames'>): Bar {
-  const { minSpeed, maxSpeed } = config.minigames.warmup
-  return makeBar(createRng(hashSeed(seed, 'warmup')), minSpeed, maxSpeed)
-}
-
-export function warmupZone(seed: string, tapMs: number, config: Pick<GameConfig, 'minigames'>): WarmupZone {
-  const bar = warmupBar(seed, config)
-  const distance = Math.abs(markerAt(bar, tapMs) - bar.centre)
-  const { goldWidth, greenWidth } = config.minigames.warmup
-  return distance <= goldWidth / 2 ? 'gold' : distance <= greenWidth / 2 ? 'green' : 'miss'
 }
 
 // ---- Keepy-Uppy: tap the ball to keep it up. It drifts about and gets faster. ----

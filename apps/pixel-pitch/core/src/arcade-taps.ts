@@ -1,8 +1,8 @@
-import type { KeeperDive, LaneMove, TargetTap } from './arcade-games'
+import type { KeeperDive, LaneMove } from './arcade-games'
 import type { Cabinet } from './club-state'
 import type { GameConfig } from './config'
 import type { KeepyTap } from './minigames'
-import { DIVE_SIDES, scoreCones, scoreDribble, scoreKeeper, scorePass, scoreTargets } from './arcade-games'
+import { DIVE_SIDES, scoreDribble, scoreKeeper } from './arcade-games'
 import { GameRuleError } from './errors'
 import { KEEPY_STEPS_PER_SECOND, keepyMax, runKeepy, scoreKick, scorePenalties } from './minigames'
 
@@ -14,20 +14,14 @@ type Config = Pick<GameConfig, 'minigames'>
  * - kick, pens: the milliseconds into each round at which the player tapped.
  * - keepy: each tap's 60 Hz step and where it landed, in pitch units.
  * - keeper: each shot's dive (which way, and when), or null for none.
- * - pass: the players tapped in each round, in order.
  * - dribble: each lane change, with when.
- * - targets: each target's tap (when after it appeared, and where), or null for none.
- * - cones: the slot picked in each round.
  */
 export interface CabinetTaps {
   kick: number[]
   pens: number[]
   keepy: KeepyTap[]
   keeper: Array<KeeperDive | null>
-  pass: number[][]
   dribble: LaneMove[]
-  targets: Array<TargetTap | null>
-  cones: number[]
 }
 
 export type AnyTaps = CabinetTaps[Cabinet]
@@ -53,10 +47,7 @@ export function cabinetMax(cabinet: Cabinet, config: Config): number {
     case 'pens': return games.pens.rounds * 2
     case 'keepy': return keepyMax(config)
     case 'keeper': return games.keeper.shots
-    case 'pass': return games.pass.rounds
     case 'dribble': return games.dribble.defenders
-    case 'targets': return games.targets.count
-    case 'cones': return games.cones.rounds
   }
 }
 
@@ -108,13 +99,6 @@ export function scorePlay(cabinet: Cabinet, seed: string, taps: unknown, config:
       return scored(() => scoreKeeper(seed, taps as Array<KeeperDive | null>, config))
     }
 
-    case 'pass': {
-      const { players } = config.minigames.pass
-      if (!taps.every(round => Array.isArray(round) && round.length <= config.minigames.pass.start + config.minigames.pass.rounds && round.every(player => isIndex(player, players))))
-        throw bad()
-      return scored(() => scorePass(seed, taps as number[][], config))
-    }
-
     case 'dribble': {
       const { lanes } = config.minigames.dribble
       let previous: LaneMove = { ms: Number.NEGATIVE_INFINITY, lane: Math.floor(lanes / 2) }
@@ -128,18 +112,8 @@ export function scorePlay(cabinet: Cabinet, seed: string, taps: unknown, config:
       return scored(() => scoreDribble(seed, taps as LaneMove[], config))
     }
 
-    case 'targets': {
-      if (!taps.every(tap => tap === null || (isObject(tap) && isTime(tap.ms) && isNumber(tap.x) && isNumber(tap.y))))
-        throw bad()
-      if (taps.some(tap => tap !== null && (tap as TargetTap).ms < minTapGapMs))
-        throw bad('A target cannot be hit that quickly.')
-      return scored(() => scoreTargets(seed, taps as Array<TargetTap | null>, config))
-    }
-
-    case 'cones': {
-      if (!taps.every(pick => isIndex(pick, config.minigames.cones.cones)))
-        throw bad()
-      return scored(() => scoreCones(seed, taps as number[], config))
-    }
+    // A game no longer in the arcade, or never in it.
+    default:
+      throw bad('There is no such game.')
   }
 }

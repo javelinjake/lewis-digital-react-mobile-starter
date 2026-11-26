@@ -1,5 +1,4 @@
-import type { AnyTaps, Cabinet, CabinetTaps, GameResponse, PlayResult } from '@ld/pixel-pitch-core'
-import type { ComponentType } from 'react'
+import type { AnyTaps, Cabinet, GameResponse, PlayResult } from '@ld/pixel-pitch-core'
 import { energyAt, hotCabinet } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useState } from 'react'
@@ -9,31 +8,12 @@ import { gameApi } from '../api/game-api'
 import { CABINETS, topScore } from '../lib/cabinets'
 import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
-import { ConeGame } from './ConeGame'
-import { DribbleGame } from './DribbleGame'
+import { cabinetGame } from './cabinet-games'
 import { EnergyBar } from './EnergyBar'
-import { KeeperGame } from './KeeperGame'
-import { KeepyGame } from './KeepyGame'
-import { KickTimerGame } from './KickTimerGame'
 import { NextSteps } from './NextSteps'
-import { PassGame } from './PassGame'
-import { PenaltyGame } from './PenaltyGame'
 import { Icon } from './sprites'
-import { TargetGame } from './TargetGame'
 
 type Phase = 'intro' | 'playing' | 'result'
-
-/** Each cabinet's game. It records what the player did, in that cabinet's shape, and hands it over at the end. */
-const GAMES: { [C in Cabinet]: ComponentType<{ seed: string, onFinish: (taps: CabinetTaps[C]) => void }> } = {
-  kick: KickTimerGame,
-  keepy: KeepyGame,
-  pens: PenaltyGame,
-  keeper: KeeperGame,
-  pass: PassGame,
-  dribble: DribbleGame,
-  targets: TargetGame,
-  cones: ConeGame,
-}
 
 /** One play of a cabinet: start (the server issues the ticket), play, send the taps, see what it paid. */
 export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cabinet }) {
@@ -74,8 +54,7 @@ export function ArcadePlay({ game, cabinet }: { game: GameResponse, cabinet: Cab
   })
 
   if (phase === 'playing' && ticket) {
-    // Every game hands over its own cabinet's shape; the union is what the api takes.
-    const Game = GAMES[cabinet] as ComponentType<{ seed: string, onFinish: (taps: AnyTaps) => void }>
+    const Game = cabinetGame(cabinet)
     return (
       <div className="flex flex-col gap-3">
         <h2 className="text-primary">{info.name}</h2>

@@ -9,25 +9,27 @@ async function play(page: Page, name: string) {
 }
 
 test.describe('The arcade games @game', () => {
-  test('the arcade lists all eight games, each with how tokens are worked out before a play', async ({ page }) => {
+  test('the arcade lists its five games, each with how tokens are worked out before a play', async ({ page }) => {
     await foundClub(page)
     await page.goto('/arcade')
-    for (const name of ['Kick Timer', 'Keepy-Uppy', 'Penalty Shootout', 'Keeper Reflex', 'Pass Master', 'Dribble Dash', 'Target Practice', 'Cone Shuffle'])
+    for (const name of ['Kick Timer', 'Keepy-Uppy', 'Penalty Shootout', 'Keeper Reflex', 'Dribble Dash'])
       await expect(page.getByRole('region', { name }).getByText('Not played yet')).toBeVisible()
-    await expect(page.getByRole('link', { name: /Play · 1 energy/ })).toHaveCount(8)
+    for (const gone of ['Pass Master', 'Target Practice', 'Cone Shuffle'])
+      await expect(page.getByRole('region', { name: gone })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: /Play · 1 energy/ })).toHaveCount(5)
     await expect(page.getByText(/Today \+50% tokens/)).toHaveCount(1)
 
-    await page.getByRole('region', { name: 'Cone Shuffle' }).getByRole('link', { name: /Play · 1 energy/ }).click()
+    await page.getByRole('region', { name: 'Dribble Dash' }).getByRole('link', { name: /Play · 1 energy/ }).click()
     await expect(page.getByText('Up to 60 tokens a play, in proportion to your score; +50% on today\'s game.')).toBeVisible()
-    await expect(page.getByText(/Pick the one with the ball/)).toBeVisible()
+    await expect(page.getByText(/switch lane and go round them/)).toBeVisible()
   })
 
   test('the back button while playing goes to the arcade', async ({ page }) => {
     await foundClub(page)
     await page.goto('/club')
-    await page.goto('/arcade/cones')
+    await page.goto('/arcade/kick')
     await page.getByRole('button', { name: /^Start/ }).click()
-    await expect(page.getByText('Watch the ball…')).toBeVisible()
+    await expect(page.getByText('Kick 1 of 5')).toBeVisible()
     await page.getByRole('button', { name: 'Back' }).click()
     await expect(page).toHaveURL(/\/arcade$/)
     await expect(page.getByRole('region', { name: 'Token tray' })).toBeVisible()
@@ -58,20 +60,6 @@ test.describe('The arcade games @game', () => {
     await expect(page.getByRole('button', { name: /Play again · 4 energy left/ })).toBeVisible()
   })
 
-  test('Pass Master: the move is shown, then it is your turn, and a wrong pass ends it', async ({ page }) => {
-    await foundClub(page)
-    await play(page, 'Pass Master')
-    await expect(page.getByText('Watch…')).toBeVisible()
-    await expect(page.getByText('Your turn: 0 of 3')).toBeVisible({ timeout: 10_000 })
-    // No player gets two passes in a row, so tapping the same player twice is always a wrong pass.
-    await page.getByRole('button', { name: 'Player 1' }).click()
-    await page.getByRole('button', { name: 'Player 1' }).click()
-    await expect(page.getByText('Wrong pass!')).toBeVisible()
-    const result = page.getByLabel('Result')
-    await expect(result).toBeVisible({ timeout: 15_000 })
-    await expect(result.getByText(/^Score 0 of 8 → 0 tokens$/)).toBeVisible()
-  })
-
   test('Dribble Dash: moving changes lane, and the run ends in a score the server agrees with', async ({ page }) => {
     test.setTimeout(60_000)
     await foundClub(page)
@@ -87,43 +75,11 @@ test.describe('The arcade games @game', () => {
     await expect(result.getByText(/^Score \d+ of 32 → \d+ tokens$/)).toBeVisible()
   })
 
-  test('Target Practice: hitting a target scores, and the best is kept for next time', async ({ page }) => {
-    test.setTimeout(60_000)
-    await foundClub(page)
-    await play(page, 'Target Practice')
-    await expect(page.getByText('Target 1 of 15')).toBeVisible()
-    // A tap quicker than anyone could see the target does not count, so give it a moment.
-    await page.waitForTimeout(250)
-    await page.getByRole('button', { name: 'Target' }).click()
-    await expect(page.getByText('1 hit')).toBeVisible()
-    const result = page.getByLabel('Result')
-    await expect(result).toBeVisible({ timeout: 40_000 })
-    await expect(result.getByText(/^Score [1-9]\d* of 15 → \d+ tokens$/)).toBeVisible()
-    await expect(result.getByRole('status')).toHaveText('First score on the board!')
-    await page.getByRole('link', { name: 'Back to the arcade' }).click()
-    await expect(page.getByRole('region', { name: 'Target Practice' }).getByText(/^Best: [1-9]\d* \/ 15$/)).toBeVisible()
-  })
-
-  test('Cone Shuffle: the cones can only be picked once they stop, and five rounds end in a score out of five', async ({ page }) => {
-    test.setTimeout(90_000)
-    await foundClub(page)
-    await play(page, 'Cone Shuffle')
-    await expect(page.getByText('Watch the ball…')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Cone 1' })).toBeDisabled()
-    for (let round = 1; round <= 5; round++) {
-      await expect(page.getByText(`Round ${round} of 5`)).toBeVisible({ timeout: 15_000 })
-      await expect(page.getByText('Which cone?')).toBeVisible({ timeout: 15_000 })
-      await page.getByRole('button', { name: 'Cone 2' }).click()
-      await expect(page.getByText(/Got it!|Not that one/)).toBeVisible()
-    }
-    const result = page.getByLabel('Result')
-    await expect(result).toBeVisible({ timeout: 15_000 })
-    await expect(result.getByText(/^Score \d of 5 → \d+ tokens$/)).toBeVisible()
-  })
-
-  test('a game that does not exist says so', async ({ page }) => {
+  test('a game that does not exist, or no longer does, says so', async ({ page }) => {
     await foundClub(page)
     await page.goto('/arcade/pinball')
+    await expect(page.getByText(/No such (game|cabinet)/)).toBeVisible()
+    await page.goto('/arcade/cones')
     await expect(page.getByText(/No such (game|cabinet)/)).toBeVisible()
   })
 })

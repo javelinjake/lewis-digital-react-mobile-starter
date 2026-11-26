@@ -6,15 +6,18 @@ import { Link } from 'react-router'
 import { formatError } from '@/utils/format-error'
 import { gameApi } from '../api/game-api'
 import { CABINETS, topScore } from '../lib/cabinets'
+import { kitOf } from '../lib/club'
 import { useServerNow } from '../lib/server-clock'
 import { useGameAction } from '../mutations/use-game-action'
 import { useGameConfig } from '../queries/use-game'
+import { CabinetArt } from './CabinetArt'
 import { EnergyBar } from './EnergyBar'
 import { Icon } from './sprites'
 
-/** One game in the arcade: a strip of grass with its best score, its name and line, and Play. */
-function CabinetCard({ info, best, max, hot, bonus, hasEnergy, gemCost, wide }: {
+/** One game in the arcade: a strip of grass with a picture of the game and its best score, its name and line, and Play. */
+function CabinetCard({ info, kit, best, max, hot, bonus, hasEnergy, gemCost, wide }: {
   info: CabinetInfo
+  kit: readonly [string, string]
   best: number
   max: number
   hot: boolean
@@ -28,9 +31,11 @@ function CabinetCard({ info, best, max, hot, bonus, hasEnergy, gemCost, wide }: 
       className={`flex flex-col bg-base-100 ${hot ? 'shadow-[inset_0_0_0_3px_var(--color-warning)]' : 'shadow-[inset_0_0_0_2px_var(--color-slate)]'} ${wide ? 'col-span-2' : ''}`}
       aria-label={info.name}
     >
-      <div className={`pp-grass relative flex items-start justify-between gap-1 border-b-2 border-slate p-1.5 ${wide ? 'h-16' : 'h-11'}`}>
-        {hot ? <span className="bg-warning px-1.5 text-sm text-warning-content">{`Today +${bonus}% tokens`}</span> : <span />}
-        <span className="bg-base-200 px-1.5 text-sm text-primary tabular-nums">{best > 0 ? `Best: ${best} / ${max}` : 'Not played yet'}</span>
+      {/* The picture sits on the grass after the hot badge; the best-score badge is over its top right, kept clear. */}
+      <div className={`pp-grass relative flex items-start gap-2 overflow-hidden border-b-2 border-slate p-1.5 ${wide ? 'h-16' : 'h-11'}`}>
+        {hot ? <span className="shrink-0 bg-warning px-1.5 text-sm text-warning-content">{`Today +${bonus}% tokens`}</span> : null}
+        <CabinetArt cabinet={info.cabinet} kit={kit} scale={wide ? 3 : 2} className="-mb-1.5 shrink-0 self-end" />
+        <span className="absolute top-1.5 right-1.5 bg-base-200 px-1.5 text-sm text-primary tabular-nums">{best > 0 ? `Best: ${best} / ${max}` : 'Not played yet'}</span>
       </div>
       <div className="flex flex-1 flex-col gap-1 p-2.5">
         <h2 className="text-primary">{info.name}</h2>
@@ -87,6 +92,7 @@ export function ArcadeScreen({ game }: { game: GameResponse }) {
           <CabinetCard
             key={info.cabinet}
             info={info}
+            kit={kitOf(game)}
             best={state.arcade.best[info.cabinet]}
             max={topScore(info.cabinet, config)}
             hot={info.cabinet === hot}

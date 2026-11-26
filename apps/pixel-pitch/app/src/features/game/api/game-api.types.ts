@@ -1,4 +1,4 @@
-import type { Cabinet, CabinetTaps, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupZone } from '@ld/pixel-pitch-core'
+import type { AnyTaps, Cabinet, CabinetTaps, ClaimAllResult, FixtureResult, FormationId, GameConfig, GameResponse, NewClub, PassTrack, Player, PlayResult, Position, Reward, WarmupResult } from '@ld/pixel-pitch-core'
 
 /** Everything the game screens ask the server for. `game.live.ts` calls the api; `game.mock.ts` runs the rules here. */
 export interface GameApi {
@@ -24,8 +24,10 @@ export interface GameApi {
   startPlay: (cabinet: Cabinet, paid: boolean) => Promise<GameResponse>
   /** Sends what the game recorded (its shape depends on the cabinet); the server replays it and answers with the score and pay. */
   finishPlay: <C extends Cabinet>(cabinet: C, taps: CabinetTaps[C]) => Promise<GameResponse & PlayResult>
+  /** Starts the warm-up for the next match: the ticket names the arcade game to play (`ticket.cabinet`). Free. */
   startWarmup: () => Promise<GameResponse>
-  finishWarmup: (tapMs: number) => Promise<GameResponse & { zone: WarmupZone, bonus: number }>
+  /** Sends the warm-up game's taps (that cabinet's shape); the server replays them and sets the match's attack bonus. */
+  finishWarmup: (taps: AnyTaps) => Promise<GameResponse & WarmupResult>
   /** Takes everything that is waiting (stadium, tray, calendar, free pack, goals, Pass, album) in one call. */
   claimAll: () => Promise<GameResponse & ClaimAllResult>
   claimGoal: (goalId: string) => Promise<GameResponse & { reward: Reward }>
