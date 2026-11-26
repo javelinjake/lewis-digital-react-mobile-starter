@@ -1,4 +1,4 @@
-import type { GameResponse, Position } from '@ld/pixel-pitch-core'
+import type { GameResponse, PackSource, Position } from '@ld/pixel-pitch-core'
 import { dayIndex, mergeable, oddsForTier, usedToday } from '@ld/pixel-pitch-core'
 import { useToast } from '@ld/ui'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -48,7 +48,28 @@ export function PacksScreen({ game }: { game: GameResponse }) {
   const hasOdds = oddsForTier(state.league.tier, config).length > 0
   // A pack already waiting opens at once when sent here to open one.
   const [revealing, setRevealing] = useState(() => waiting && new URLSearchParams(window.location.search).has('open'))
-  const reveal = { onSuccess: () => setRevealing(true), onError }
+  // The pack the player has just asked for: the opening shows at once, with the pack shut until the server answers.
+  const [opening, setOpening] = useState<PackSource | null>(null)
+  const reveal = {
+    onSuccess: () => setRevealing(true),
+    onError: (error: unknown) => {
+      setOpening(null)
+      onError(error)
+    },
+  }
+  /** Shows the opening straight away, then asks the server for the pack. */
+  const start = (source: PackSource, ask: () => void) => {
+    setOpening(source)
+    ask()
+  }
+
+  // The pack pictures are fetched before they are needed, so the opening never waits on them.
+  useEffect(() => {
+    for (const from of ['shelf', 'star', 'arcade'] as const) {
+      for (const half of ['_top.png', '_bottom.png'])
+        new Image().src = art(packArt(state.league.tier, from).replace('.png', half))
+    }
+  }, [state.league.tier])
 
   // Sent here to open one (the daily free pack, Open packs after a claim): start the opening straight away.
   const [search, setSearch] = useSearchParams()
@@ -88,7 +109,7 @@ export function PacksScreen({ game }: { game: GameResponse }) {
                 className="btn btn-primary h-13 w-21 shrink-0 text-lg"
                 aria-label="Open your free pack"
                 disabled={waiting || busy || freePack.isPending}
-                onClick={() => freePack.mutate(undefined, { onSuccess: () => open.mutate('shelf', reveal), onError })}
+                onClick={() => start('shelf', () => freePack.mutate(undefined, { onSuccess: () => open.mutate('shelf', reveal), onError: reveal.onError }))}
               >
                 Open
               </button>
@@ -119,12 +140,12 @@ export function PacksScreen({ game }: { game: GameResponse }) {
             <li key={slot} className={`h-3 ${slot < packs ? 'bg-primary' : 'bg-base-200 shadow-[inset_0_0_0_1px_var(--color-slate)]'}`} />
           ))}
         </ul>
-        <button type="button" className="btn btn-primary h-13 text-lg" disabled={packs < 1 || waiting || busy} onClick={() => open.mutate('shelf', reveal)}>
+        <button type="button" className="btn btn-primary h-13 text-lg" disabled={packs < 1 || waiting || busy} onClick={() => start('shelf', () => open.mutate('shelf', reveal))}>
           {packs < 1 ? 'No packs yet' : 'Open a pack'}
         </button>
         {state.starPacks > 0
           ? (
-              <button type="button" className="btn btn-accent h-13 text-lg" disabled={waiting || busy} onClick={() => open.mutate('star', reveal)}>
+              <button type="button" className="btn btn-accent h-13 text-lg" disabled={waiting || busy} onClick={() => start('star', () => open.mutate('star', reveal))}>
                 {`Open a Star pack (${state.starPacks})`}
               </button>
             )
@@ -141,7 +162,7 @@ export function PacksScreen({ game }: { game: GameResponse }) {
             className="btn btn-accent mt-auto h-11 w-full gap-1.5"
             aria-label={`Buy a pack for ${config.shelf.extraPackCoins.toLocaleString('en-GB')} coins`}
             disabled={waiting || busy || boughtLeft < 1 || state.coins < config.shelf.extraPackCoins}
-            onClick={() => buy.mutate(undefined, reveal)}
+            onClick={() => start('buy', () => buy.mutate(undefined, reveal))}
           >
             <Icon path="icons/currency_coin.png" />
             {config.shelf.extraPackCoins.toLocaleString('en-GB')}
@@ -161,7 +182,7 @@ export function PacksScreen({ game }: { game: GameResponse }) {
             className="btn btn-accent mt-auto h-11 w-full gap-1.5"
             aria-label={`Arcade pack: more ${POSITIONS.find(entry => entry.position === position)?.label.toLowerCase()}s for ${config.cabinets.arcadePackTokens} tokens`}
             disabled={waiting || busy || state.tokens < config.cabinets.arcadePackTokens}
-            onClick={() => arcade.mutate(position, reveal)}
+            onClick={() => start('arcade', () => arcade.mutate(position, reveal))}
           >
             <Icon path="icons/currency_token.png" />
             {config.cabinets.arcadePackTokens}
@@ -199,13 +220,22 @@ export function PacksScreen({ game }: { game: GameResponse }) {
         <span className="text-sm text-muted">{`A Star or better is guaranteed within ${config.packs.pityPlayers} players. ${toGo} to go.`}</span>
       </section>
 
-      {revealing && waiting
+      {(revealing && waiting) || opening
         ? (
             <PackReveal
+              // A new pack is a fresh opening; the same pack keeps its place.
+              key={state.packsOpened}
               game={game}
-              onClose={() => setRevealing(false)}
+              source={opening ?? undefined}
+              onClose={() => {
+                setRevealing(false)
+                setOpening(null)
+              }}
               // Straight on to the next one: a Star pack first if there is one, then the shelf.
-              onNext={() => open.mutate(state.starPacks > 0 ? 'star' : 'shelf', reveal)}
+              onNext={() => {
+                const next = state.starPacks > 0 ? 'star' : 'shelf'
+                start(next, () => open.mutate(next, reveal))
+              }}
             />
           )
         : null}

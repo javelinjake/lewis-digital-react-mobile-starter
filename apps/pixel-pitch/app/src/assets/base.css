@@ -160,7 +160,7 @@
 .pp-flip-inner {
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 450ms steps(6, end);
+  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .pp-flip-inner[data-flipped="true"] {
@@ -255,3 +255,20 @@
 .btn { --fontsize: var(--text-lg); font-weight: 400; }
 .btn-sm { --fontsize: var(--text-base); }
 .btn-xs { --fontsize: var(--text-sm); }
+
+/* Pack opening, eased: a gentle wobble while it waits, a card sliding in, the name rising after the flip. */
+@keyframes pp-wobble {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-2deg) translateY(-3px); }
+  75% { transform: rotate(2deg) translateY(-3px); }
+}
+
+@keyframes pp-card-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pp-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
